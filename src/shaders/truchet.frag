@@ -6,18 +6,19 @@ out vec4 fragColor;
 uniform vec2  uRes;
 uniform float uTime;
 uniform float uThickness;  // stroke weight (cell units)
-// two complete character states. every one of these is mixed PER PIXEL by the
-// changeover front, so the new world arrives along the field's own structure
-// rather than behind a moving shape.
-uniform vec4  uAv1;        // shape, scale, haloForm, haloN
-uniform vec4  uAv2;        // haloR, discShape, discScale, -
-uniform vec4  uBv1;
-uniform vec4  uBv2;
-uniform vec3  uAGround; uniform vec3 uAInk; uniform vec3 uADiscInk;
-uniform vec3  uADiscA;  uniform vec3 uADiscB;
-uniform vec3  uBGround; uniform vec3 uBInk; uniform vec3 uBDiscInk;
-uniform vec3  uBDiscA;  uniform vec3 uBDiscB;
-uniform float uGrow;       // halo swell during the changeover
+uniform float uShape;      // 0..3 -- morphs continuously through four tile families
+uniform float uScale;      // cells across the short axis
+uniform vec3  uGroundA;    // ground gradient, top
+uniform vec3  uGroundB;    // ground gradient, bottom
+uniform vec3  uInk;
+uniform float uHaloForm;   // 0 circle -> 1 polygon -> 2 star, continuous
+uniform float uHaloN;
+uniform float uDiscR;
+uniform float uDiscShape;
+uniform float uDiscScale;
+uniform vec3  uDiscInk;
+uniform vec3  uDiscA;
+uniform vec3  uDiscB;
 uniform float uWarp;       // low-freq domain warp -> hand-drawn feel
 uniform float uJitter;     // per-cell positional wobble
 uniform float uRewire;     // advances the hash -> maze reroutes
@@ -39,12 +40,8 @@ uniform vec2  uDiscPos;
 uniform float uHaloRot;
 uniform float uDiscSoft;
 uniform sampler2D uTexA;   // outgoing figure
-uniform sampler2D uTexB;   // incoming figure
 uniform vec4  uFigA;       // aspect, height (uv units), y offset, unused
-uniform vec4  uFigB;
 uniform vec4  uRectA;      // alpha bounding box of the cutout, texture coords
-uniform vec4  uRectB;
-uniform float uTrans;      // 0..1 changeover progress
 uniform float uFigWarp;    // figure rides the same warp field as the pattern
 uniform float uFigFlow;    // slow curl advection -- the figure moves like liquid
 uniform float uFigEdge;    // the cutout edge is eaten by the same noise as the ink
@@ -156,28 +153,9 @@ void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
   vec2 uv0 = uv;
 
-  // the changeover front. a value field built from the same ingredients as the
-  // pattern -- low-frequency noise, per-cell hash, and distance from the halo --
-  // so the new state floods in along the structure instead of behind a circle.
-  float field = clamp(fbm(uv * 2.2 + 4.0) * 0.55
-                    + hash21(floor(uv * 9.0)) * 0.22
-                    + clamp(length(uv - uDiscPos) / 1.15, 0.0, 1.0) * 0.30, 0.0, 1.0);
-  float front  = uTrans * 1.4 - 0.18;
-  float reveal = 1.0 - smoothstep(front - 0.06, front + 0.06, field);
-
-  vec4  v1 = mix(uAv1, uBv1, reveal);
-  vec4  v2 = mix(uAv2, uBv2, reveal);
-  float pShape = v1.x, pScaleBase = v1.y, pHaloForm = v1.z, pHaloN = v1.w;
-  float pHaloR = v2.x, pDiscShape = v2.y, pDiscScale = v2.z;
-  vec3  pGround  = mix(uAGround,  uBGround,  reveal);
-  vec3  pInk     = mix(uAInk,     uBInk,     reveal);
-  vec3  pDiscInk = mix(uADiscInk, uBDiscInk, reveal);
-  vec3  pDiscA   = mix(uADiscA,   uBDiscA,   reveal);
-  vec3  pDiscB   = mix(uADiscB,   uBDiscB,   reveal);
-
   // four slow periods, mutually prime, so the loop never lands back on itself
-  float scaleNow = pScaleBase * (1.0 + sin(uTime * 0.11)       * 0.14 * uBreath);
-  float shapeNow = pShape +        sin(uTime * 0.067 + 1.3) * 0.55 * uBreath;
+  float scaleNow = uScale * (1.0 + sin(uTime * 0.11)       * 0.14 * uBreath);
+  float shapeNow = uShape +        sin(uTime * 0.067 + 1.3) * 0.55 * uBreath;
   float warpNow  = uWarp  * (1.0 + sin(uTime * 0.13 + 1.7) * 0.45 * uBreath);
   float driftNow = uDrift * (1.0 + sin(uTime * 0.05 + 3.1) * 0.60 * uBreath);
 
@@ -189,26 +167,32 @@ void main() {
   // radius function sweeps circle -> regular polygon -> spiked star, so the
   // silhouette can tween between characters like any other parameter.
   float th = atan(dv.y, dv.x) + uHaloRot;
-  float k  = 6.28318530718 / max(pHaloN, 3.0);
+  float k  = 6.28318530718 / max(uHaloN, 3.0);
   float a  = mod(th, k) - k * 0.5;
   float rPoly = cos(k * 0.5) / max(cos(a), 1e-4);
   float rStar = 1.0 - 0.55 * abs(a) / (k * 0.5);
-  float fm    = clamp(pHaloForm, 0.0, 2.0);
+  float fm    = clamp(uHaloForm, 0.0, 2.0);
   float rad   = fm < 1.0 ? mix(1.0, rPoly, fm) : mix(rPoly, rStar, fm - 1.0);
 
-  float edge = (pHaloR + uGrow) * rad;
+  float edge = uDiscR * rad;
   float mask = 1.0 - smoothstep(edge - uDiscSoft, edge + uDiscSoft, dRad);
 
   // the disc carries its own gradient, with a little radial fall to seat the
   // figure against it rather than leaving a flat plate
   float gy    = clamp(0.5 + dv.y / max(edge * 2.0, 1e-4), 0.0, 1.0);
-  vec3  disc  = mix(pDiscB, pDiscA, gy);
+  vec3  disc  = mix(uDiscB, uDiscA, gy);
   disc *= 1.0 - 0.18 * smoothstep(0.35, 1.0, dRad / max(edge, 1e-4));
 
-  vec3  groundNow = mix(pGround, disc,      mask);
-  vec3  inkNow    = mix(pInk,    pDiscInk,  mask);
-  scaleNow = mix(scaleNow, scaleNow * pDiscScale, mask);
-  shapeNow = mix(shapeNow, pDiscShape,            mask);
+  // the ground is a gradient too, so a disc that has grown to fill the frame
+  // reads identically to the next character's ground -- which is what lets the
+  // changeover run forward without ever travelling back.
+  float ggy    = clamp(0.5 + uv.y * 0.9, 0.0, 1.0);
+  vec3  ground = mix(uGroundB, uGroundA, ggy);
+
+  vec3  groundNow = mix(ground, disc,     mask);
+  vec3  inkNow    = mix(uInk,   uDiscInk, mask);
+  scaleNow = mix(scaleNow, scaleNow * uDiscScale, mask);
+  shapeNow = mix(shapeNow, uDiscShape,            mask);
 
   uv += warpNow * 0.06 * vec2(noise(uv * 2.3 + 11.0), noise(uv * 2.1 - 7.0));
 
@@ -245,34 +229,29 @@ void main() {
   float alpha = ink * load * holes * uDensity;
 
   vec3 col = mix(groundNow, inkNow, clamp(alpha, 0.0, 1.0));
-  // --- figures ---------------------------------------------------------
-  // the figure tears along the same front that repaints the field, and the
-  // torn edge is dragged sideways -- the outgoing character is pulled apart by
-  // the pattern rather than faded out under it.
-  float tear = exp(-pow((field - front) * 7.0, 2.0)) * uTrans * uFigWarp;
-  vec2 flow  = curl(uv0 * 1.6 + vec2(uTime * 0.035, uTime * -0.021));
-  vec2 figWarp = uFigWarp * 0.02 * vec2(noise(uv * 2.3 + 11.0) - 0.5,
-                                        noise(uv * 2.1 -  7.0) - 0.5)
-               + uFigFlow * 0.012 * flow
-               + tear * 0.11 * vec2(noise(uv * 5.0 + 21.0) - 0.5, 0.0);
+  // --- figure ----------------------------------------------------------
+  // gated on a uniform: curl() alone is four fbm evaluations per pixel, and it
+  // was being paid for every frame even with the figures hidden.
+  if (uFigShow > 0.5) {
+    vec2 figWarp = uFigWarp * 0.02 * vec2(noise(uv * 2.3 + 11.0) - 0.5,
+                                          noise(uv * 2.1 -  7.0) - 0.5);
+    if (uFigFlow > 0.0) {
+      figWarp += uFigFlow * 0.012 * curl(uv0 * 1.6 + vec2(uTime * 0.035, uTime * -0.021));
+    }
 
-  vec4 fa  = figure(uTexA, uFigA, uRectA, uv0, figWarp);
-  vec4 fb  = figure(uTexB, uFigB, uRectB, uv0, figWarp);
-  vec4 fig = mix(fa, fb, reveal) * uFigShow;
+    vec4 fig = figure(uTexA, uFigA, uRectA, uv0, figWarp);
 
-  // eat the cutout edge with the same field that chews the ink. kills the hard
-  // matte line -- and the rectangular seams the background remover leaves.
-  float bite = fbm(uv0 * 14.0 + dr * 1.5) * 0.6 + fbm(uv0 * 34.0 - dr) * 0.4;
-  fig.a   *= smoothstep(0.0, 0.55, fig.a - (bite - 0.5) * 0.5 * uFigEdge);
-  fig.rgb *= step(0.001, fig.a);
-
-  // and pull it toward the character's own two colours, so the figure is made
-  // of the same material as the field instead of sitting on top of it
-  float lum  = dot(fig.rgb / max(fig.a, 1e-3), vec3(0.299, 0.587, 0.114));
-  vec3  duo  = mix(groundNow * 0.35, inkNow, smoothstep(0.05, 0.75, lum));
-  fig.rgb    = mix(fig.rgb, duo * fig.a, uFigTone);
-
-  col = col * (1.0 - fig.a) + fig.rgb;   // premultiplied
+    if (uFigEdge > 0.0) {
+      float bite = fbm(uv0 * 14.0 + dr * 1.5) * 0.6 + fbm(uv0 * 34.0 - dr) * 0.4;
+      fig.a   *= smoothstep(0.0, 0.55, fig.a - (bite - 0.5) * 0.5 * uFigEdge);
+      fig.rgb *= step(0.001, fig.a);
+    }
+    if (uFigTone > 0.0) {
+      float lum = dot(fig.rgb / max(fig.a, 1e-3), vec3(0.299, 0.587, 0.114));
+      fig.rgb   = mix(fig.rgb, mix(groundNow * 0.35, inkNow, smoothstep(0.05, 0.75, lum)) * fig.a, uFigTone);
+    }
+    col = col * (1.0 - fig.a) + fig.rgb;
+  }
 
   col += (hash21(gl_FragCoord.xy + floor(uTime * 8.0)) - 0.5) * uGrain * 0.06;
 

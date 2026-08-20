@@ -1,6 +1,5 @@
 import { quad, hexToRgb } from './gl.js';
 import { CHARACTERS } from './characters.js';
-import { easeInOut } from './tween.js';
 import frag from './shaders/truchet.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
@@ -25,29 +24,32 @@ function pushCraft() {
 for (const n of nums) ui(n).addEventListener('input', pushCraft);
 pushCraft();
 
-// --- the slider -------------------------------------------------------------
-// switching does not cross-fade two pictures. the halo grows until it has
-// swallowed the viewport, the whole field changes underneath it, and it
-// contracts again around the next character. one mechanism, both jobs.
+// --- the changeover ---------------------------------------------------------
+// Forward only. Phase 1: the current disc grows until it fills the frame --
+// at which point the screen IS the next character's ground, because the chain
+// is authored that way. Phase 2: the next disc is born from zero at the centre.
+// Nothing shrinks back, and nothing cross-fades.
 
-const GROW = 0.55;     // how far the halo swells mid-changeover
-const DUR  = 1500;     // ms
+const COVER = 2.6;     // disc radius that clears the corners, in uv units
+const DUR   = 1600;    // ms
 
-let from = 0, to = 0, startedAt = -1;
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const hex  = (h) => { const n = parseInt(h.slice(1), 16);
+  return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
+const lerp3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
 
+let cur = 0, nxt = 0, startedAt = -1;
 const label = ui('label');
-label.textContent = CHARACTERS[0].name;
-
-// one texture unit per character, loaded once
-const TEX = CHARACTERS.map((ch, i) => view.texture(ch.figure, i));
+const TEX = CHARACTERS.map((ch, i) => ch.figure ? view.texture(ch.figure, i) : null);
 
 function go(dir) {
-  if (startedAt >= 0) return;              // ignore input mid-transition
-  from = to;
-  to = (to + dir + CHARACTERS.length) % CHARACTERS.length;
+  if (startedAt >= 0) return;
+  cur = nxt;
+  nxt = (nxt + dir + CHARACTERS.length) % CHARACTERS.length;
   startedAt = performance.now();
 }
-let showFigures = true;
+
+let showFigures = false;
 addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'h') showFigures = !showFigures;
   if (e.key === 'ArrowRight') go(1);
@@ -66,43 +68,58 @@ function frame(now) {
   let t = 0;
   if (startedAt >= 0) {
     t = (now - startedAt) / DUR;
-    if (t >= 1) { t = 1; startedAt = -1; from = to; }
+    if (t >= 1) { t = 1; startedAt = -1; cur = nxt; }
   }
 
-  const a = CHARACTERS[from], b = CHARACTERS[to];
+  const a = CHARACTERS[cur], b = CHARACTERS[nxt];
+  let st, radius, ground, ink, shape, scale;
 
-  // both states go to the shader whole; the front mixes them per pixel.
-  const hex = (h) => { const n = parseInt(h.slice(1), 16);
-    return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
-  const send = (p, ch) => {
-    view.set(`u${p}v1`, [ch.shape, ch.scale, ch.haloForm, ch.haloN]);
-    view.set(`u${p}v2`, [ch.haloR, ch.discShape, ch.discScale, 0]);
-    view.set(`u${p}Ground`,  hex(ch.ground));
-    view.set(`u${p}Ink`,     hex(ch.ink));
-    view.set(`u${p}DiscInk`, hex(ch.discInk));
-    view.set(`u${p}DiscA`,   hex(ch.discA));
-    view.set(`u${p}DiscB`,   hex(ch.discB));
-  };
-  send('A', a); send('B', b);
+  if (t < 0.5) {
+    // phase 1 -- a's disc swallows the frame
+    const p = ease(t * 2);
+    st = a;
+    radius = a.haloR + (COVER - a.haloR) * p;
+    ground = [hex(a.groundA), hex(a.groundB)];
+    ink = hex(a.ink); shape = a.shape; scale = a.scale;
+  } else {
+    // phase 2 -- the frame is now b's ground; b's disc is born from zero.
+    // the ground pattern morphs out of a's disc pattern over the first slice,
+    // so the field reorganises by morphing rather than by cutting.
+    const p = ease((t - 0.5) * 2);
+    const m = Math.min(1, (t - 0.5) * 2 / 0.35);
+    st = b;
+    radius = b.haloR * p;
+    ground = [hex(b.groundA), hex(b.groundB)];
+    ink   = lerp3(hex(a.discInk), hex(b.ink), m);
+    shape = a.discShape + (b.shape - a.discShape) * m;
+    scale = a.scale * a.discScale + (b.scale - a.scale * a.discScale) * m;
+  }
 
-  const prog = easeInOut(t);
-  view.set('uTrans', startedAt >= 0 ? prog : (t >= 1 ? 1 : 0));
-  view.set('uGrow', GROW * Math.sin(Math.PI * prog));
-
-  // the halo edge itself performs the changeover -- no opacity anywhere.
-  // first half: the growing halo reveals the incoming figure. after the
-  // midpoint it owns the frame and the halo contracts around it.
-  view.bind(TEX[from], 'uTexA');
-  view.bind(TEX[to],   'uTexB');
-  view.set('uFigA', [TEX[from].aspect, a.figH, a.figY, 0]);
-  view.set('uFigB', [TEX[to].aspect,   b.figH, b.figY, 0]);
-  view.set('uRectA', TEX[from].rect);
-  view.set('uRectB', TEX[to].rect);
-  view.set('uFigShow', showFigures ? 1 : 0);
-  label.textContent = t < 0.5 ? a.name : b.name;
-
-  view.set('uHaloRot', now * 0.00004);
+  view.set('uShape', shape);
+  view.set('uScale', scale);
+  view.set('uGroundA', ground[0]);
+  view.set('uGroundB', ground[1]);
+  view.set('uInk', ink);
+  view.set('uDiscR', radius);
   view.set('uDiscPos', [0, 0.06]);
+  view.set('uDiscShape', st.discShape);
+  view.set('uDiscScale', st.discScale);
+  view.set('uDiscInk', hex(st.discInk));
+  view.set('uDiscA', hex(st.discA));
+  view.set('uDiscB', hex(st.discB));
+  view.set('uHaloForm', st.haloForm);
+  view.set('uHaloN', st.haloN);
+  view.set('uHaloRot', now * 0.00004);
+
+  const tex = TEX[t < 0.5 ? cur : nxt];
+  if (tex) {
+    view.bind(tex, 'uTexA');
+    view.set('uFigA', [tex.aspect, st.figH ?? 1.3, st.figY ?? -0.36, 0]);
+    view.set('uRectA', tex.rect);
+  }
+  view.set('uFigShow', showFigures && tex ? 1 : 0);
+
+  label.textContent = st.name;
 
   rewire += (rewireTarget - rewire) * 0.07;
   view.set('uTime', now * 0.001);

@@ -1,83 +1,58 @@
-// Each character owns the whole field, not just a portrait. The background IS
-// the character: its tile family, its palette, and the form of its halo.
-// Swapping characters tweens every one of these at once.
+// A chain, not a set. Each character's GROUND is the previous character's DISC,
+// and its INK is the previous character's DISC INK. That is what lets the
+// changeover run forward only: the disc grows until it is the whole field --
+// which is already the next character's ground -- and the next disc is then
+// born from zero at the centre. Nothing ever travels back.
 //
-// figure: transparent-background cutout.
-// figH / figY frame it: figH is drawn height in uv units (the viewport's short
-// axis is 1.0), figY shifts it vertically. Oversized and bled off the bottom
-// edge on purpose -- a cutout that fits inside the frame reads as a sticker.
+// The last entry's disc closes the loop onto the first entry's ground.
 
 export const CHARACTERS = [
   {
     name: 'ORACLE',
-    figure: '/src/figures/oracle.png',
-    figH: 1.30,
-    figY: -0.36,
-    shape: 2.0,        // elbow -- greek key
+    shape: 2.0,                                   // elbow -- greek key
     scale: 9,
-    ground: '#fde67e',
+    groundA: '#fde67e', groundB: '#f7d95e',       // acid yellow
     ink: '#8fd78d',
-    haloForm: 0,       // circle
-    haloN: 8,
-    haloR: 0.34,
-    discShape: 0.4,
-    discScale: 1.8,
+    type: '#1b1a12',                              // reserved for type
+    haloForm: 0, haloN: 8, haloR: 0.34,
+    discShape: 0.4, discScale: 1.8,
     discInk: '#ffd166',
-    discA: '#ff3d8b',
-    discB: '#8a1f6a',
+    discA: '#ff3d8b', discB: '#8a1f6a',           // -> SIGNAL's ground
   },
   {
-    name: 'SUNFLOWER',
-    figure: '/src/figures/sunflower.png',
-    figH: 1.30,
-    figY: -0.36,
-    shape: 0.2,        // arc -- flowing
+    name: 'SIGNAL',
+    shape: 0.2,                                   // arc -- flowing
     scale: 7,
-    ground: '#1b4a8a',
-    ink: '#f2a03d',
-    haloForm: 0,
-    haloN: 6,
-    haloR: 0.42,
-    discShape: 1.6,
-    discScale: 1.2,
-    discInk: '#123f2e',
-    discA: '#ff7a1c',
-    discB: '#2f8f5b',
+    groundA: '#ff3d8b', groundB: '#8a1f6a',
+    ink: '#ffd166',
+    type: '#fff3d6',
+    haloForm: 0, haloN: 6, haloR: 0.40,
+    discShape: 1.6, discScale: 1.2,
+    discInk: '#f4efe3',
+    discA: '#1f8f6b', discB: '#0d4436',           // -> KIN's ground
   },
   {
-    name: 'PICK',
-    figure: '/src/figures/pick.png',
-    figH: 1.30,
-    figY: -0.36,
-    shape: 1.0,        // chord -- blocky
+    name: 'KIN',
+    shape: 1.0,                                   // chord -- blocky
     scale: 12,
-    ground: '#b8121b',
-    ink: '#f2c4b8',
-    haloForm: 1,       // polygon
-    haloN: 6,
-    haloR: 0.36,
-    discShape: 2.4,
-    discScale: 2.2,
-    discInk: '#ffe08a',
-    discA: '#2a2fd6',
-    discB: '#0d1149',
+    groundA: '#1f8f6b', groundB: '#0d4436',
+    ink: '#f4efe3',
+    type: '#f4efe3',
+    haloForm: 1, haloN: 6, haloR: 0.36,           // hexagon
+    discShape: 2.4, discScale: 2.2,
+    discInk: '#ffb3c7',
+    discA: '#c8102e', discB: '#6b0715',           // -> AFRICANA's ground
   },
   {
     name: 'AFRICANA',
-    figure: '/src/figures/africana.png',
-    figH: 1.30,
-    figY: -0.36,
-    shape: 2.6,        // step -- circuit
+    shape: 2.6,                                   // step -- circuit
     scale: 10,
-    ground: '#5b3ea8',
-    ink: '#8e6fd6',
-    haloForm: 2,       // star
-    haloN: 8,
-    haloR: 0.44,
-    discShape: 0.0,
-    discScale: 0.7,
-    discInk: '#5b3ea8',
-    discA: '#f5a623',
-    discB: '#e8801a',
+    groundA: '#c8102e', groundB: '#6b0715',
+    ink: '#ffb3c7',
+    type: '#fff0f3',
+    haloForm: 2, haloN: 8, haloR: 0.44,           // star
+    discShape: 0.0, discScale: 0.7,
+    discInk: '#8fd78d',                           // -> ORACLE's ink
+    discA: '#fde67e', discB: '#f7d95e',           // -> ORACLE's ground. loop closed.
   },
 ];
