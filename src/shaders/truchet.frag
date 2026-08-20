@@ -20,6 +20,22 @@ uniform float uGrain;
 uniform vec3  uInk;
 uniform vec3  uGround;
 
+// --- disc -------------------------------------------------------------
+// a circular region running a SECOND parameter set. it is not an overlay:
+// inside it the pattern itself changes family, scale and colour, and the two
+// states cross-fade across the edge. because the family morph is continuous,
+// the boundary stays connected -- paths run out of one state and into the other.
+// at halo scale it frames the figure; grown past the viewport it becomes the
+// transition to the next character.
+uniform vec2  uDiscPos;
+uniform float uDiscR;
+uniform float uDiscSoft;
+uniform float uDiscShape;
+uniform float uDiscScale;
+uniform vec3  uDiscInk;
+uniform vec3  uDiscA;      // gradient, top
+uniform vec3  uDiscB;      // gradient, bottom
+
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -110,6 +126,22 @@ void main() {
   float warpNow  = uWarp  * (1.0 + sin(uTime * 0.13 + 1.7) * 0.45 * uBreath);
   float driftNow = uDrift * (1.0 + sin(uTime * 0.05 + 3.1) * 0.60 * uBreath);
 
+  // disc mask taken before the warp, so the circle itself stays a true circle
+  vec2  dv   = uv - uDiscPos;
+  float dRad = length(dv);
+  float mask = 1.0 - smoothstep(uDiscR - uDiscSoft, uDiscR + uDiscSoft, dRad);
+
+  // the disc carries its own gradient, with a little radial fall to seat the
+  // figure against it rather than leaving a flat plate
+  float gy    = clamp(0.5 + dv.y / max(uDiscR * 2.0, 1e-4), 0.0, 1.0);
+  vec3  disc  = mix(uDiscB, uDiscA, gy);
+  disc *= 1.0 - 0.18 * smoothstep(0.35, 1.0, dRad / max(uDiscR, 1e-4));
+
+  vec3  groundNow = mix(uGround, disc,      mask);
+  vec3  inkNow    = mix(uInk,    uDiscInk,  mask);
+  scaleNow = mix(scaleNow, scaleNow * uDiscScale, mask);
+  shapeNow = mix(shapeNow, uDiscShape,            mask);
+
   uv += warpNow * 0.06 * vec2(noise(uv * 2.3 + 11.0), noise(uv * 2.1 - 7.0));
 
   vec2 g  = uv * scaleNow;
@@ -144,7 +176,7 @@ void main() {
 
   float alpha = ink * load * holes * uDensity;
 
-  vec3 col = mix(uGround, uInk, clamp(alpha, 0.0, 1.0));
+  vec3 col = mix(groundNow, inkNow, clamp(alpha, 0.0, 1.0));
   col += (hash21(gl_FragCoord.xy + floor(uTime * 8.0)) - 0.5) * uGrain * 0.06;
 
   fragColor = vec4(col, 1.0);

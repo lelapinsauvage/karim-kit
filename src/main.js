@@ -5,11 +5,14 @@ const view = quad(document.getElementById('c'), frag);
 
 const ui = (id) => document.getElementById(id);
 const nums = ['shape', 'scale', 'thickness', 'breath', 'warp', 'jitter',
-              'rough', 'breakup', 'density', 'drift', 'grain'];
+              'rough', 'breakup', 'density', 'drift', 'grain',
+              'discR', 'discSoft', 'discShape', 'discScale'];
 const uName = {
   shape: 'uShape', scale: 'uScale', thickness: 'uThickness', breath: 'uBreath',
   warp: 'uWarp', jitter: 'uJitter', rough: 'uRough', breakup: 'uBreakup',
   density: 'uDensity', drift: 'uDrift', grain: 'uGrain',
+  discR: 'uDiscR', discSoft: 'uDiscSoft', discShape: 'uDiscShape',
+  discScale: 'uDiscScale',
 };
 const FAMILIES = ['arc', 'chord', 'elbow', 'step'];
 
@@ -26,8 +29,14 @@ function push() {
     : `${FAMILIES[i]} → ${FAMILIES[i + 1]}  ${(t * 100) | 0}%`;
   view.set('uInk', hexToRgb(ui('ink').value));
   view.set('uGround', hexToRgb(ui('ground').value));
+  view.set('uDiscInk', hexToRgb(ui('discInk').value));
+  view.set('uDiscA', hexToRgb(ui('discA').value));
+  view.set('uDiscB', hexToRgb(ui('discB').value));
+  const dy = parseFloat(ui('discY').value);
+  view.set('uDiscPos', [0, dy]);
+  ui('o-discY').textContent = dy.toFixed(3);
 }
-for (const n of [...nums, 'ink', 'ground']) ui(n).addEventListener('input', push);
+for (const n of [...nums, 'ink', 'ground', 'discInk', 'discA', 'discB', 'discY']) ui(n).addEventListener('input', push);
 push();
 
 // the page no longer scrolls -- no scrollbar means no gutter, and the canvas
