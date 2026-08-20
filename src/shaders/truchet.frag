@@ -13,12 +13,13 @@ uniform float uShape;      // ground
 uniform float uScale;
 uniform vec3  uGroundA;
 uniform vec3  uGroundB;
-uniform vec3  uInk;
+uniform vec3  uInkA;
+uniform vec3  uInkB;
 uniform float uGZoom;      // ground recedes while the discs expand
 
 uniform vec4  uOuter;      // radius, form, sides, shape
 uniform vec3  uOuterX;     // scaleMul, -, -
-uniform vec3  uOInk; uniform vec3 uOA; uniform vec3 uOB;
+uniform vec3  uOInkA; uniform vec3 uOInkB; uniform vec3 uOA; uniform vec3 uOB;
 
 uniform float uThickness;
 uniform float uWarp;
@@ -36,7 +37,7 @@ uniform float uHaloRot;
 
 uniform vec4  uInner;
 uniform vec3  uInnerX;
-uniform vec3  uIInk; uniform vec3 uIA; uniform vec3 uIB;
+uniform vec3  uIInkA; uniform vec3 uIInkB; uniform vec3 uIA; uniform vec3 uIB;
 
 uniform sampler2D uTexA;   // outgoing figure
 uniform vec4  uFigA;       // aspect, height (uv units), y offset, unused
@@ -194,7 +195,16 @@ void main() {
   fieldCol = mix(fieldCol, mix(uOB, uOA, gyO) * (1.0 - 0.16 * smoothstep(0.35, 1.0, dRad / max(eO, 1e-4))), mO);
   fieldCol = mix(fieldCol, mix(uIB, uIA, gyI) * (1.0 - 0.16 * smoothstep(0.35, 1.0, dRad / max(eI, 1e-4))), mI);
 
-  vec3 inkCol = mix(mix(uInk, uOInk, mO), uIInk, mI);
+  // Ink is a gradient, not a flat colour. A metallic runs cool on one axis and
+  // warm on the other; that shift along the stroke is what reads as anodised
+  // rather than printed. Swept on a diagonal so it never aligns with the halo.
+  float sheen = clamp(0.5 + uv.x * 0.55 + uv.y * 0.42, 0.0, 1.0);
+  sheen = mix(sheen, 1.0 - sheen, 0.5 - 0.5 * cos(uTime * 0.09));   // it drifts
+
+  vec3 inkG = mix(uInkA,  uInkB,  sheen);
+  vec3 inkO = mix(uOInkA, uOInkB, sheen);
+  vec3 inkI = mix(uIInkA, uIInkB, sheen);
+  vec3 inkCol = mix(mix(inkG, inkO, mO), inkI, mI);
 
   // the ground recedes while the discs grow -- counter-motion, and because the
   // outer disc has left the frame by the end, resetting it is never seen

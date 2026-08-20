@@ -122,7 +122,8 @@ function frame(now) {
   view.set('uScale',   a.scale);
   view.set('uGroundA', hex(a.groundA));
   view.set('uGroundB', hex(a.groundB));
-  view.set('uInk',     hex(a.ink));
+  view.set('uInkA',    hex(a.inkA));
+  view.set('uInkB',    hex(a.inkB));
 
   // outer = the current character's disc. Its COLOUR lerps toward the next
   // character's ground as it expands, on the same curve the gradient mapping
@@ -131,7 +132,8 @@ function frame(now) {
   const k = smoothstep(0.7, 1.8, outerR);
   view.set('uOuter',  [outerR, a.haloForm, a.haloN, a.discShape]);
   view.set('uOuterX', [a.discScale * mulOuter, 0, 0]);
-  view.set('uOInk',   mixHex(a.discInk, b.ink,     k));
+  view.set('uOInkA',  mixHex(a.discInkA, b.inkA, k));
+  view.set('uOInkB',  mixHex(a.discInkB, b.inkB, k));
   view.set('uOA',     mixHex(a.discA,   b.groundA, k));
   view.set('uOB',     mixHex(a.discB,   b.groundB, k));
 
@@ -144,7 +146,8 @@ function frame(now) {
   // inner is expressed relative to the GROUND's scale, so convert through b's
   // own resting scale -- otherwise it lands a factor off when it becomes ground
   view.set('uInnerX', [(b.scale * b.discScale / a.scale) * mulInner, 0, 0]);
-  view.set('uIInk',   hex(b.discInk));
+  view.set('uIInkA',  hex(b.discInkA));
+  view.set('uIInkB',  hex(b.discInkB));
   view.set('uIA',     hex(b.discA));
   view.set('uIB',     hex(b.discB));
 
