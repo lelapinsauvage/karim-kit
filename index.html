@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>kit / truchet</title>
+<style>
+  :root { color-scheme: dark; }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #FDE67E; }
+  body { font: 11px/1.5 ui-monospace, monospace; }
+  canvas { position: fixed; top: 0; left: 0; display: block; }
+
+  .panel {
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    width: 232px; padding: 14px;
+    background: #0b0b0bdd; backdrop-filter: blur(8px);
+    border: 1px solid #ffffff1f; color: #eee;
+    display: grid; gap: 9px;
+  }
+  .panel h2 { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; opacity: .5; font-weight: 500; }
+  .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; }
+  .row label { letter-spacing: .06em; opacity: .8; }
+  .row output { font-variant-numeric: tabular-nums; opacity: .55; }
+  input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: #FDE67E; height: 14px; }
+  input[type=color] { width: 100%; height: 22px; padding: 0; border: 1px solid #ffffff1f; background: none; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .fam { opacity: .45; letter-spacing: .14em; text-transform: uppercase; }
+  .hint { position: fixed; bottom: 16px; left: 16px; z-index: 10; color: #0006; letter-spacing: .14em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="panel">
+  <h2>truchet</h2>
+  <div class="row"><label>shape</label><output id="o-shape"></output>
+    <input autocomplete="off" id="shape" type="range" min="0" max="2.999" step="0.001" value="2">
+    <div class="fam" id="fam"></div>
+  </div>
+  <div class="row"><label>scale</label><output id="o-scale"></output>
+    <input autocomplete="off" id="scale" type="range" min="2" max="40" step="0.5" value="9">
+  </div>
+  <div class="row"><label>thickness</label><output id="o-thickness"></output>
+    <input autocomplete="off" id="thickness" type="range" min="0.01" max="0.3" step="0.005" value="0.1">
+  </div>
+  <div class="row"><label>breath</label><output id="o-breath"></output>
+    <input autocomplete="off" id="breath" type="range" min="0" max="2" step="0.01" value="1">
+  </div>
+  <div class="row"><label>warp</label><output id="o-warp"></output>
+    <input autocomplete="off" id="warp" type="range" min="0" max="2" step="0.01" value="0.35">
+  </div>
+  <div class="row"><label>jitter</label><output id="o-jitter"></output>
+    <input autocomplete="off" id="jitter" type="range" min="0" max="1" step="0.01" value="0.15">
+  </div>
+  <div class="row"><label>rough</label><output id="o-rough"></output>
+    <input autocomplete="off" id="rough" type="range" min="0" max="2" step="0.01" value="0.85">
+  </div>
+  <div class="row"><label>breakup</label><output id="o-breakup"></output>
+    <input autocomplete="off" id="breakup" type="range" min="0" max="1" step="0.01" value="0.55">
+  </div>
+  <div class="row"><label>density</label><output id="o-density"></output>
+    <input autocomplete="off" id="density" type="range" min="0.2" max="1" step="0.01" value="1">
+  </div>
+  <div class="row"><label>drift</label><output id="o-drift"></output>
+    <input autocomplete="off" id="drift" type="range" min="0" max="4" step="0.01" value="1">
+  </div>
+  <div class="row"><label>grain</label><output id="o-grain"></output>
+    <input autocomplete="off" id="grain" type="range" min="0" max="1" step="0.01" value="0.25">
+  </div>
+  <div class="cols">
+    <div><label>ink</label><input autocomplete="off" id="ink" type="color" value="#8fd78d"></div>
+    <div><label>ground</label><input autocomplete="off" id="ground" type="color" value="#fde67e"></div>
+  </div>
+</div>
+
+<div class="hint">wheel to rewire</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
