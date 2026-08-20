@@ -101,7 +101,11 @@ function frame(now) {
   view.set('uGroundB', ground[1]);
   view.set('uInk', ink);
   view.set('uDiscR', radius);
-  view.set('uDiscRef', st.haloR);
+  // one continuous curve across both phases: zero at rest, peak at the
+  // crossover, zero again once the new character has settled
+  const swell = Math.sin(Math.PI * t);
+  view.set('uZoom', 1 + 0.75 * swell);
+  view.set('uPush', 0.30 * swell);
   view.set('uDiscPos', [0, 0.06]);
   view.set('uDiscShape', st.discShape);
   view.set('uDiscScale', st.discScale);

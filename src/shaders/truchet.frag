@@ -14,7 +14,8 @@ uniform vec3  uInk;
 uniform float uHaloForm;   // 0 circle -> 1 polygon -> 2 star, continuous
 uniform float uHaloN;
 uniform float uDiscR;
-uniform float uDiscRef;    // the disc's resting radius -- the zoom reference
+uniform float uZoom;       // camera pull-back through a changeover
+uniform float uPush;       // radial displacement of the field
 uniform float uDiscShape;
 uniform float uDiscScale;
 uniform vec3  uDiscInk;
@@ -179,20 +180,14 @@ void main() {
   float mask = 1.0 - smoothstep(edge - uDiscSoft, edge + uDiscSoft, dRad);
 
   // --- the field moves with the shape ----------------------------------
-  // a mask that scales over a static pattern reads as a stencil sliding across
-  // a still image. so the disc's contents are locked to the disc: as it grows,
-  // its pattern grows with it. and the ground is shoved radially outward by the
-  // expansion, hardest near the edge, so nothing in frame is standing still.
-  float zoom = clamp(uDiscRef / max(uDiscR, 1e-4), 0.12, 5.0);
-  vec2  uvIn = uDiscPos + dv * zoom;
-
-  float push  = (uDiscR - uDiscRef) * 0.55;
-  vec2  dir   = dv / max(dRad, 1e-4);
-  vec2  uvOut = uv - dir * push / (1.0 + dRad * 2.2);
-
-  // blending the two coordinate fields across the mask bends the pattern
-  // through the boundary -- the edge refracts instead of cutting
-  uv = mix(uvOut, uvIn, mask);
+  // driven by transition TIME, not by the disc radius. the radius jumps from
+  // full-cover to zero at the phase boundary, so anything derived from it snaps
+  // there. a time-driven curve is continuous across the whole changeover.
+  //
+  // the camera pulls back while the shape expands, and the field is pushed
+  // radially outward from the disc, hardest near it. one continuous move.
+  uv = uDiscPos + dv * uZoom;
+  uv -= (dv / max(dRad, 1e-4)) * uPush / (1.0 + dRad * 2.0);
 
   // the disc carries its own gradient, with a little radial fall to seat the
   // figure against it rather than leaving a flat plate
