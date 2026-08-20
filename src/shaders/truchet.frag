@@ -29,6 +29,9 @@ uniform vec3  uGround;
 // transition to the next character.
 uniform vec2  uDiscPos;
 uniform float uDiscR;
+uniform float uHaloForm;   // 0 circle -> 1 polygon -> 2 star, continuous
+uniform float uHaloN;      // sides / points
+uniform float uHaloRot;
 uniform float uDiscSoft;
 uniform float uDiscShape;
 uniform float uDiscScale;
@@ -129,13 +132,26 @@ void main() {
   // disc mask taken before the warp, so the circle itself stays a true circle
   vec2  dv   = uv - uDiscPos;
   float dRad = length(dv);
-  float mask = 1.0 - smoothstep(uDiscR - uDiscSoft, uDiscR + uDiscSoft, dRad);
+
+  // the halo is a form, not a circle: each character gets its own. one polar
+  // radius function sweeps circle -> regular polygon -> spiked star, so the
+  // silhouette can tween between characters like any other parameter.
+  float th = atan(dv.y, dv.x) + uHaloRot;
+  float k  = 6.28318530718 / max(uHaloN, 3.0);
+  float a  = mod(th, k) - k * 0.5;
+  float rPoly = cos(k * 0.5) / max(cos(a), 1e-4);
+  float rStar = 1.0 - 0.55 * abs(a) / (k * 0.5);
+  float fm    = clamp(uHaloForm, 0.0, 2.0);
+  float rad   = fm < 1.0 ? mix(1.0, rPoly, fm) : mix(rPoly, rStar, fm - 1.0);
+
+  float edge = uDiscR * rad;
+  float mask = 1.0 - smoothstep(edge - uDiscSoft, edge + uDiscSoft, dRad);
 
   // the disc carries its own gradient, with a little radial fall to seat the
   // figure against it rather than leaving a flat plate
-  float gy    = clamp(0.5 + dv.y / max(uDiscR * 2.0, 1e-4), 0.0, 1.0);
+  float gy    = clamp(0.5 + dv.y / max(edge * 2.0, 1e-4), 0.0, 1.0);
   vec3  disc  = mix(uDiscB, uDiscA, gy);
-  disc *= 1.0 - 0.18 * smoothstep(0.35, 1.0, dRad / max(uDiscR, 1e-4));
+  disc *= 1.0 - 0.18 * smoothstep(0.35, 1.0, dRad / max(edge, 1e-4));
 
   vec3  groundNow = mix(uGround, disc,      mask);
   vec3  inkNow    = mix(uInk,    uDiscInk,  mask);

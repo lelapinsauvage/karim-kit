@@ -26,6 +26,16 @@
   input[type=color] { width: 100%; height: 22px; padding: 0; border: 1px solid #ffffff1f; background: none; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .fam { opacity: .45; letter-spacing: .14em; text-transform: uppercase; }
+  .fig {
+    position: fixed; left: 50%; top: 54%; transform: translate(-50%, -50%);
+    height: 78vh; max-width: 92vw; object-fit: contain;
+    z-index: 5; pointer-events: none; display: none;
+  }
+  .label {
+    position: fixed; left: 50%; bottom: 46px; transform: translateX(-50%);
+    z-index: 6; color: #0009; letter-spacing: .34em; text-transform: uppercase;
+    font-size: 11px;
+  }
   .hint { position: fixed; bottom: 16px; left: 16px; z-index: 10; color: #0006; letter-spacing: .14em; text-transform: uppercase; }
 </style>
 </head>
@@ -34,13 +44,6 @@
 
 <div class="panel">
   <h2>truchet</h2>
-  <div class="row"><label>shape</label><output id="o-shape"></output>
-    <input autocomplete="off" id="shape" type="range" min="0" max="2.999" step="0.001" value="2">
-    <div class="fam" id="fam"></div>
-  </div>
-  <div class="row"><label>scale</label><output id="o-scale"></output>
-    <input autocomplete="off" id="scale" type="range" min="2" max="40" step="0.5" value="9">
-  </div>
   <div class="row"><label>thickness</label><output id="o-thickness"></output>
     <input autocomplete="off" id="thickness" type="range" min="0.01" max="0.3" step="0.005" value="0.1">
   </div>
@@ -68,38 +71,15 @@
   <div class="row"><label>grain</label><output id="o-grain"></output>
     <input autocomplete="off" id="grain" type="range" min="0" max="1" step="0.01" value="0.25">
   </div>
-  <h2 style="margin-top:4px">disc</h2>
-  <div class="row"><label>radius</label><output id="o-discR"></output>
-    <input autocomplete="off" id="discR" type="range" min="0" max="1.6" step="0.005" value="0.34">
-  </div>
-  <div class="row"><label>soft</label><output id="o-discSoft"></output>
+  <div class="row"><label>halo edge</label><output id="o-discSoft"></output>
     <input autocomplete="off" id="discSoft" type="range" min="0.001" max="0.2" step="0.001" value="0.006">
-  </div>
-  <div class="row"><label>y</label><output id="o-discY"></output>
-    <input autocomplete="off" id="discY" type="range" min="-0.5" max="0.5" step="0.005" value="0.06">
-  </div>
-  <div class="row"><label>shape</label><output id="o-discShape"></output>
-    <input autocomplete="off" id="discShape" type="range" min="0" max="2.999" step="0.001" value="0.4">
-  </div>
-  <div class="row"><label>scale ×</label><output id="o-discScale"></output>
-    <input autocomplete="off" id="discScale" type="range" min="0.2" max="3" step="0.01" value="1.8">
-  </div>
-  <div class="cols">
-    <div><label>grad top</label><input autocomplete="off" id="discA" type="color" value="#ff3d8b"></div>
-    <div><label>grad btm</label><input autocomplete="off" id="discB" type="color" value="#8a1f6a"></div>
-  </div>
-  <div class="cols">
-    <div><label>disc ink</label><input autocomplete="off" id="discInk" type="color" value="#ffd166"></div>
-    <div></div>
-  </div>
-  <h2 style="margin-top:4px">ground</h2>
-  <div class="cols">
-    <div><label>ink</label><input autocomplete="off" id="ink" type="color" value="#8fd78d"></div>
-    <div><label>ground</label><input autocomplete="off" id="ground" type="color" value="#fde67e"></div>
   </div>
 </div>
 
-<div class="hint">wheel to rewire</div>
+<img id="figA" class="fig" alt="">
+<img id="figB" class="fig" alt="">
+<div id="label" class="label"></div>
+<div class="hint">click / ← → to switch &nbsp;·&nbsp; wheel to rewire &nbsp;·&nbsp; F fullscreen</div>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>
