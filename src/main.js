@@ -85,9 +85,14 @@ function frame(now) {
   const outerR = idle ? a.haloR : a.haloR + (COVER - a.haloR) * easeIn(t * 2 > 1 ? 1 : t * 2);
   const innerR = idle || t < 0.5 ? 0 : b.haloR * easeOut((t - 0.5) * 2);
 
-  // no ground zoom: its reset had to happen somewhere, and wherever it happened
-  // it snapped. the discs carry the motion on their own.
   view.set('uGZoom', 1);
+
+  // Each layer's PATTERN scale animates, not just its radius.
+  // outer: pulls away as it engulfs the frame, relaxing back as it becomes ground.
+  // inner: arrives already pulled far out and zooms in to its resting scale.
+  const p2       = t < 0.5 ? 0 : (t - 0.5) * 2;
+  const mulOuter = 1 + 0.9 * Math.sin(Math.PI * t);
+  const mulInner = 1 + 1.7 * (1 - easeOut(p2));
 
   // ground = the current character's field
   view.set('uShape',   a.shape);
@@ -98,14 +103,16 @@ function frame(now) {
 
   // outer = the current character's disc, which is also the next one's ground
   view.set('uOuter',  [outerR, a.haloForm, a.haloN, a.discShape]);
-  view.set('uOuterX', [a.discScale, 0, 0]);
+  view.set('uOuterX', [a.discScale * mulOuter, 0, 0]);
   view.set('uOInk',   hex(a.discInk));
   view.set('uOA',     hex(a.discA));
   view.set('uOB',     hex(a.discB));
 
   // inner = the next character's disc
   view.set('uInner',  [innerR, b.haloForm, b.haloN, b.discShape]);
-  view.set('uInnerX', [b.discScale, 0, 0]);
+  // inner is expressed relative to the GROUND's scale, so convert through b's
+  // own resting scale -- otherwise it lands a factor off when it becomes ground
+  view.set('uInnerX', [(b.scale * b.discScale / a.scale) * mulInner, 0, 0]);
   view.set('uIInk',   hex(b.discInk));
   view.set('uIA',     hex(b.discA));
   view.set('uIB',     hex(b.discB));
