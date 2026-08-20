@@ -111,7 +111,11 @@ function frame(now) {
   view.set('uOB',     hex(a.discB));
 
   // inner = the next character's disc
-  view.set('uInner',  [innerR, b.haloForm, b.haloN, b.discShape]);
+  // the incoming halo is BORN as the outgoing one's form and morphs into its
+  // own as it settles -- otherwise the silhouette simply swaps at the handover
+  const iForm = a.haloForm + (b.haloForm - a.haloForm) * easeOut(p2);
+  const iN    = a.haloN    + (b.haloN    - a.haloN)    * easeOut(p2);
+  view.set('uInner',  [innerR, iForm, iN, b.discShape]);
   // inner is expressed relative to the GROUND's scale, so convert through b's
   // own resting scale -- otherwise it lands a factor off when it becomes ground
   view.set('uInnerX', [(b.scale * b.discScale / a.scale) * mulInner, 0, 0]);

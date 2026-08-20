@@ -17,7 +17,7 @@ export const CHARACTERS = [
   {
     name: 'ORACLE',
     shape: 2.0,                                   // elbow -- greek key
-    scale: 13.0,
+    scale: 34.0,
     groundA: '#fde67e', groundB: '#f7d95e',       // acid yellow
     ink: '#8fd78d',
     type: '#1b1a12',                              // reserved for type
@@ -29,7 +29,7 @@ export const CHARACTERS = [
   {
     name: 'SIGNAL',
     shape: 0.4,                                   // arc -- flowing
-    scale: 10.4,
+    scale: 27.2,
     groundA: '#ff3d8b', groundB: '#8a1f6a',
     ink: '#ffd166',
     type: '#fff3d6',
@@ -41,7 +41,7 @@ export const CHARACTERS = [
   {
     name: 'KIN',
     shape: 1.6,                                   // chord -- blocky
-    scale: 7.488,
+    scale: 19.6,
     groundA: '#1f8f6b', groundB: '#0d4436',
     ink: '#f4efe3',
     type: '#f4efe3',
@@ -53,7 +53,7 @@ export const CHARACTERS = [
   {
     name: 'AFRICANA',
     shape: 2.4,                                   // step -- circuit
-    scale: 8.9856,
+    scale: 23.5,
     groundA: '#c8102e', groundB: '#6b0715',
     ink: '#ffb3c7',
     type: '#fff0f3',
