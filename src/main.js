@@ -7,11 +7,11 @@ const view = quad(document.getElementById('c'), frag);
 // --- craft params: how the ink behaves. shared across all characters. --------
 const ui = (id) => document.getElementById(id);
 const nums = ['thickness', 'breath', 'warp', 'jitter', 'rough',
-              'breakup', 'density', 'drift', 'grain', 'discSoft', 'figWarp', 'figFlow', 'figEdge', 'figTone'];
+              'breakup', 'density', 'drift', 'grain', 'glow', 'discSoft', 'figWarp', 'figFlow', 'figEdge', 'figTone'];
 const uName = {
   thickness: 'uThickness', breath: 'uBreath', warp: 'uWarp', jitter: 'uJitter',
   rough: 'uRough', breakup: 'uBreakup', density: 'uDensity', drift: 'uDrift',
-  grain: 'uGrain', discSoft: 'uDiscSoft', figWarp: 'uFigWarp', figFlow: 'uFigFlow',
+  grain: 'uGrain', glow: 'uGlow', discSoft: 'uDiscSoft', figWarp: 'uFigWarp', figFlow: 'uFigFlow',
   figEdge: 'uFigEdge', figTone: 'uFigTone',
 };
 function pushCraft() {
@@ -91,7 +91,11 @@ function frame(now) {
     else { t = parseFloat(FRZ); startedAt = 1; }
   } else if (startedAt >= 0) {
     t = (now - startedAt) / DUR;
-    if (t >= 1) { t = 1; startedAt = -1; cur = nxt; }
+    // t must fall to 0, not stay at 1. On the completing frame `idle` flips
+    // true and the shape snaps to its resting radius -- but every t-driven
+    // value (mulOuter above all, at 1.6x) was still reading end-of-transition.
+    // One frame of the resting shape wearing the wrong pattern scale: the blink.
+    if (t >= 1) { t = 0; startedAt = -1; cur = nxt; }
   }
   const idleFlag = FRZ === 'idle' || (FRZ === null && startedAt < 0);
 
@@ -152,7 +156,7 @@ function frame(now) {
   view.set('uIB',     hex(b.discB));
 
   view.set('uDiscPos', [0, 0.06]);
-  view.set('uHaloRot', now * 0.00004);
+  view.set('uHaloRot', FRZ !== null ? 0.0005 : now * 0.00004);
 
   const tex = TEX[idle ? cur : nxt];
   if (tex) {

@@ -31,8 +31,8 @@ export const CHARACTERS = [
     type: '#f2f0ed',
     haloForm: 0, haloN: 8, haloR: 0.26,
     discShape: 0.4, discScale: 0.5,
-    discA: '#ff1d25', discB: '#8f0a12',
-    discInkA: '#12060c', discInkB: '#2a0710',
+    discA: '#e8121f', discB: '#3d0107',
+    discInkA: '#7df9ff', discInkB: '#ff5edb',   // cyan -> magenta, electric on red
   },
   {
     name: 'SIGNAL',
@@ -42,8 +42,8 @@ export const CHARACTERS = [
     type: '#f2f0ed',
     haloForm: 1, haloN: 3, haloR: 0.32,           // triangle
     discShape: 1.6, discScale: 0.45,
-    discA: '#ff8a1c', discB: '#9c3d02',
-    discInkA: '#170e02', discInkB: '#2b0f0a',
+    discA: '#f07000', discB: '#3a1400',
+    discInkA: '#ccff00', discInkB: '#00ffc8',   // acid lime -> spring
   },
   {
     name: 'KIN',
@@ -53,8 +53,8 @@ export const CHARACTERS = [
     type: '#f2f0ed',
     haloForm: 1, haloN: 4, haloR: 0.27,           // square
     discShape: 2.4, discScale: 0.75,
-    discA: '#16a06f', discB: '#06392a',
-    discInkA: '#d8fff2', discInkB: '#fff2d9',     // light on deep green
+    discA: '#0f8f61', discB: '#031f17',
+    discInkA: '#a6ffe4', discInkB: '#eaffff',   // mint -> ice
   },
   {
     name: 'AFRICANA',
@@ -64,7 +64,7 @@ export const CHARACTERS = [
     type: '#f2f0ed',
     haloForm: 2, haloN: 8, haloR: 0.30,           // star
     discShape: 2.0, discScale: 0.9043,
-    discA: '#8a4bff', discB: '#2b0f68',
-    discInkA: '#e2e8ff', discInkB: '#ffe6f4',
+    discA: '#7a30ff', discB: '#160538',
+    discInkA: '#ff6ec7', discInkB: '#7df9ff',   // hot pink -> cyan
   },
 ];

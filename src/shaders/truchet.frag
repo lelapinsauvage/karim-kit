@@ -31,6 +31,7 @@ uniform float uBreakup;
 uniform float uDensity;
 uniform float uDrift;
 uniform float uGrain;
+uniform float uGlow;       // emission bleeding off the stroke
 uniform vec2  uDiscPos;
 uniform float uDiscSoft;
 uniform float uHaloRot;
@@ -261,6 +262,12 @@ void main() {
   float alpha = ink * load * holes * uDensity;
 
   vec3 col = mix(fieldCol, inkCol, clamp(alpha, 0.0, 1.0));
+
+  // Emission. The stroke bleeds light into the field just outside itself --
+  // added, not mixed, so it reads as something lit rather than something
+  // painted. Suppressed on the core so the stroke keeps its drawn edge.
+  float glow = exp(-max(d - w, 0.0) * 26.0);
+  col += inkCol * glow * uGlow * (1.0 - clamp(alpha, 0.0, 1.0));
   // --- figure ----------------------------------------------------------
   // gated on a uniform: curl() alone is four fbm evaluations per pixel, and it
   // was being paid for every frame even with the figures hidden.
