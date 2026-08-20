@@ -36,7 +36,13 @@ const DUR   = 1150;    // ms
 
 const ease    = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeIn  = (t) => t * t * t;                       // the disc accelerates away
-const easeOut = (t) => 1 - Math.pow(2, -5.5 * t);       // arrives fast, without popping
+// NORMALISED. An unnormalised 1 - 2^(-k t) never reaches 1: it left the incoming
+// disc at 97.8% of its resting radius and 103.5% of its resting pattern scale,
+// which then snapped on the handover frame. Cells re-index when scale changes,
+// so the whole maze re-rolled -- visible as a glitch even though the numbers
+// were within a few percent.
+const EO_K = 5.5, EO_N = 1 - Math.pow(2, -EO_K);
+const easeOut = (t) => (1 - Math.pow(2, -EO_K * t)) / EO_N;
 const hex  = (h) => { const n = parseInt(h.slice(1), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
 const lerp3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
