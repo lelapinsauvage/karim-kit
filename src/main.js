@@ -46,7 +46,6 @@ const TEX = CHARACTERS.map((ch, i) => ch.figure ? view.texture(ch.figure, i) : n
 
 function go(dir) {
   if (startedAt >= 0) return;
-  heading += 2.39996;                     // golden angle -- never repeats a direction
   cur = nxt;
   nxt = (nxt + dir + CHARACTERS.length) % CHARACTERS.length;
   startedAt = performance.now();
@@ -64,11 +63,6 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('click', (e) => { if (!e.target.closest('.panel')) go(1); });
 
-// field travel. integrated every frame and never wound back, so the motion has
-// no return leg: each changeover pushes off along a fresh heading.
-const slide = [0, 0];
-let heading = 0, lastNow = performance.now();
-
 let rewire = 0, rewireTarget = 0;
 addEventListener('wheel', (e) => { rewireTarget += e.deltaY * 0.0012; }, { passive: true });
 
@@ -78,12 +72,6 @@ function frame(now) {
     t = (now - startedAt) / DUR;
     if (t >= 1) { t = 1; startedAt = -1; cur = nxt; }
   }
-
-  const dt = Math.min((now - lastNow) / 1000, 0.05);
-  lastNow = now;
-  const speed = 0.62 * Math.sin(Math.PI * t) ** 0.7;   // fast at the crossover
-  slide[0] += Math.cos(heading) * speed * dt;
-  slide[1] += Math.sin(heading) * speed * dt;
 
   const a = CHARACTERS[cur], b = CHARACTERS[nxt];
   let st, radius, ground, ink, shape, scale;
@@ -117,7 +105,6 @@ function frame(now) {
   view.set('uGroundB', ground[1]);
   view.set('uInk', ink);
   view.set('uDiscR', radius);
-  view.set('uSlide', slide);
   view.set('uDiscPos', [0, 0.06]);
   view.set('uDiscShape', st.discShape);
   view.set('uDiscScale', st.discScale);
