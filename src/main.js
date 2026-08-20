@@ -73,15 +73,25 @@ addEventListener('click', (e) => { if (!e.target.closest('.panel')) go(1); });
 let rewire = 0, rewireTarget = 0;
 addEventListener('wheel', (e) => { rewireTarget += e.deltaY * 0.0012; }, { passive: true });
 
+// debug: ?frz=<0..1> freezes the changeover at that progress, ?frz=idle holds
+// the resting state. lets two exact frames be compared pixel for pixel.
+let FRZ = new URLSearchParams(location.search).get('frz');
+window.__setFrz = (v) => { FRZ = v; if (v !== 'idle' && v !== null) { cur = 0; nxt = 1; } };
+if (FRZ !== null && FRZ !== 'idle') { cur = 0; nxt = 1; }
+
 function frame(now) {
   let t = 0;
-  if (startedAt >= 0) {
+  if (FRZ !== null) {
+    if (FRZ === 'idle') { cur = nxt = 1; t = 0; startedAt = -1; }
+    else { t = parseFloat(FRZ); startedAt = 1; }
+  } else if (startedAt >= 0) {
     t = (now - startedAt) / DUR;
     if (t >= 1) { t = 1; startedAt = -1; cur = nxt; }
   }
+  const idleFlag = FRZ === 'idle' || (FRZ === null && startedAt < 0);
 
   const a = CHARACTERS[cur], b = CHARACTERS[nxt];
-  const idle = startedAt < 0;
+  const idle = idleFlag;
 
   // Three concentric zones. At rest the outer disc is the current character's
   // halo and the inner one has no radius. Through a changeover the outer disc
@@ -142,7 +152,7 @@ function frame(now) {
   label.textContent = (t > 0.55 ? b : a).name;
 
   rewire += (rewireTarget - rewire) * 0.07;
-  view.set('uTime', now * 0.001);
+  view.set('uTime', FRZ !== null ? 12.0 : now * 0.001);
   view.set('uRewire', rewire);
   view.draw();
   requestAnimationFrame(frame);

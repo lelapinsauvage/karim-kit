@@ -164,7 +164,8 @@ void main() {
 
   // four slow periods, mutually prime, so the loop never lands back on itself
   float scaleNow = uScale * (1.0 + sin(uTime * 0.11)       * 0.14 * uBreath);
-  float shapeNow = uShape +        sin(uTime * 0.067 + 1.3) * 0.55 * uBreath;
+  float shapeBreath =              sin(uTime * 0.067 + 1.3) * 0.55 * uBreath;
+  float shapeNow = uShape;
   float warpNow  = uWarp  * (1.0 + sin(uTime * 0.13 + 1.7) * 0.45 * uBreath);
   float driftNow = uDrift * (1.0 + sin(uTime * 0.05 + 3.1) * 0.60 * uBreath);
 
@@ -199,7 +200,10 @@ void main() {
   // outer disc has left the frame by the end, resetting it is never seen
   uv = mix(uv * uGZoom, uv, mO);
 
-  shapeNow = mix(mix(shapeNow, uOuter.w, mO), uInner.w, mI);
+  // breath is added AFTER the zone mixes. applying it only to the ground meant
+  // a disc rendered its family raw while the ground rendered family + breath --
+  // up to +-0.55 of tile family, jumping in one frame at the handover.
+  shapeNow = mix(mix(shapeNow, uOuter.w, mO), uInner.w, mI) + shapeBreath;
   scaleNow = mix(mix(scaleNow, scaleNow * uOuterX.x, mO), scaleNow * uInnerX.x, mI);
 
   uv += warpNow * 0.06 * vec2(noise(uv * 2.3 + 11.0), noise(uv * 2.1 - 7.0));
