@@ -213,10 +213,20 @@ void main() {
   vec2 f  = fract(g) - 0.5;
   f += (hash22(id) - 0.5) * uJitter * 0.18;
 
-  float h     = hash21(id + floor(uRewire) * 31.7);
-  float hNext = hash21(id + (floor(uRewire) + 1.0) * 31.7);
-  float t     = smoothstep(0.0, 1.0, fract(uRewire));
-  float stag  = smoothstep(0.0, 1.0, clamp(t * 2.0 - hash21(id + 3.3), 0.0, 1.0));
+  // Tile choice is sampled from SMOOTH noise at the cell's position in world
+  // space -- not from a hash of the cell index.
+  //
+  // hash21(id) makes the pattern boil whenever scale animates: floor(uv*scale)
+  // re-indexes, every cell draws a fresh random number, and the whole maze
+  // re-rolls. Sampling continuous noise at (id + 0.5) / scale means a cell
+  // asks "what is the value HERE", which barely changes as cell boundaries
+  // sweep past. Tiles then flip one at a time as they cross the threshold,
+  // instead of the field re-rolling wholesale.
+  vec2  cellUV = (id + 0.5) / max(scaleNow, 1e-4);
+  float h      = noise(cellUV * 26.0 + floor(uRewire) * 13.1);
+  float hNext  = noise(cellUV * 26.0 + (floor(uRewire) + 1.0) * 13.1);
+  float t      = smoothstep(0.0, 1.0, fract(uRewire));
+  float stag   = smoothstep(0.0, 1.0, clamp(t * 2.0 - hash21(id + 3.3), 0.0, 1.0));
   h = mix(h, hNext, stag);
 
   float d = cell(f, h, shapeNow);
