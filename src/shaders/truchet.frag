@@ -36,6 +36,13 @@ uniform float uDiscSoft;
 uniform float uDiscShape;
 uniform float uDiscScale;
 uniform vec3  uDiscInk;
+uniform sampler2D uTexA;   // outgoing figure
+uniform sampler2D uTexB;   // incoming figure
+uniform vec4  uFigA;       // aspect, height (uv units), y offset, unused
+uniform vec4  uFigB;
+uniform float uWipeActive; // 1 while the halo is sweeping the changeover
+uniform float uWipeDone;   // 1 once the incoming figure owns the frame
+uniform float uFigWarp;    // figure rides the same warp field as the pattern
 uniform vec3  uDiscA;      // gradient, top
 uniform vec3  uDiscB;      // gradient, bottom
 
@@ -120,8 +127,20 @@ float cell(vec2 p, float h, float shape) {
              polyDist(p, i0, i0 + 1, t, true));
 }
 
+// figures are sampled in the shader, not stacked as DOM images: same warp
+// field, same halo mask, one composite. that is what makes them read as part
+// of the field instead of a picture sitting on top of it.
+vec4 figure(sampler2D t, vec4 cfg, vec2 uv, vec2 warpOff) {
+  float aspect = cfg.x, h = cfg.y, yOff = cfg.z;
+  vec2 p = (uv - vec2(0.0, yOff) + warpOff) / h;
+  vec2 tc = vec2(p.x / aspect + 0.5, 0.5 - p.y);
+  if (tc.x < 0.0 || tc.x > 1.0 || tc.y < 0.0 || tc.y > 1.0) return vec4(0.0);
+  return texture(t, tc);
+}
+
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
+  vec2 uv0 = uv;
 
   // four slow periods, mutually prime, so the loop never lands back on itself
   float scaleNow = uScale * (1.0 + sin(uTime * 0.11)       * 0.14 * uBreath);
@@ -193,6 +212,20 @@ void main() {
   float alpha = ink * load * holes * uDensity;
 
   vec3 col = mix(groundNow, inkNow, clamp(alpha, 0.0, 1.0));
+  // --- figures ---------------------------------------------------------
+  // the changeover is a wipe by the halo edge, never a cross-dissolve: the
+  // incoming figure is revealed by exactly the mask that is repainting the
+  // field, so figure and background change on the same edge at the same moment.
+  vec2 figWarp = uFigWarp * 0.02 * vec2(noise(uv * 2.3 + 11.0) - 0.5,
+                                        noise(uv * 2.1 -  7.0) - 0.5);
+  vec4 fa = figure(uTexA, uFigA, uv0, figWarp);
+  vec4 fb = figure(uTexB, uFigB, uv0, figWarp);
+
+  float wipe = max(uWipeDone, mask * uWipeActive);
+  vec4 fig   = mix(fa, fb, wipe);
+
+  col = col * (1.0 - fig.a) + fig.rgb;   // premultiplied
+
   col += (hash21(gl_FragCoord.xy + floor(uTime * 8.0)) - 0.5) * uGrain * 0.06;
 
   fragColor = vec4(col, 1.0);

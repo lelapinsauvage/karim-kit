@@ -8,11 +8,11 @@ const view = quad(document.getElementById('c'), frag);
 // --- craft params: how the ink behaves. shared across all characters. --------
 const ui = (id) => document.getElementById(id);
 const nums = ['thickness', 'breath', 'warp', 'jitter', 'rough',
-              'breakup', 'density', 'drift', 'grain', 'discSoft'];
+              'breakup', 'density', 'drift', 'grain', 'discSoft', 'figWarp'];
 const uName = {
   thickness: 'uThickness', breath: 'uBreath', warp: 'uWarp', jitter: 'uJitter',
   rough: 'uRough', breakup: 'uBreakup', density: 'uDensity', drift: 'uDrift',
-  grain: 'uGrain', discSoft: 'uDiscSoft',
+  grain: 'uGrain', discSoft: 'uDiscSoft', figWarp: 'uFigWarp',
 };
 function pushCraft() {
   for (const n of nums) {
@@ -34,21 +34,16 @@ const DUR  = 1500;     // ms
 
 let from = 0, to = 0, startedAt = -1;
 
-const figA = ui('figA'), figB = ui('figB');
 const label = ui('label');
-
-function applyFigure(el, ch) {
-  if (ch.figure) { el.src = ch.figure; el.style.display = 'block'; }
-  else el.style.display = 'none';
-}
-applyFigure(figA, CHARACTERS[0]);
 label.textContent = CHARACTERS[0].name;
+
+// one texture unit per character, loaded once
+const TEX = CHARACTERS.map((ch, i) => view.texture(ch.figure, i));
 
 function go(dir) {
   if (startedAt >= 0) return;              // ignore input mid-transition
   from = to;
   to = (to + dir + CHARACTERS.length) % CHARACTERS.length;
-  applyFigure(figB, CHARACTERS[to]);
   startedAt = performance.now();
 }
 addEventListener('keydown', (e) => {
@@ -68,7 +63,7 @@ function frame(now) {
   let t = 0;
   if (startedAt >= 0) {
     t = (now - startedAt) / DUR;
-    if (t >= 1) { t = 1; startedAt = -1; from = to; applyFigure(figA, CHARACTERS[to]); }
+    if (t >= 1) { t = 1; startedAt = -1; from = to; }
   }
 
   const a = CHARACTERS[from], b = CHARACTERS[to];
@@ -78,11 +73,19 @@ function frame(now) {
   const cover = Math.sin(Math.PI * easeInOut(t));
   const radius = s.haloR + (GROW - s.haloR) * cover;
 
-  // the figures hand over while the field is covered, so no cross-dissolve
-  const swap = Math.min(Math.max((t - 0.42) / 0.16, 0), 1);
-  figA.style.opacity = String(1 - swap);
-  figB.style.opacity = String(swap);
-  if (t > 0 && t < 1) label.textContent = t < 0.5 ? a.name : b.name;
+  // the halo edge itself performs the changeover -- no opacity anywhere.
+  // first half: the growing halo reveals the incoming figure. after the
+  // midpoint it owns the frame and the halo contracts around it.
+  const wipeActive = startedAt >= 0 && t < 0.5 ? 1 : 0;
+  const wipeDone   = t >= 0.5 ? 1 : 0;
+  view.bind(TEX[from], 'uTexA');
+  view.bind(TEX[to],   'uTexB');
+  view.set('uFigA', [TEX[from].aspect, a.figH, a.figY, 0]);
+  view.set('uFigB', [TEX[to].aspect,   b.figH, b.figY, 0]);
+  view.set('uWipeActive', wipeActive);
+  view.set('uWipeDone', wipeDone);
+  view.set('uFigWarp', parseFloat(ui('figWarp').value));
+  label.textContent = t < 0.5 ? a.name : b.name;
 
   view.set('uShape', s.shape);
   view.set('uScale', s.scale);

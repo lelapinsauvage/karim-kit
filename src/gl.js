@@ -35,6 +35,37 @@ export function quad(canvas, frag) {
   gl.enableVertexAttribArray(loc);
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
+  // --- textures -------------------------------------------------------
+  const texUnits = new Map();
+  function texture(url, unit) {
+    const t = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    // 1x1 transparent placeholder until the image lands
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                  new Uint8Array([0, 0, 0, 0]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    const rec = { tex: t, unit, aspect: 1, ready: false };
+    texUnits.set(url, rec);
+    const img = new Image();
+    img.onload = () => {
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      // premultiply so the cutout's soft edge composites without a dark fringe
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      rec.aspect = img.width / img.height;
+      rec.ready = true;
+    };
+    img.src = url;
+    return rec;
+  }
+
   const cache = new Map();
   const u = (name) => {
     if (!cache.has(name)) cache.set(name, gl.getUniformLocation(prog, name));
@@ -63,12 +94,20 @@ export function quad(canvas, frag) {
 
   return {
     gl,
+    texture,
+    bind: (rec, uniformName) => {
+      gl.activeTexture(gl.TEXTURE0 + rec.unit);
+      gl.bindTexture(gl.TEXTURE_2D, rec.tex);
+      const l = u(uniformName);
+      if (l !== null) gl.uniform1i(l, rec.unit);
+    },
     set: (name, v) => {
       const l = u(name);
       if (l === null) return;
       if (typeof v === 'number') gl.uniform1f(l, v);
       else if (v.length === 2) gl.uniform2f(l, v[0], v[1]);
       else if (v.length === 3) gl.uniform3f(l, v[0], v[1], v[2]);
+      else if (v.length === 4) gl.uniform4f(l, v[0], v[1], v[2], v[3]);
     },
     draw: () => {
       syncSize();

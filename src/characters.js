@@ -2,13 +2,17 @@
 // the character: its tile family, its palette, and the form of its halo.
 // Swapping characters tweens every one of these at once.
 //
-// figure: path to a transparent-background cutout, or null for a silhouette
-// placeholder until the real asset exists.
+// figure: transparent-background cutout.
+// figH / figY frame it: figH is drawn height in uv units (the viewport's short
+// axis is 1.0), figY shifts it vertically. Oversized and bled off the bottom
+// edge on purpose -- a cutout that fits inside the frame reads as a sticker.
 
 export const CHARACTERS = [
   {
     name: 'ORACLE',
     figure: '/src/figures/oracle.png',
+    figH: 1.30,
+    figY: -0.36,
     shape: 2.0,        // elbow -- greek key
     scale: 9,
     ground: '#fde67e',
@@ -25,6 +29,8 @@ export const CHARACTERS = [
   {
     name: 'SUNFLOWER',
     figure: '/src/figures/sunflower.png',
+    figH: 1.30,
+    figY: -0.36,
     shape: 0.2,        // arc -- flowing
     scale: 7,
     ground: '#1b4a8a',
@@ -41,6 +47,8 @@ export const CHARACTERS = [
   {
     name: 'PICK',
     figure: '/src/figures/pick.png',
+    figH: 1.30,
+    figY: -0.36,
     shape: 1.0,        // chord -- blocky
     scale: 12,
     ground: '#b8121b',
@@ -57,6 +65,8 @@ export const CHARACTERS = [
   {
     name: 'AFRICANA',
     figure: '/src/figures/africana.png',
+    figH: 1.30,
+    figY: -0.36,
     shape: 2.6,        // step -- circuit
     scale: 10,
     ground: '#5b3ea8',
