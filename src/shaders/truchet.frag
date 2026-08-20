@@ -179,8 +179,15 @@ void main() {
 
   // gradients, each seated on its own shape
   float gyG = clamp(0.5 + uv.y * 0.9, 0.0, 1.0);
-  float gyO = clamp(0.5 + dv.y / max(eO * 2.0, 1e-4), 0.0, 1.0);
   float gyI = clamp(0.5 + dv.y / max(eI * 2.0, 1e-4), 0.0, 1.0);
+
+  // A disc's gradient is seated on its own radius, so once it is much larger
+  // than the frame that gradient goes nearly flat -- while the ground's is
+  // mapped to screen height. At the handover the two mappings swapped and the
+  // colour jumped. Converge the outer one onto the ground's as it grows, so by
+  // full cover they are identical and the swap is invisible.
+  float gyOwn = clamp(0.5 + dv.y / max(eO * 2.0, 1e-4), 0.0, 1.0);
+  float gyO   = mix(gyOwn, gyG, smoothstep(0.7, 1.8, uOuter.x));
 
   vec3 fieldCol = mix(uGroundB, uGroundA, gyG);
   fieldCol = mix(fieldCol, mix(uOB, uOA, gyO) * (1.0 - 0.16 * smoothstep(0.35, 1.0, dRad / max(eO, 1e-4))), mO);

@@ -36,7 +36,7 @@ const DUR   = 1150;    // ms
 
 const ease    = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeIn  = (t) => t * t * t;                       // the disc accelerates away
-const easeOut = (t) => 1 - Math.pow(2, -9 * t);         // the next one arrives fast
+const easeOut = (t) => 1 - Math.pow(2, -5.5 * t);       // arrives fast, without popping
 const hex  = (h) => { const n = parseInt(h.slice(1), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
 const lerp3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
