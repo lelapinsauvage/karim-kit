@@ -1,6 +1,6 @@
 import { quad, hexToRgb } from './gl.js';
 import { CHARACTERS } from './characters.js';
-import { blend, easeInOut } from './tween.js';
+import { easeInOut } from './tween.js';
 import frag from './shaders/truchet.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
@@ -29,7 +29,7 @@ pushCraft();
 // swallowed the viewport, the whole field changes underneath it, and it
 // contracts again around the next character. one mechanism, both jobs.
 
-const GROW = 2.1;      // radius at full cover, in uv units
+const GROW = 0.55;     // how far the halo swells mid-changeover
 const DUR  = 1500;     // ms
 
 let from = 0, to = 0, startedAt = -1;
@@ -67,39 +67,38 @@ function frame(now) {
   }
 
   const a = CHARACTERS[from], b = CHARACTERS[to];
-  const s = blend(a, b, t);
 
-  // radius rides a bump: out past the viewport at the midpoint, back to halo
-  const cover = Math.sin(Math.PI * easeInOut(t));
-  const radius = s.haloR + (GROW - s.haloR) * cover;
+  // both states go to the shader whole; the front mixes them per pixel.
+  const hex = (h) => { const n = parseInt(h.slice(1), 16);
+    return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
+  const send = (p, ch) => {
+    view.set(`u${p}v1`, [ch.shape, ch.scale, ch.haloForm, ch.haloN]);
+    view.set(`u${p}v2`, [ch.haloR, ch.discShape, ch.discScale, 0]);
+    view.set(`u${p}Ground`,  hex(ch.ground));
+    view.set(`u${p}Ink`,     hex(ch.ink));
+    view.set(`u${p}DiscInk`, hex(ch.discInk));
+    view.set(`u${p}DiscA`,   hex(ch.discA));
+    view.set(`u${p}DiscB`,   hex(ch.discB));
+  };
+  send('A', a); send('B', b);
+
+  const prog = easeInOut(t);
+  view.set('uTrans', startedAt >= 0 ? prog : (t >= 1 ? 1 : 0));
+  view.set('uGrow', GROW * Math.sin(Math.PI * prog));
 
   // the halo edge itself performs the changeover -- no opacity anywhere.
   // first half: the growing halo reveals the incoming figure. after the
   // midpoint it owns the frame and the halo contracts around it.
-  const wipeActive = startedAt >= 0 && t < 0.5 ? 1 : 0;
-  const wipeDone   = t >= 0.5 ? 1 : 0;
   view.bind(TEX[from], 'uTexA');
   view.bind(TEX[to],   'uTexB');
   view.set('uFigA', [TEX[from].aspect, a.figH, a.figY, 0]);
   view.set('uFigB', [TEX[to].aspect,   b.figH, b.figY, 0]);
-  view.set('uWipeActive', wipeActive);
-  view.set('uWipeDone', wipeDone);
+  view.set('uRectA', TEX[from].rect);
+  view.set('uRectB', TEX[to].rect);
   view.set('uFigWarp', parseFloat(ui('figWarp').value));
   label.textContent = t < 0.5 ? a.name : b.name;
 
-  view.set('uShape', s.shape);
-  view.set('uScale', s.scale);
-  view.set('uGround', s.ground);
-  view.set('uInk', s.ink);
-  view.set('uDiscInk', s.discInk);
-  view.set('uDiscA', s.discA);
-  view.set('uDiscB', s.discB);
-  view.set('uDiscShape', s.discShape);
-  view.set('uDiscScale', s.discScale);
-  view.set('uHaloForm', s.haloForm);
-  view.set('uHaloN', s.haloN);
   view.set('uHaloRot', now * 0.00004);
-  view.set('uDiscR', radius);
   view.set('uDiscPos', [0, 0.06]);
 
   rewire += (rewireTarget - rewire) * 0.07;

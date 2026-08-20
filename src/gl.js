@@ -48,7 +48,10 @@ export function quad(canvas, frag) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    const rec = { tex: t, unit, aspect: 1, ready: false };
+    // rect = the alpha bounding box in texture coords. cutouts come back with
+    // wildly different amounts of empty padding, so framing by canvas height
+    // makes identical figures render at different sizes. frame to content.
+    const rec = { tex: t, unit, aspect: 1, rect: [0, 0, 1, 1], ready: false };
     texUnits.set(url, rec);
     const img = new Image();
     img.onload = () => {
@@ -59,11 +62,35 @@ export function quad(canvas, frag) {
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
       gl.generateMipmap(gl.TEXTURE_2D);
-      rec.aspect = img.width / img.height;
-      rec.ready = true;
+      rec.rect   = alphaBounds(img);
+      rec.aspect = (rec.rect[2] * img.width) / (rec.rect[3] * img.height);
+      rec.ready  = true;
     };
     img.src = url;
     return rec;
+  }
+
+  // one-time readback to find the opaque extent of a cutout
+  function alphaBounds(img, threshold = 8) {
+    const W = 220, H = Math.max(1, Math.round(W * img.height / img.width));
+    const cv = Object.assign(document.createElement('canvas'), { width: W, height: H });
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, W, H);
+    const { data } = ctx.getImageData(0, 0, W, H);
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        if (data[(y * W + x) * 4 + 3] > threshold) {
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+      }
+    }
+    if (x1 < 0) return [0, 0, 1, 1];
+    const pad = 1;
+    x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+    x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
+    return [x0 / W, y0 / H, (x1 - x0 + 1) / W, (y1 - y0 + 1) / H];
   }
 
   const cache = new Map();

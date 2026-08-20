@@ -5,9 +5,19 @@ out vec4 fragColor;
 
 uniform vec2  uRes;
 uniform float uTime;
-uniform float uScale;      // cells across the short axis
 uniform float uThickness;  // stroke weight (cell units)
-uniform float uShape;      // 0..3 -- morphs continuously through four tile families
+// two complete character states. every one of these is mixed PER PIXEL by the
+// changeover front, so the new world arrives along the field's own structure
+// rather than behind a moving shape.
+uniform vec4  uAv1;        // shape, scale, haloForm, haloN
+uniform vec4  uAv2;        // haloR, discShape, discScale, -
+uniform vec4  uBv1;
+uniform vec4  uBv2;
+uniform vec3  uAGround; uniform vec3 uAInk; uniform vec3 uADiscInk;
+uniform vec3  uADiscA;  uniform vec3 uADiscB;
+uniform vec3  uBGround; uniform vec3 uBInk; uniform vec3 uBDiscInk;
+uniform vec3  uBDiscA;  uniform vec3 uBDiscB;
+uniform float uGrow;       // halo swell during the changeover
 uniform float uWarp;       // low-freq domain warp -> hand-drawn feel
 uniform float uJitter;     // per-cell positional wobble
 uniform float uRewire;     // advances the hash -> maze reroutes
@@ -17,8 +27,6 @@ uniform float uBreakup;    // dry-brush holes inside the stroke
 uniform float uDensity;    // how opaque the ink sits at its fullest
 uniform float uDrift;      // how fast the breakup field crawls
 uniform float uGrain;
-uniform vec3  uInk;
-uniform vec3  uGround;
 
 // --- disc -------------------------------------------------------------
 // a circular region running a SECOND parameter set. it is not an overlay:
@@ -28,23 +36,16 @@ uniform vec3  uGround;
 // at halo scale it frames the figure; grown past the viewport it becomes the
 // transition to the next character.
 uniform vec2  uDiscPos;
-uniform float uDiscR;
-uniform float uHaloForm;   // 0 circle -> 1 polygon -> 2 star, continuous
-uniform float uHaloN;      // sides / points
 uniform float uHaloRot;
 uniform float uDiscSoft;
-uniform float uDiscShape;
-uniform float uDiscScale;
-uniform vec3  uDiscInk;
 uniform sampler2D uTexA;   // outgoing figure
 uniform sampler2D uTexB;   // incoming figure
 uniform vec4  uFigA;       // aspect, height (uv units), y offset, unused
 uniform vec4  uFigB;
-uniform float uWipeActive; // 1 while the halo is sweeping the changeover
-uniform float uWipeDone;   // 1 once the incoming figure owns the frame
+uniform vec4  uRectA;      // alpha bounding box of the cutout, texture coords
+uniform vec4  uRectB;
+uniform float uTrans;      // 0..1 changeover progress
 uniform float uFigWarp;    // figure rides the same warp field as the pattern
-uniform vec3  uDiscA;      // gradient, top
-uniform vec3  uDiscB;      // gradient, bottom
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -130,21 +131,40 @@ float cell(vec2 p, float h, float shape) {
 // figures are sampled in the shader, not stacked as DOM images: same warp
 // field, same halo mask, one composite. that is what makes them read as part
 // of the field instead of a picture sitting on top of it.
-vec4 figure(sampler2D t, vec4 cfg, vec2 uv, vec2 warpOff) {
+vec4 figure(sampler2D t, vec4 cfg, vec4 rect, vec2 uv, vec2 warpOff) {
   float aspect = cfg.x, h = cfg.y, yOff = cfg.z;
-  vec2 p = (uv - vec2(0.0, yOff) + warpOff) / h;
-  vec2 tc = vec2(p.x / aspect + 0.5, 0.5 - p.y);
-  if (tc.x < 0.0 || tc.x > 1.0 || tc.y < 0.0 || tc.y > 1.0) return vec4(0.0);
-  return texture(t, tc);
+  vec2 p  = (uv - vec2(0.0, yOff) + warpOff) / h;
+  vec2 lc = vec2(p.x / aspect + 0.5, 0.5 - p.y);       // 0..1 across the CONTENT
+  if (lc.x < 0.0 || lc.x > 1.0 || lc.y < 0.0 || lc.y > 1.0) return vec4(0.0);
+  return texture(t, rect.xy + lc * rect.zw);           // remap into the padded canvas
 }
 
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
   vec2 uv0 = uv;
 
+  // the changeover front. a value field built from the same ingredients as the
+  // pattern -- low-frequency noise, per-cell hash, and distance from the halo --
+  // so the new state floods in along the structure instead of behind a circle.
+  float field = clamp(fbm(uv * 2.2 + 4.0) * 0.55
+                    + hash21(floor(uv * 9.0)) * 0.22
+                    + clamp(length(uv - uDiscPos) / 1.15, 0.0, 1.0) * 0.30, 0.0, 1.0);
+  float front  = uTrans * 1.4 - 0.18;
+  float reveal = 1.0 - smoothstep(front - 0.06, front + 0.06, field);
+
+  vec4  v1 = mix(uAv1, uBv1, reveal);
+  vec4  v2 = mix(uAv2, uBv2, reveal);
+  float pShape = v1.x, pScaleBase = v1.y, pHaloForm = v1.z, pHaloN = v1.w;
+  float pHaloR = v2.x, pDiscShape = v2.y, pDiscScale = v2.z;
+  vec3  pGround  = mix(uAGround,  uBGround,  reveal);
+  vec3  pInk     = mix(uAInk,     uBInk,     reveal);
+  vec3  pDiscInk = mix(uADiscInk, uBDiscInk, reveal);
+  vec3  pDiscA   = mix(uADiscA,   uBDiscA,   reveal);
+  vec3  pDiscB   = mix(uADiscB,   uBDiscB,   reveal);
+
   // four slow periods, mutually prime, so the loop never lands back on itself
-  float scaleNow = uScale * (1.0 + sin(uTime * 0.11)       * 0.14 * uBreath);
-  float shapeNow = uShape +        sin(uTime * 0.067 + 1.3) * 0.55 * uBreath;
+  float scaleNow = pScaleBase * (1.0 + sin(uTime * 0.11)       * 0.14 * uBreath);
+  float shapeNow = pShape +        sin(uTime * 0.067 + 1.3) * 0.55 * uBreath;
   float warpNow  = uWarp  * (1.0 + sin(uTime * 0.13 + 1.7) * 0.45 * uBreath);
   float driftNow = uDrift * (1.0 + sin(uTime * 0.05 + 3.1) * 0.60 * uBreath);
 
@@ -156,26 +176,26 @@ void main() {
   // radius function sweeps circle -> regular polygon -> spiked star, so the
   // silhouette can tween between characters like any other parameter.
   float th = atan(dv.y, dv.x) + uHaloRot;
-  float k  = 6.28318530718 / max(uHaloN, 3.0);
+  float k  = 6.28318530718 / max(pHaloN, 3.0);
   float a  = mod(th, k) - k * 0.5;
   float rPoly = cos(k * 0.5) / max(cos(a), 1e-4);
   float rStar = 1.0 - 0.55 * abs(a) / (k * 0.5);
-  float fm    = clamp(uHaloForm, 0.0, 2.0);
+  float fm    = clamp(pHaloForm, 0.0, 2.0);
   float rad   = fm < 1.0 ? mix(1.0, rPoly, fm) : mix(rPoly, rStar, fm - 1.0);
 
-  float edge = uDiscR * rad;
+  float edge = (pHaloR + uGrow) * rad;
   float mask = 1.0 - smoothstep(edge - uDiscSoft, edge + uDiscSoft, dRad);
 
   // the disc carries its own gradient, with a little radial fall to seat the
   // figure against it rather than leaving a flat plate
   float gy    = clamp(0.5 + dv.y / max(edge * 2.0, 1e-4), 0.0, 1.0);
-  vec3  disc  = mix(uDiscB, uDiscA, gy);
+  vec3  disc  = mix(pDiscB, pDiscA, gy);
   disc *= 1.0 - 0.18 * smoothstep(0.35, 1.0, dRad / max(edge, 1e-4));
 
-  vec3  groundNow = mix(uGround, disc,      mask);
-  vec3  inkNow    = mix(uInk,    uDiscInk,  mask);
-  scaleNow = mix(scaleNow, scaleNow * uDiscScale, mask);
-  shapeNow = mix(shapeNow, uDiscShape,            mask);
+  vec3  groundNow = mix(pGround, disc,      mask);
+  vec3  inkNow    = mix(pInk,    pDiscInk,  mask);
+  scaleNow = mix(scaleNow, scaleNow * pDiscScale, mask);
+  shapeNow = mix(shapeNow, pDiscShape,            mask);
 
   uv += warpNow * 0.06 * vec2(noise(uv * 2.3 + 11.0), noise(uv * 2.1 - 7.0));
 
@@ -213,16 +233,17 @@ void main() {
 
   vec3 col = mix(groundNow, inkNow, clamp(alpha, 0.0, 1.0));
   // --- figures ---------------------------------------------------------
-  // the changeover is a wipe by the halo edge, never a cross-dissolve: the
-  // incoming figure is revealed by exactly the mask that is repainting the
-  // field, so figure and background change on the same edge at the same moment.
+  // the figure tears along the same front that repaints the field, and the
+  // torn edge is dragged sideways -- the outgoing character is pulled apart by
+  // the pattern rather than faded out under it.
+  float tear   = exp(-pow((field - front) * 7.0, 2.0)) * uTrans;
   vec2 figWarp = uFigWarp * 0.02 * vec2(noise(uv * 2.3 + 11.0) - 0.5,
-                                        noise(uv * 2.1 -  7.0) - 0.5);
-  vec4 fa = figure(uTexA, uFigA, uv0, figWarp);
-  vec4 fb = figure(uTexB, uFigB, uv0, figWarp);
+                                        noise(uv * 2.1 -  7.0) - 0.5)
+               + tear * 0.09 * vec2(noise(uv * 5.0 + 21.0) - 0.5, 0.0);
 
-  float wipe = max(uWipeDone, mask * uWipeActive);
-  vec4 fig   = mix(fa, fb, wipe);
+  vec4 fa  = figure(uTexA, uFigA, uRectA, uv0, figWarp);
+  vec4 fb  = figure(uTexB, uFigB, uRectB, uv0, figWarp);
+  vec4 fig = mix(fa, fb, reveal);
 
   col = col * (1.0 - fig.a) + fig.rgb;   // premultiplied
 
