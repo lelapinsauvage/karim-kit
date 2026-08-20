@@ -14,8 +14,7 @@ uniform vec3  uInk;
 uniform float uHaloForm;   // 0 circle -> 1 polygon -> 2 star, continuous
 uniform float uHaloN;
 uniform float uDiscR;
-uniform float uZoom;       // camera pull-back through a changeover
-uniform float uPush;       // radial displacement of the field
+uniform vec2  uSlide;      // accumulated field travel -- only ever increases
 uniform float uDiscShape;
 uniform float uDiscScale;
 uniform vec3  uDiscInk;
@@ -184,10 +183,11 @@ void main() {
   // full-cover to zero at the phase boundary, so anything derived from it snaps
   // there. a time-driven curve is continuous across the whole changeover.
   //
-  // the camera pulls back while the shape expands, and the field is pushed
-  // radially outward from the disc, hardest near it. one continuous move.
-  uv = uDiscPos + dv * uZoom;
-  uv -= (dv / max(dRad, 1e-4)) * uPush / (1.0 + dRad * 2.0);
+  // the field TRAVELS. it never scales out and back, because a value that
+  // returns to where it started always reads as a round trip. this one only
+  // accumulates: each changeover shoves the field further along a new heading
+  // and it stays there.
+  uv += uSlide;
 
   // the disc carries its own gradient, with a little radial fall to seat the
   // figure against it rather than leaving a flat plate

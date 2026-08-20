@@ -31,9 +31,11 @@ pushCraft();
 // Nothing shrinks back, and nothing cross-fades.
 
 const COVER = 2.6;     // disc radius that clears the corners, in uv units
-const DUR   = 1600;    // ms
+const DUR   = 1150;    // ms
 
-const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const ease    = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeIn  = (t) => t * t * t;                       // the disc accelerates away
+const easeOut = (t) => 1 - Math.pow(2, -9 * t);         // the next one arrives fast
 const hex  = (h) => { const n = parseInt(h.slice(1), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
 const lerp3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
@@ -44,6 +46,7 @@ const TEX = CHARACTERS.map((ch, i) => ch.figure ? view.texture(ch.figure, i) : n
 
 function go(dir) {
   if (startedAt >= 0) return;
+  heading += 2.39996;                     // golden angle -- never repeats a direction
   cur = nxt;
   nxt = (nxt + dir + CHARACTERS.length) % CHARACTERS.length;
   startedAt = performance.now();
@@ -61,6 +64,11 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('click', (e) => { if (!e.target.closest('.panel')) go(1); });
 
+// field travel. integrated every frame and never wound back, so the motion has
+// no return leg: each changeover pushes off along a fresh heading.
+const slide = [0, 0];
+let heading = 0, lastNow = performance.now();
+
 let rewire = 0, rewireTarget = 0;
 addEventListener('wheel', (e) => { rewireTarget += e.deltaY * 0.0012; }, { passive: true });
 
@@ -71,12 +79,18 @@ function frame(now) {
     if (t >= 1) { t = 1; startedAt = -1; cur = nxt; }
   }
 
+  const dt = Math.min((now - lastNow) / 1000, 0.05);
+  lastNow = now;
+  const speed = 0.62 * Math.sin(Math.PI * t) ** 0.7;   // fast at the crossover
+  slide[0] += Math.cos(heading) * speed * dt;
+  slide[1] += Math.sin(heading) * speed * dt;
+
   const a = CHARACTERS[cur], b = CHARACTERS[nxt];
   let st, radius, ground, ink, shape, scale;
 
   if (t < 0.5) {
-    // phase 1 -- a's disc swallows the frame
-    const p = ease(t * 2);
+    // phase 1 -- a's disc accelerates outward and swallows the frame
+    const p = easeIn(t * 2);
     st = a;
     radius = a.haloR + (COVER - a.haloR) * p;
     ground = [hex(a.groundA), hex(a.groundB)];
@@ -85,7 +99,9 @@ function frame(now) {
     // phase 2 -- the frame is now b's ground; b's disc is born from zero.
     // the ground pattern morphs out of a's disc pattern over the first slice,
     // so the field reorganises by morphing rather than by cutting.
-    const p = ease((t - 0.5) * 2);
+    // easeOut, so the new shape is most of the way there within a third of the
+    // phase instead of crawling in behind the changeover
+    const p = easeOut((t - 0.5) * 2);
     const m = Math.min(1, (t - 0.5) * 2 / 0.35);
     st = b;
     radius = b.haloR * p;
@@ -101,11 +117,7 @@ function frame(now) {
   view.set('uGroundB', ground[1]);
   view.set('uInk', ink);
   view.set('uDiscR', radius);
-  // one continuous curve across both phases: zero at rest, peak at the
-  // crossover, zero again once the new character has settled
-  const swell = Math.sin(Math.PI * t);
-  view.set('uZoom', 1 + 0.75 * swell);
-  view.set('uPush', 0.30 * swell);
+  view.set('uSlide', slide);
   view.set('uDiscPos', [0, 0.06]);
   view.set('uDiscShape', st.discShape);
   view.set('uDiscScale', st.discScale);
