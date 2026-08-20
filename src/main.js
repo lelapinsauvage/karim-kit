@@ -46,6 +46,11 @@ const easeOut = (t) => (1 - Math.pow(2, -EO_K * t)) / EO_N;
 const hex  = (h) => { const n = parseInt(h.slice(1), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
 const lerp3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const mixHex = (p, q, t) => lerp3(hex(p), hex(q), t);
+const smoothstep = (e0, e1, x) => {
+  const u = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1);
+  return u * u * (3 - 2 * u);
+};
 
 let cur = 0, nxt = 0, startedAt = -1;
 const label = ui('label');
@@ -119,12 +124,16 @@ function frame(now) {
   view.set('uGroundB', hex(a.groundB));
   view.set('uInk',     hex(a.ink));
 
-  // outer = the current character's disc, which is also the next one's ground
+  // outer = the current character's disc. Its COLOUR lerps toward the next
+  // character's ground as it expands, on the same curve the gradient mapping
+  // uses -- so by full cover it already is the next dark field and the handover
+  // has nothing to reveal. Shape and scale still chain numerically.
+  const k = smoothstep(0.7, 1.8, outerR);
   view.set('uOuter',  [outerR, a.haloForm, a.haloN, a.discShape]);
   view.set('uOuterX', [a.discScale * mulOuter, 0, 0]);
-  view.set('uOInk',   hex(a.discInk));
-  view.set('uOA',     hex(a.discA));
-  view.set('uOB',     hex(a.discB));
+  view.set('uOInk',   mixHex(a.discInk, b.ink,     k));
+  view.set('uOA',     mixHex(a.discA,   b.groundA, k));
+  view.set('uOB',     mixHex(a.discB,   b.groundB, k));
 
   // inner = the next character's disc
   // the incoming halo is BORN as the outgoing one's form and morphs into its
