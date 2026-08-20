@@ -74,56 +74,51 @@ function frame(now) {
   }
 
   const a = CHARACTERS[cur], b = CHARACTERS[nxt];
-  let st, radius, ground, ink, shape, scale;
+  const idle = startedAt < 0;
 
-  if (t < 0.5) {
-    // phase 1 -- a's disc accelerates outward and swallows the frame
-    const p = easeIn(t * 2);
-    st = a;
-    radius = a.haloR + (COVER - a.haloR) * p;
-    ground = [hex(a.groundA), hex(a.groundB)];
-    ink = hex(a.ink); shape = a.shape; scale = a.scale;
-  } else {
-    // phase 2 -- the frame is now b's ground; b's disc is born from zero.
-    // the ground pattern morphs out of a's disc pattern over the first slice,
-    // so the field reorganises by morphing rather than by cutting.
-    // easeOut, so the new shape is most of the way there within a third of the
-    // phase instead of crawling in behind the changeover
-    const p = easeOut((t - 0.5) * 2);
-    const m = Math.min(1, (t - 0.5) * 2 / 0.35);
-    st = b;
-    radius = b.haloR * p;
-    ground = [hex(b.groundA), hex(b.groundB)];
-    ink   = lerp3(hex(a.discInk), hex(b.ink), m);
-    shape = a.discShape + (b.shape - a.discShape) * m;
-    scale = a.scale * a.discScale + (b.scale - a.scale * a.discScale) * m;
-  }
+  // Three concentric zones. At rest the outer disc is the current character's
+  // halo and the inner one has no radius. Through a changeover the outer disc
+  // accelerates off the frame while the inner -- the next character -- is
+  // already growing behind it, so nothing waits for a full-cover moment.
+  const outerR = idle ? a.haloR : a.haloR + (COVER - a.haloR) * easeIn(t);
+  const innerR = idle ? 0       : b.haloR * easeOut(Math.max(0, t - 0.12) / 0.88);
 
-  view.set('uShape', shape);
-  view.set('uScale', scale);
-  view.set('uGroundA', ground[0]);
-  view.set('uGroundB', ground[1]);
-  view.set('uInk', ink);
-  view.set('uDiscR', radius);
+  // ground recedes as the discs expand -- opposite directions. it is fully
+  // hidden by the outer disc before the reset, so the reset is never seen.
+  view.set('uGZoom', 1 + 1.15 * easeIn(t));
+
+  // ground = the current character's field
+  view.set('uShape',   a.shape);
+  view.set('uScale',   a.scale);
+  view.set('uGroundA', hex(a.groundA));
+  view.set('uGroundB', hex(a.groundB));
+  view.set('uInk',     hex(a.ink));
+
+  // outer = the current character's disc, which is also the next one's ground
+  view.set('uOuter',  [outerR, a.haloForm, a.haloN, a.discShape]);
+  view.set('uOuterX', [a.discScale, 0, 0]);
+  view.set('uOInk',   hex(a.discInk));
+  view.set('uOA',     hex(a.discA));
+  view.set('uOB',     hex(a.discB));
+
+  // inner = the next character's disc
+  view.set('uInner',  [innerR, b.haloForm, b.haloN, b.discShape]);
+  view.set('uInnerX', [b.discScale, 0, 0]);
+  view.set('uIInk',   hex(b.discInk));
+  view.set('uIA',     hex(b.discA));
+  view.set('uIB',     hex(b.discB));
+
   view.set('uDiscPos', [0, 0.06]);
-  view.set('uDiscShape', st.discShape);
-  view.set('uDiscScale', st.discScale);
-  view.set('uDiscInk', hex(st.discInk));
-  view.set('uDiscA', hex(st.discA));
-  view.set('uDiscB', hex(st.discB));
-  view.set('uHaloForm', st.haloForm);
-  view.set('uHaloN', st.haloN);
   view.set('uHaloRot', now * 0.00004);
 
-  const tex = TEX[t < 0.5 ? cur : nxt];
+  const tex = TEX[idle ? cur : nxt];
   if (tex) {
     view.bind(tex, 'uTexA');
-    view.set('uFigA', [tex.aspect, st.figH ?? 1.3, st.figY ?? -0.36, 0]);
+    view.set('uFigA', [tex.aspect, 1.3, -0.36, 0]);
     view.set('uRectA', tex.rect);
   }
   view.set('uFigShow', showFigures && tex ? 1 : 0);
-
-  label.textContent = st.name;
+  label.textContent = (t > 0.55 ? b : a).name;
 
   rewire += (rewireTarget - rewire) * 0.07;
   view.set('uTime', now * 0.001);

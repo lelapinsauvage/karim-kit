@@ -5,40 +5,39 @@ out vec4 fragColor;
 
 uniform vec2  uRes;
 uniform float uTime;
-uniform float uThickness;  // stroke weight (cell units)
-uniform float uShape;      // 0..3 -- morphs continuously through four tile families
-uniform float uScale;      // cells across the short axis
-uniform vec3  uGroundA;    // ground gradient, top
-uniform vec3  uGroundB;    // ground gradient, bottom
+// Three zones, nested. The ground, the OUTER disc, and the INNER disc -- which
+// is the next character, already born and growing while the outer one is still
+// clearing the frame. Nothing ever waits for a full-cover moment: at any instant
+// two shapes are expanding and the ground is receding.
+uniform float uShape;      // ground
+uniform float uScale;
+uniform vec3  uGroundA;
+uniform vec3  uGroundB;
 uniform vec3  uInk;
-uniform float uHaloForm;   // 0 circle -> 1 polygon -> 2 star, continuous
-uniform float uHaloN;
-uniform float uDiscR;
-uniform float uDiscShape;
-uniform float uDiscScale;
-uniform vec3  uDiscInk;
-uniform vec3  uDiscA;
-uniform vec3  uDiscB;
-uniform float uWarp;       // low-freq domain warp -> hand-drawn feel
-uniform float uJitter;     // per-cell positional wobble
-uniform float uRewire;     // advances the hash -> maze reroutes
-uniform float uBreath;     // slow modulation of scale / shape / warp / drift
-uniform float uRough;      // ragged contour -- eaten edges
-uniform float uBreakup;    // dry-brush holes inside the stroke
-uniform float uDensity;    // how opaque the ink sits at its fullest
-uniform float uDrift;      // how fast the breakup field crawls
-uniform float uGrain;
+uniform float uGZoom;      // ground recedes while the discs expand
 
-// --- disc -------------------------------------------------------------
-// a circular region running a SECOND parameter set. it is not an overlay:
-// inside it the pattern itself changes family, scale and colour, and the two
-// states cross-fade across the edge. because the family morph is continuous,
-// the boundary stays connected -- paths run out of one state and into the other.
-// at halo scale it frames the figure; grown past the viewport it becomes the
-// transition to the next character.
+uniform vec4  uOuter;      // radius, form, sides, shape
+uniform vec3  uOuterX;     // scaleMul, -, -
+uniform vec3  uOInk; uniform vec3 uOA; uniform vec3 uOB;
+
+uniform float uThickness;
+uniform float uWarp;
+uniform float uJitter;
+uniform float uRewire;
+uniform float uBreath;
+uniform float uRough;
+uniform float uBreakup;
+uniform float uDensity;
+uniform float uDrift;
+uniform float uGrain;
 uniform vec2  uDiscPos;
-uniform float uHaloRot;
 uniform float uDiscSoft;
+uniform float uHaloRot;
+
+uniform vec4  uInner;
+uniform vec3  uInnerX;
+uniform vec3  uIInk; uniform vec3 uIA; uniform vec3 uIB;
+
 uniform sampler2D uTexA;   // outgoing figure
 uniform vec4  uFigA;       // aspect, height (uv units), y offset, unused
 uniform vec4  uRectA;      // alpha bounding box of the cutout, texture coords
@@ -149,6 +148,16 @@ vec4 figure(sampler2D t, vec4 cfg, vec4 rect, vec2 uv, vec2 warpOff) {
   return texture(t, rect.xy + lc * rect.zw);           // remap into the padded canvas
 }
 
+// polar radius of a halo: circle -> polygon -> star, continuous in `form`
+float haloRadius(float th, float form, float sides) {
+  float k = 6.28318530718 / max(sides, 3.0);
+  float a = mod(th, k) - k * 0.5;
+  float rPoly = cos(k * 0.5) / max(cos(a), 1e-4);
+  float rStar = 1.0 - 0.55 * abs(a) / (k * 0.5);
+  float fm = clamp(form, 0.0, 2.0);
+  return fm < 1.0 ? mix(1.0, rPoly, fm) : mix(rPoly, rStar, fm - 1.0);
+}
+
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
   vec2 uv0 = uv;
@@ -159,45 +168,32 @@ void main() {
   float warpNow  = uWarp  * (1.0 + sin(uTime * 0.13 + 1.7) * 0.45 * uBreath);
   float driftNow = uDrift * (1.0 + sin(uTime * 0.05 + 3.1) * 0.60 * uBreath);
 
-  // disc mask taken before the warp, so the circle itself stays a true circle
   vec2  dv   = uv - uDiscPos;
   float dRad = length(dv);
+  float th   = atan(dv.y, dv.x) + uHaloRot;
 
-  // the halo is a form, not a circle: each character gets its own. one polar
-  // radius function sweeps circle -> regular polygon -> spiked star, so the
-  // silhouette can tween between characters like any other parameter.
-  float th = atan(dv.y, dv.x) + uHaloRot;
-  float k  = 6.28318530718 / max(uHaloN, 3.0);
-  float a  = mod(th, k) - k * 0.5;
-  float rPoly = cos(k * 0.5) / max(cos(a), 1e-4);
-  float rStar = 1.0 - 0.55 * abs(a) / (k * 0.5);
-  float fm    = clamp(uHaloForm, 0.0, 2.0);
-  float rad   = fm < 1.0 ? mix(1.0, rPoly, fm) : mix(rPoly, rStar, fm - 1.0);
+  float eO = uOuter.x * haloRadius(th, uOuter.y, uOuter.z);
+  float eI = uInner.x * haloRadius(th, uInner.y, uInner.z);
+  float mO = 1.0 - smoothstep(eO - uDiscSoft, eO + uDiscSoft, dRad);
+  float mI = 1.0 - smoothstep(eI - uDiscSoft, eI + uDiscSoft, dRad);
 
-  float edge = uDiscR * rad;
-  float mask = 1.0 - smoothstep(edge - uDiscSoft, edge + uDiscSoft, dRad);
+  // gradients, each seated on its own shape
+  float gyG = clamp(0.5 + uv.y * 0.9, 0.0, 1.0);
+  float gyO = clamp(0.5 + dv.y / max(eO * 2.0, 1e-4), 0.0, 1.0);
+  float gyI = clamp(0.5 + dv.y / max(eI * 2.0, 1e-4), 0.0, 1.0);
 
-  // --- the field moves with the shape ----------------------------------
-  // driven by transition TIME, not by the disc radius. the radius jumps from
-  // full-cover to zero at the phase boundary, so anything derived from it snaps
-  // there. a time-driven curve is continuous across the whole changeover.
-  //
-  // the disc carries its own gradient, with a little radial fall to seat the
-  // figure against it rather than leaving a flat plate
-  float gy    = clamp(0.5 + dv.y / max(edge * 2.0, 1e-4), 0.0, 1.0);
-  vec3  disc  = mix(uDiscB, uDiscA, gy);
-  disc *= 1.0 - 0.18 * smoothstep(0.35, 1.0, dRad / max(edge, 1e-4));
+  vec3 fieldCol = mix(uGroundB, uGroundA, gyG);
+  fieldCol = mix(fieldCol, mix(uOB, uOA, gyO) * (1.0 - 0.16 * smoothstep(0.35, 1.0, dRad / max(eO, 1e-4))), mO);
+  fieldCol = mix(fieldCol, mix(uIB, uIA, gyI) * (1.0 - 0.16 * smoothstep(0.35, 1.0, dRad / max(eI, 1e-4))), mI);
 
-  // the ground is a gradient too, so a disc that has grown to fill the frame
-  // reads identically to the next character's ground -- which is what lets the
-  // changeover run forward without ever travelling back.
-  float ggy    = clamp(0.5 + uv.y * 0.9, 0.0, 1.0);
-  vec3  ground = mix(uGroundB, uGroundA, ggy);
+  vec3 inkCol = mix(mix(uInk, uOInk, mO), uIInk, mI);
 
-  vec3  groundNow = mix(ground, disc,     mask);
-  vec3  inkNow    = mix(uInk,   uDiscInk, mask);
-  scaleNow = mix(scaleNow, scaleNow * uDiscScale, mask);
-  shapeNow = mix(shapeNow, uDiscShape,            mask);
+  // the ground recedes while the discs grow -- counter-motion, and because the
+  // outer disc has left the frame by the end, resetting it is never seen
+  uv = mix(uv * uGZoom, uv, mO);
+
+  shapeNow = mix(mix(shapeNow, uOuter.w, mO), uInner.w, mI);
+  scaleNow = mix(mix(scaleNow, scaleNow * uOuterX.x, mO), scaleNow * uInnerX.x, mI);
 
   uv += warpNow * 0.06 * vec2(noise(uv * 2.3 + 11.0), noise(uv * 2.1 - 7.0));
 
@@ -233,7 +229,7 @@ void main() {
 
   float alpha = ink * load * holes * uDensity;
 
-  vec3 col = mix(groundNow, inkNow, clamp(alpha, 0.0, 1.0));
+  vec3 col = mix(fieldCol, inkCol, clamp(alpha, 0.0, 1.0));
   // --- figure ----------------------------------------------------------
   // gated on a uniform: curl() alone is four fbm evaluations per pixel, and it
   // was being paid for every frame even with the figures hidden.
@@ -253,7 +249,7 @@ void main() {
     }
     if (uFigTone > 0.0) {
       float lum = dot(fig.rgb / max(fig.a, 1e-3), vec3(0.299, 0.587, 0.114));
-      fig.rgb   = mix(fig.rgb, mix(groundNow * 0.35, inkNow, smoothstep(0.05, 0.75, lum)) * fig.a, uFigTone);
+      fig.rgb   = mix(fig.rgb, mix(fieldCol * 0.35, inkCol, smoothstep(0.05, 0.75, lum)) * fig.a, uFigTone);
     }
     col = col * (1.0 - fig.a) + fig.rgb;
   }
