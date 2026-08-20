@@ -101,6 +101,7 @@ function frame(now) {
   view.set('uGroundB', ground[1]);
   view.set('uInk', ink);
   view.set('uDiscR', radius);
+  view.set('uDiscRef', st.haloR);
   view.set('uDiscPos', [0, 0.06]);
   view.set('uDiscShape', st.discShape);
   view.set('uDiscScale', st.discScale);
