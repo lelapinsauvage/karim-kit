@@ -30,6 +30,7 @@ pushCraft();
 // is authored that way. Phase 2: the next disc is born from zero at the centre.
 // Nothing shrinks back, and nothing cross-fades.
 
+const ZOOM  = 1.6;     // outer pull-out per changeover, folded into the chain
 const COVER = 2.6;     // disc radius that clears the corners, in uv units
 const DUR   = 1150;    // ms
 
@@ -87,12 +88,13 @@ function frame(now) {
 
   view.set('uGZoom', 1);
 
-  // Each layer's PATTERN scale animates, not just its radius.
-  // outer: pulls away as it engulfs the frame, relaxing back as it becomes ground.
-  // inner: arrives already pulled far out and zooms in to its resting scale.
+  // Each layer's pattern scale animates, and each goes ONE WAY.
+  // outer: pulls out by ZOOM across the whole changeover and stops there --
+  //   the chain expects it, so it lands on the next resting scale exactly.
+  // inner: arrives already pulled out and zooms in to rest. Also one way.
   const p2       = t < 0.5 ? 0 : (t - 0.5) * 2;
-  const mulOuter = 1 + 0.9 * Math.sin(Math.PI * t);
-  const mulInner = 1 + 1.7 * (1 - easeOut(p2));
+  const mulOuter = 1 + (ZOOM - 1) * ease(t);
+  const mulInner = 1 + 1.6 * (1 - easeOut(p2));
 
   // ground = the current character's field
   view.set('uShape',   a.shape);

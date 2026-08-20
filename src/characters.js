@@ -17,48 +17,48 @@ export const CHARACTERS = [
   {
     name: 'ORACLE',
     shape: 2.0,                                   // elbow -- greek key
-    scale: 9.0,
+    scale: 13.0,
     groundA: '#fde67e', groundB: '#f7d95e',       // acid yellow
     ink: '#8fd78d',
     type: '#1b1a12',                              // reserved for type
     haloForm: 0, haloN: 8, haloR: 0.34,
-    discShape: 0.4, discScale: 2.0,
+    discShape: 0.4, discScale: 0.5,
     discInk: '#ffd166',
     discA: '#ff3d8b', discB: '#8a1f6a',           // -> SIGNAL's ground
   },
   {
     name: 'SIGNAL',
     shape: 0.4,                                   // arc -- flowing
-    scale: 18.0,
+    scale: 10.4,
     groundA: '#ff3d8b', groundB: '#8a1f6a',
     ink: '#ffd166',
     type: '#fff3d6',
     haloForm: 0, haloN: 6, haloR: 0.40,
-    discShape: 1.6, discScale: 0.6,
+    discShape: 1.6, discScale: 0.45,
     discInk: '#f4efe3',
     discA: '#1f8f6b', discB: '#0d4436',           // -> KIN's ground
   },
   {
     name: 'KIN',
     shape: 1.6,                                   // chord -- blocky
-    scale: 10.8,
+    scale: 7.488,
     groundA: '#1f8f6b', groundB: '#0d4436',
     ink: '#f4efe3',
     type: '#f4efe3',
     haloForm: 1, haloN: 6, haloR: 0.36,           // hexagon
-    discShape: 2.4, discScale: 1.8,
+    discShape: 2.4, discScale: 0.75,
     discInk: '#ffb3c7',
     discA: '#c8102e', discB: '#6b0715',           // -> AFRICANA's ground
   },
   {
     name: 'AFRICANA',
     shape: 2.4,                                   // step -- circuit
-    scale: 19.44,
+    scale: 8.9856,
     groundA: '#c8102e', groundB: '#6b0715',
     ink: '#ffb3c7',
     type: '#fff0f3',
     haloForm: 2, haloN: 8, haloR: 0.44,           // star
-    discShape: 2.0, discScale: 0.46296,
+    discShape: 2.0, discScale: 0.9043,
     discInk: '#8fd78d',                           // -> ORACLE's ink
     discA: '#fde67e', discB: '#f7d95e',           // -> ORACLE's ground. loop closed.
   },
