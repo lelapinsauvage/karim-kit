@@ -80,12 +80,14 @@ function frame(now) {
   // halo and the inner one has no radius. Through a changeover the outer disc
   // accelerates off the frame while the inner -- the next character -- is
   // already growing behind it, so nothing waits for a full-cover moment.
-  const outerR = idle ? a.haloR : a.haloR + (COVER - a.haloR) * easeIn(t);
-  const innerR = idle ? 0       : b.haloR * easeOut(Math.max(0, t - 0.12) / 0.88);
+  // the outer disc must clear the frame completely before the next one starts.
+  // overlapping them read as glitching, not as continuity.
+  const outerR = idle ? a.haloR : a.haloR + (COVER - a.haloR) * easeIn(t * 2 > 1 ? 1 : t * 2);
+  const innerR = idle || t < 0.5 ? 0 : b.haloR * easeOut((t - 0.5) * 2);
 
-  // ground recedes as the discs expand -- opposite directions. it is fully
-  // hidden by the outer disc before the reset, so the reset is never seen.
-  view.set('uGZoom', 1 + 1.15 * easeIn(t));
+  // no ground zoom: its reset had to happen somewhere, and wherever it happened
+  // it snapped. the discs carry the motion on their own.
+  view.set('uGZoom', 1);
 
   // ground = the current character's field
   view.set('uShape',   a.shape);
