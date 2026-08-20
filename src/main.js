@@ -8,11 +8,12 @@ const view = quad(document.getElementById('c'), frag);
 // --- craft params: how the ink behaves. shared across all characters. --------
 const ui = (id) => document.getElementById(id);
 const nums = ['thickness', 'breath', 'warp', 'jitter', 'rough',
-              'breakup', 'density', 'drift', 'grain', 'discSoft', 'figWarp'];
+              'breakup', 'density', 'drift', 'grain', 'discSoft', 'figWarp', 'figFlow', 'figEdge', 'figTone'];
 const uName = {
   thickness: 'uThickness', breath: 'uBreath', warp: 'uWarp', jitter: 'uJitter',
   rough: 'uRough', breakup: 'uBreakup', density: 'uDensity', drift: 'uDrift',
-  grain: 'uGrain', discSoft: 'uDiscSoft', figWarp: 'uFigWarp',
+  grain: 'uGrain', discSoft: 'uDiscSoft', figWarp: 'uFigWarp', figFlow: 'uFigFlow',
+  figEdge: 'uFigEdge', figTone: 'uFigTone',
 };
 function pushCraft() {
   for (const n of nums) {
@@ -95,7 +96,6 @@ function frame(now) {
   view.set('uFigB', [TEX[to].aspect,   b.figH, b.figY, 0]);
   view.set('uRectA', TEX[from].rect);
   view.set('uRectB', TEX[to].rect);
-  view.set('uFigWarp', parseFloat(ui('figWarp').value));
   label.textContent = t < 0.5 ? a.name : b.name;
 
   view.set('uHaloRot', now * 0.00004);

@@ -46,6 +46,9 @@ uniform vec4  uRectA;      // alpha bounding box of the cutout, texture coords
 uniform vec4  uRectB;
 uniform float uTrans;      // 0..1 changeover progress
 uniform float uFigWarp;    // figure rides the same warp field as the pattern
+uniform float uFigFlow;    // slow curl advection -- the figure moves like liquid
+uniform float uFigEdge;    // the cutout edge is eaten by the same noise as the ink
+uniform float uFigTone;    // pull the figure toward the character's own palette
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -63,6 +66,15 @@ float noise(vec2 p) {
 
 float fbm(vec2 p) {
   return noise(p) * 0.6 + noise(p * 2.7 + 3.1) * 0.3 + noise(p * 6.1 - 1.7) * 0.1;
+}
+
+// curl of a scalar noise field -> divergence-free flow. advecting the figure
+// along it reads as liquid rather than as a wobble.
+vec2 curl(vec2 p) {
+  float e = 0.08;
+  float n1 = fbm(p + vec2(0.0, e)), n2 = fbm(p - vec2(0.0, e));
+  float n3 = fbm(p + vec2(e, 0.0)), n4 = fbm(p - vec2(e, 0.0));
+  return vec2(n1 - n2, n4 - n3) / (2.0 * e);
 }
 
 float seg(vec2 p, vec2 a, vec2 b) {
@@ -236,14 +248,28 @@ void main() {
   // the figure tears along the same front that repaints the field, and the
   // torn edge is dragged sideways -- the outgoing character is pulled apart by
   // the pattern rather than faded out under it.
-  float tear   = exp(-pow((field - front) * 7.0, 2.0)) * uTrans;
+  float tear = exp(-pow((field - front) * 7.0, 2.0)) * uTrans;
+  vec2 flow  = curl(uv0 * 1.6 + vec2(uTime * 0.035, uTime * -0.021));
   vec2 figWarp = uFigWarp * 0.02 * vec2(noise(uv * 2.3 + 11.0) - 0.5,
                                         noise(uv * 2.1 -  7.0) - 0.5)
-               + tear * 0.09 * vec2(noise(uv * 5.0 + 21.0) - 0.5, 0.0);
+               + uFigFlow * 0.012 * flow
+               + tear * 0.11 * vec2(noise(uv * 5.0 + 21.0) - 0.5, 0.0);
 
   vec4 fa  = figure(uTexA, uFigA, uRectA, uv0, figWarp);
   vec4 fb  = figure(uTexB, uFigB, uRectB, uv0, figWarp);
   vec4 fig = mix(fa, fb, reveal);
+
+  // eat the cutout edge with the same field that chews the ink. kills the hard
+  // matte line -- and the rectangular seams the background remover leaves.
+  float bite = fbm(uv0 * 14.0 + dr * 1.5) * 0.6 + fbm(uv0 * 34.0 - dr) * 0.4;
+  fig.a   *= smoothstep(0.0, 0.55, fig.a - (bite - 0.5) * 0.5 * uFigEdge);
+  fig.rgb *= step(0.001, fig.a);
+
+  // and pull it toward the character's own two colours, so the figure is made
+  // of the same material as the field instead of sitting on top of it
+  float lum  = dot(fig.rgb / max(fig.a, 1e-3), vec3(0.299, 0.587, 0.114));
+  vec3  duo  = mix(groundNow * 0.35, inkNow, smoothstep(0.05, 0.75, lum));
+  fig.rgb    = mix(fig.rgb, duo * fig.a, uFigTone);
 
   col = col * (1.0 - fig.a) + fig.rgb;   // premultiplied
 

@@ -106,9 +106,15 @@ export function quad(canvas, frag) {
   // miss, whatever the browser decides to notify about.
   let lastW = 0, lastH = 0, lastDpr = 0;
   function syncSize() {
-    const dpr = Math.min(devicePixelRatio, 2);
-    const w = document.documentElement.clientWidth;
-    const h = document.documentElement.clientHeight;
+    // fullscreen on a retina display asks for ~6M pixels of a heavy fragment
+    // shader. cap the ratio: past 1.5 nothing is visibly sharper here, and the
+    // frame budget is what actually shows.
+    const dpr = Math.min(devicePixelRatio, 1.5);
+    // in fullscreen the fullscreen element defines the box, not the document
+    const fs = document.fullscreenElement;
+    const vv = window.visualViewport;
+    const w = fs ? fs.clientWidth  : (vv ? Math.round(vv.width)  : document.documentElement.clientWidth);
+    const h = fs ? fs.clientHeight : (vv ? Math.round(vv.height) : document.documentElement.clientHeight);
     if (w === lastW && h === lastH && dpr === lastDpr) return;
     lastW = w; lastH = h; lastDpr = dpr;
     canvas.width  = Math.round(w * dpr);
