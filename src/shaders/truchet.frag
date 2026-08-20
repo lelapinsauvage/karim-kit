@@ -49,6 +49,7 @@ uniform float uFigWarp;    // figure rides the same warp field as the pattern
 uniform float uFigFlow;    // slow curl advection -- the figure moves like liquid
 uniform float uFigEdge;    // the cutout edge is eaten by the same noise as the ink
 uniform float uFigTone;    // pull the figure toward the character's own palette
+uniform float uFigShow;    // 0 hides the figures entirely
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -248,7 +249,7 @@ void main() {
   // the figure tears along the same front that repaints the field, and the
   // torn edge is dragged sideways -- the outgoing character is pulled apart by
   // the pattern rather than faded out under it.
-  float tear = exp(-pow((field - front) * 7.0, 2.0)) * uTrans;
+  float tear = exp(-pow((field - front) * 7.0, 2.0)) * uTrans * uFigWarp;
   vec2 flow  = curl(uv0 * 1.6 + vec2(uTime * 0.035, uTime * -0.021));
   vec2 figWarp = uFigWarp * 0.02 * vec2(noise(uv * 2.3 + 11.0) - 0.5,
                                         noise(uv * 2.1 -  7.0) - 0.5)
@@ -257,7 +258,7 @@ void main() {
 
   vec4 fa  = figure(uTexA, uFigA, uRectA, uv0, figWarp);
   vec4 fb  = figure(uTexB, uFigB, uRectB, uv0, figWarp);
-  vec4 fig = mix(fa, fb, reveal);
+  vec4 fig = mix(fa, fb, reveal) * uFigShow;
 
   // eat the cutout edge with the same field that chews the ink. kills the hard
   // matte line -- and the rectangular seams the background remover leaves.

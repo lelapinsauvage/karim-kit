@@ -47,7 +47,9 @@ function go(dir) {
   to = (to + dir + CHARACTERS.length) % CHARACTERS.length;
   startedAt = performance.now();
 }
+let showFigures = true;
 addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'h') showFigures = !showFigures;
   if (e.key === 'ArrowRight') go(1);
   if (e.key === 'ArrowLeft')  go(-1);
   if (e.key.toLowerCase() === 'f') {
@@ -96,6 +98,7 @@ function frame(now) {
   view.set('uFigB', [TEX[to].aspect,   b.figH, b.figY, 0]);
   view.set('uRectA', TEX[from].rect);
   view.set('uRectB', TEX[to].rect);
+  view.set('uFigShow', showFigures ? 1 : 0);
   label.textContent = t < 0.5 ? a.name : b.name;
 
   view.set('uHaloRot', now * 0.00004);
