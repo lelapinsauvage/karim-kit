@@ -4,8 +4,9 @@ const view = quad(document.getElementById('c'), frag);
 const $ = (id) => document.getElementById(id);
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', grain:'uGrain', grainSize:'uGrainSize',
-  grainMask:'uGrainMask' };
-const COL = { hot:'uHot', mid:'uMid', rim:'uRim', glowCol:'uGlowCol', bgA:'uBgA', bgB:'uBgB' };
+  grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall' };
+// two colours. core and rim are derived in the shader.
+const COL = { pigment:'uPigment', bg:'uBg' };
 function push(){
   for(const [id,u] of Object.entries(NUM)){const v=parseFloat($(id).value);view.set(u,v);
     const o=$('o-'+id); if(o)o.textContent=v.toFixed(3);}

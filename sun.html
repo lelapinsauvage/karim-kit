@@ -31,26 +31,24 @@
 <div class="panel">
   <h2>body</h2>
   <div class="row"><label>radius</label><output id="o-r"></output><input id="r" type="range" min="0.05" max="0.8" step="0.005" value="0.30"></div>
-  <div class="row"><label>edge</label><output id="o-edge"></output><input id="edge" type="range" min="0.001" max="0.4" step="0.001" value="0.035"></div>
+  <div class="row"><label>edge</label><output id="o-edge"></output><input id="edge" type="range" min="0.001" max="0.4" step="0.001" value="0.125"></div>
   <div class="row"><label>core x</label><output id="o-coreX"></output><input id="coreX" type="range" min="-1" max="1" step="0.01" value="0.22"></div>
-  <div class="row"><label>core y</label><output id="o-coreY"></output><input id="coreY" type="range" min="-1" max="1" step="0.01" value="0.34"></div>
-  <div class="row"><label>core size</label><output id="o-coreSize"></output><input id="coreSize" type="range" min="0.2" max="3" step="0.01" value="1.25"></div>
-  <div class="row"><label>rim band</label><output id="o-rimBand"></output><input id="rimBand" type="range" min="0" max="1" step="0.01" value="0.55"></div>
+  <div class="row"><label>core y</label><output id="o-coreY"></output><input id="coreY" type="range" min="-1" max="1" step="0.01" value="0.07"></div>
+  <div class="row"><label>core size</label><output id="o-coreSize"></output><input id="coreSize" type="range" min="0.2" max="3" step="0.01" value="0.99"></div>
+  <div class="row"><label>rim band</label><output id="o-rimBand"></output><input id="rimBand" type="range" min="0" max="1" step="0.01" value="0.53"></div>
   <div class="row"><label>drift</label><output id="o-drift"></output><input id="drift" type="range" min="0" max="4" step="0.01" value="1"></div>
   <h2>light</h2>
-  <div class="row"><label>glow</label><output id="o-glow"></output><input id="glow" type="range" min="0" max="2" step="0.01" value="0.55"></div>
-  <div class="row"><label>glow size</label><output id="o-glowSize"></output><input id="glowSize" type="range" min="0.02" max="1.2" step="0.005" value="0.28"></div>
+  <div class="row"><label>glow</label><output id="o-glow"></output><input id="glow" type="range" min="0" max="2" step="0.01" value="0.68"></div>
+  <div class="row"><label>glow size</label><output id="o-glowSize"></output><input id="glowSize" type="range" min="0.02" max="1.2" step="0.005" value="0.26"></div>
   <h2>grain</h2>
-  <div class="row"><label>amount</label><output id="o-grain"></output><input id="grain" type="range" min="0" max="0.6" step="0.005" value="0.075"></div>
-  <div class="row"><label>size</label><output id="o-grainSize"></output><input id="grainSize" type="range" min="0.2" max="3" step="0.01" value="2.2"></div>
-  <div class="row"><label>on body</label><output id="o-grainMask"></output><input id="grainMask" type="range" min="0" max="1" step="0.01" value="1"></div>
+  <div class="row"><label>amount</label><output id="o-grain"></output><input id="grain" type="range" min="0" max="0.6" step="0.005" value="0.09"></div>
+  <div class="row"><label>size</label><output id="o-grainSize"></output><input id="grainSize" type="range" min="0.2" max="3" step="0.01" value="2.98"></div>
+  <div class="row"><label>on body</label><output id="o-grainMask"></output><input id="grainMask" type="range" min="0" max="1" step="0.01" value="0.4"></div>
   <h2>colour</h2>
-  <div class="crow"><label>hot</label><input id="hot" type="color" value="#ffc93f"><input id="hot-hex" class="hex" type="text" spellcheck="false" value="#ffc93f"></div>
-  <div class="crow"><label>mid</label><input id="mid" type="color" value="#f03b0c"><input id="mid-hex" class="hex" type="text" spellcheck="false" value="#f03b0c"></div>
-  <div class="crow"><label>rim</label><input id="rim" type="color" value="#d1101c"><input id="rim-hex" class="hex" type="text" spellcheck="false" value="#d1101c"></div>
-  <div class="crow"><label>glow col</label><input id="glowCol" type="color" value="#ff2a0a"><input id="glowCol-hex" class="hex" type="text" spellcheck="false" value="#ff2a0a"></div>
-  <div class="crow"><label>bg</label><input id="bgA" type="color" value="#2a0603"><input id="bgA-hex" class="hex" type="text" spellcheck="false" value="#2a0603"></div>
-  <div class="crow"><label>bg lo</label><input id="bgB" type="color" value="#0a0201"><input id="bgB-hex" class="hex" type="text" spellcheck="false" value="#0a0201"></div>
+  <div class="crow"><label>pigment</label><input id="pigment" type="color" value="#f03b0c"><input id="pigment-hex" class="hex" type="text" spellcheck="false" value="#f03b0c"></div>
+  <div class="crow"><label>ground</label><input id="bg" type="color" value="#202020"><input id="bg-hex" class="hex" type="text" spellcheck="false" value="#202020"></div>
+  <div class="row"><label>ground fall</label><output id="o-bgFall"></output><input id="bgFall" type="range" min="0.05" max="1.2" step="0.01" value="0.38"></div>
+  <div class="row"><label>spread</label><output id="o-spread"></output><input id="spread" type="range" min="0" max="2" step="0.01" value="0.3"></div>
   <button class="btn" id="copy">copy settings</button>
 </div>
 <script type="module" src="/src/sun.js"></script>

@@ -20,22 +20,22 @@ uniform float uEdge;       // how soft the rim is
 uniform vec2  uCore;       // offset of the hot spot, in radii
 uniform float uCoreSize;
 
-uniform vec3  uHot;        // centre
-uniform vec3  uMid;        // body
-uniform vec3  uRim;        // just inside the edge -- where the hue travels to
-uniform float uRimBand;    // how far in the rim colour reaches
+// TWO colours. Everything else is derived, so a look is two hex codes and a
+// spread -- not six swatches to balance by hand.
+uniform vec3  uPigment;    // the body
+uniform vec3  uBg;         // the ground
+uniform float uBgFall;     // how fast the ground falls away from the body
+uniform float uSpread;     // how far the derived core and rim depart from it
 
-uniform float uGlow;       // light outside the body
+uniform float uRimBand;
+uniform float uGlow;
 uniform float uGlowSize;
-uniform vec3  uGlowCol;
 
 uniform float uGrain;      // fine, dense
 uniform float uGrainSize;
 uniform float uGrainMask;  // 1 = grain only on the body, 0 = across the frame
 uniform float uDrift;      // the body breathes
 
-uniform vec3  uBgA;        // ground behind
-uniform vec3  uBgB;
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -61,6 +61,38 @@ float fbm(vec2 p) {
   return noise(p) * 0.6 + noise(p * 2.3 + 3.1) * 0.28 + noise(p * 5.7 - 1.7) * 0.12;
 }
 
+vec3 rgb2hsv(vec3 c) {
+  vec4 K = vec4(0.0, -1.0/3.0, 2.0/3.0, -1.0);
+  vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+  float d = q.x - min(q.w, q.y);
+  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + 1e-10)), d / (q.x + 1e-10), q.x);
+}
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+// The formula. A hot body does not just get lighter toward its core -- it
+// climbs the spectrum toward yellow and loses saturation, and cools and
+// saturates toward the rim. Driving both off ONE pigment keeps them in the same
+// family automatically, which is what hand-picking three swatches never does.
+vec3 core(vec3 pigment, float k) {
+  vec3 h = rgb2hsv(pigment);
+  h.x = fract(h.x + 0.055 * k);          // toward yellow
+  h.y = clamp(h.y * (1.0 - 0.42 * k), 0.0, 1.0);
+  h.z = clamp(h.z * (1.0 + 0.55 * k), 0.0, 1.0);
+  return hsv2rgb(h);
+}
+vec3 edgeOf(vec3 pigment, float k) {
+  vec3 h = rgb2hsv(pigment);
+  h.x = fract(h.x - 0.022 * k);          // away from yellow
+  h.y = clamp(h.y * (1.0 + 0.16 * k), 0.0, 1.0);
+  h.z = clamp(h.z * (1.0 - 0.34 * k), 0.0, 1.0);
+  return hsv2rgb(h);
+}
+
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
   vec2 dv = uv - uPos;
@@ -76,10 +108,11 @@ void main() {
   // what stops it reading as a button and starts it reading as lit from one side.
   float cr = length(dv - uCore * R) / max(R * uCoreSize, 1e-4);
 
-  vec3 body = mix(uHot, uMid, smoothstep(0.0, 1.0, cr));
-  // the hue travels to the rim colour near the edge -- a value ramp alone
-  // reads as a shadow; a hue shift reads as emission
-  body = mix(body, uRim, smoothstep(1.0 - uRimBand, 1.0, r));
+  vec3 hot = core(uPigment, uSpread);
+  vec3 rim = edgeOf(uPigment, uSpread);
+
+  vec3 body = mix(hot, uPigment, smoothstep(0.0, 1.0, cr));
+  body = mix(body, rim, smoothstep(1.0 - uRimBand, 1.0, r));
 
   // --- edge --------------------------------------------------------------
   float soft = uEdge * 0.5 + fwidth(r) * 1.5;
@@ -92,9 +125,13 @@ void main() {
   float near = exp(-out_ / max(uGlowSize * 0.16, 1e-4));
   float wide = exp(-out_ / max(uGlowSize * 0.85, 1e-4));
 
-  float gy = clamp(0.5 + uv.y * 0.6, 0.0, 1.0);
-  vec3 col = mix(uBgB, uBgA, gy);
-  col += uGlowCol * (near * 1.0 + wide * 0.45) * uGlow;
+  // The ground is always a gradient, and always radial from the body -- a flat
+  // ground kills the depth the light is creating, and a linear ramp behind a
+  // round light never lines up and reads as a seam. It falls off slowly and
+  // never reaches pure black, so the frame keeps air in the corners.
+  float bgr = smoothstep(0.0, 1.0, clamp(r * uBgFall, 0.0, 1.0));
+  vec3 col = mix(uBg, uBg * 0.12, bgr);
+  col += uPigment * (near * 1.0 + wide * 0.45) * uGlow;
 
   col = mix(col, body, disc);
 
@@ -115,6 +152,11 @@ void main() {
   float where  = mix(1.0, onBody, uGrainMask);
 
   col += g * uGrain * where * (0.35 + 0.65 * (1.0 - abs(lum - 0.5) * 2.0));
+
+  // The ground always gets a floor of dither, even with grain masked to the
+  // body. Without it an 8-bit radial ramp quantises into visible contour rings
+  // -- the curved banding across the background.
+  col += (white(gl_FragCoord.xy, t12 * 2.3) - 0.5) * 0.010;
 
   fragColor = vec4(col, 1.0);
 }
