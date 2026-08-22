@@ -16,6 +16,14 @@
   label{letter-spacing:.05em;opacity:.8} output{font-variant-numeric:tabular-nums;opacity:.5}
   input[type=range]{grid-column:1/-1;width:100%;accent-color:#FF4A1E;height:12px}
   input[type=color]{width:100%;height:19px;padding:0;border:1px solid #ffffff1f;background:none}
+  .crow{display:grid;grid-template-columns:52px 30px 1fr;gap:5px;align-items:center}
+  .crow label{opacity:.8}
+  .hex{width:100%;background:#ffffff10;border:1px solid #ffffff1f;color:#eee;
+    font:10px ui-monospace,monospace;padding:3px 5px;letter-spacing:.04em}
+  .btn{width:100%;background:#ffffff12;border:1px solid #ffffff26;color:#eee;
+    font:10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
+    padding:6px;cursor:pointer;margin-top:2px}
+  .btn:hover{background:#ffffff20}
 </style>
 </head>
 <body>
@@ -33,15 +41,17 @@
   <div class="row"><label>glow</label><output id="o-glow"></output><input id="glow" type="range" min="0" max="2" step="0.01" value="0.55"></div>
   <div class="row"><label>glow size</label><output id="o-glowSize"></output><input id="glowSize" type="range" min="0.02" max="1.2" step="0.005" value="0.28"></div>
   <h2>grain</h2>
-  <div class="row"><label>amount</label><output id="o-grain"></output><input id="grain" type="range" min="0" max="0.6" step="0.005" value="0.2"></div>
-  <div class="row"><label>size</label><output id="o-grainSize"></output><input id="grainSize" type="range" min="0.2" max="3" step="0.01" value="1.4"></div>
+  <div class="row"><label>amount</label><output id="o-grain"></output><input id="grain" type="range" min="0" max="0.6" step="0.005" value="0.075"></div>
+  <div class="row"><label>size</label><output id="o-grainSize"></output><input id="grainSize" type="range" min="0.2" max="3" step="0.01" value="2.2"></div>
+  <div class="row"><label>on body</label><output id="o-grainMask"></output><input id="grainMask" type="range" min="0" max="1" step="0.01" value="1"></div>
   <h2>colour</h2>
-  <div class="row"><label>hot</label><input id="hot" type="color" value="#ffc93f"></div>
-  <div class="row"><label>mid</label><input id="mid" type="color" value="#f03b0c"></div>
-  <div class="row"><label>rim</label><input id="rim" type="color" value="#d1101c"></div>
-  <div class="row"><label>glow col</label><input id="glowCol" type="color" value="#ff2a0a"></div>
-  <div class="row"><label>bg</label><input id="bgA" type="color" value="#2a0603"></div>
-  <div class="row"><label>bg lo</label><input id="bgB" type="color" value="#0a0201"></div>
+  <div class="crow"><label>hot</label><input id="hot" type="color" value="#ffc93f"><input id="hot-hex" class="hex" type="text" spellcheck="false" value="#ffc93f"></div>
+  <div class="crow"><label>mid</label><input id="mid" type="color" value="#f03b0c"><input id="mid-hex" class="hex" type="text" spellcheck="false" value="#f03b0c"></div>
+  <div class="crow"><label>rim</label><input id="rim" type="color" value="#d1101c"><input id="rim-hex" class="hex" type="text" spellcheck="false" value="#d1101c"></div>
+  <div class="crow"><label>glow col</label><input id="glowCol" type="color" value="#ff2a0a"><input id="glowCol-hex" class="hex" type="text" spellcheck="false" value="#ff2a0a"></div>
+  <div class="crow"><label>bg</label><input id="bgA" type="color" value="#2a0603"><input id="bgA-hex" class="hex" type="text" spellcheck="false" value="#2a0603"></div>
+  <div class="crow"><label>bg lo</label><input id="bgB" type="color" value="#0a0201"><input id="bgB-hex" class="hex" type="text" spellcheck="false" value="#0a0201"></div>
+  <button class="btn" id="copy">copy settings</button>
 </div>
 <script type="module" src="/src/sun.js"></script>
 </body>

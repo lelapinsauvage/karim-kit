@@ -31,6 +31,7 @@ uniform vec3  uGlowCol;
 
 uniform float uGrain;      // fine, dense
 uniform float uGrainSize;
+uniform float uGrainMask;  // 1 = grain only on the body, 0 = across the frame
 uniform float uDrift;      // the body breathes
 
 uniform vec3  uBgA;        // ground behind
@@ -106,7 +107,14 @@ void main() {
   float g = (white(gl_FragCoord.xy * uGrainSize, t12) - 0.5) * 0.75
           + (white(floor(gl_FragCoord.xy * uGrainSize * 0.34), t12 * 1.7) - 0.5) * 0.45;
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
-  col += g * uGrain * (0.35 + 0.65 * (1.0 - abs(lum - 0.5) * 2.0));
+
+  // grain belongs to the body, not to the screen. confine it to the disc and
+  // the tight part of the glow, so the ground stays clean and the light reads
+  // as emulsion rather than as a filter over the whole frame.
+  float onBody = max(disc, near * 0.55);
+  float where  = mix(1.0, onBody, uGrainMask);
+
+  col += g * uGrain * where * (0.35 + 0.65 * (1.0 - abs(lum - 0.5) * 2.0));
 
   fragColor = vec4(col, 1.0);
 }
