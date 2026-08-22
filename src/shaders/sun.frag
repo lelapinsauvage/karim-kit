@@ -53,6 +53,13 @@ uniform float uClothMorph; // how far the family drifts on its own
 uniform float uClothWeight;
 uniform vec3  uClothInk;
 
+// Charge. Waves travel along the field toward the body and brighten the ink as
+// they pass, so the pattern reads as circuitry feeding the light rather than
+// wallpaper behind it. Radial, because everything here is measured from the sun.
+uniform float uCharge;     // strength
+uniform float uChargeSpd;
+uniform float uChargeLen;  // wavelength
+
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -246,7 +253,13 @@ void main() {
       // Two slow mutually prime periods. Tiles are always crossing between
       // families somewhere in the frame, but no single cell moves fast enough
       // to be caught doing it -- felt, never seen.
-      float drift = sin(uTime * 0.043 + 1.3) * 0.55 + sin(uTime * 0.027 + 4.1) * 0.35;
+      // Per-cell morph. Each cell runs the same slow oscillation but at its own
+      // phase, so the family is always travelling somewhere in the frame while
+      // no two neighbours change together -- continuous without ever being a
+      // visible event.
+      float ph = noise(cellUV * 3.1 + 19.0) * 6.28318;
+      float drift = sin(uTime * 0.055 + ph) * 0.7
+                  + sin(uTime * 0.031 + ph * 1.7 + 2.2) * 0.45;
       float sh = mod(uClothShape + drift * uClothMorph, 3.0);
 
       float d  = tile(f, h, sh);
@@ -256,7 +269,18 @@ void main() {
       // uneven impression -- woven, not printed
       ink *= 0.55 + 0.45 * fbm(g * 2.1);
 
-      col = mix(col, uClothInk, ink * uCloth * shade);
+      // charge travelling inward. the wave is a function of distance from the
+      // body, so it arrives at the rim from every direction at once.
+      float wave = sin(r * uChargeLen - uTime * uChargeSpd);
+      float pulse = pow(max(wave, 0.0), 6.0);
+
+      // it gathers as it nears the light -- brightest just before it lands
+      pulse *= smoothstep(2.4, 1.05, r);
+
+      vec3 lit = core(uPigment, uSpread * 2.4, 1.0);
+      vec3 inkC = mix(uClothInk, lit, pulse * uCharge);
+
+      col = mix(col, inkC, ink * uCloth * shade * (1.0 + pulse * uCharge * 1.6));
     }
   }
 
