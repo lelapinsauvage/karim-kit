@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>field</title>
+<style>
+  *{margin:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#0B0B0C}
+  body{font:11px/1.5 ui-monospace,monospace;color:#eee}
+  canvas{position:fixed;top:0;left:0;display:block}
+  .panel{position:fixed;top:14px;right:14px;z-index:10;width:220px;padding:13px;
+    background:#0b0b0be6;backdrop-filter:blur(8px);border:1px solid #ffffff1f;display:grid;gap:8px}
+  h2{font-size:9px;letter-spacing:.2em;text-transform:uppercase;opacity:.45;font-weight:500}
+  .row{display:grid;grid-template-columns:1fr auto;gap:5px}
+  label{letter-spacing:.05em;opacity:.8} output{font-variant-numeric:tabular-nums;opacity:.5}
+  input[type=range]{grid-column:1/-1;width:100%;accent-color:#C1272D;height:13px}
+  input[type=color]{width:100%;height:20px;padding:0;border:1px solid #ffffff1f;background:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="panel">
+  <h2>registers</h2>
+  <div class="row"><label>bands</label><output id="o-bands"></output><input id="bands" type="range" min="1" max="14" step="0.25" value="5"></div>
+  <div class="row"><label>variance</label><output id="o-variance"></output><input id="variance" type="range" min="0" max="1" step="0.01" value="0.8"></div>
+  <div class="row"><label>rule</label><output id="o-rule"></output><input id="rule" type="range" min="0" max="1" step="0.01" value="0.5"></div>
+  <div class="row"><label>drift</label><output id="o-drift"></output><input id="drift" type="range" min="0" max="3" step="0.01" value="0.6"></div>
+  <h2>cell</h2>
+  <div class="row"><label>scale</label><output id="o-scale"></output><input id="scale" type="range" min="3" max="40" step="0.5" value="16"></div>
+  <div class="row"><label>shape</label><output id="o-shape"></output><input id="shape" type="range" min="0" max="2.999" step="0.001" value="1.4"></div>
+  <div class="row"><label>weight</label><output id="o-weight"></output><input id="weight" type="range" min="0.02" max="0.3" step="0.005" value="0.1"></div>
+  <div class="row"><label>break</label><output id="o-break"></output><input id="break" type="range" min="0" max="0.6" step="0.01" value="0.12"></div>
+  <div class="row"><label>opacity</label><output id="o-ink"></output><input id="ink" type="range" min="0" max="1" step="0.01" value="0.5"></div>
+  <h2>colour</h2>
+  <div class="row"><label>ink a</label><input id="inkA" type="color" value="#6e6a64"></div>
+  <div class="row"><label>ink b</label><input id="inkB" type="color" value="#7d6a63"></div>
+  <div class="row"><label>ground</label><input id="groundA" type="color" value="#241f21"></div>
+  <div class="row"><label>ground lo</label><input id="groundB" type="color" value="#100d0f"></div>
+</div>
+<script type="module" src="/src/field.js"></script>
+</body>
+</html>

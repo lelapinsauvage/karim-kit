@@ -24,14 +24,14 @@ uniform float uIntensity;
 // build its surface normal, refract the view ray through it with GLSL's own
 // refract(), march to a virtual back plane and sample the field THERE. that is
 // why depth now does something -- it is the distance the ray travels inside.
-uniform float uIOR;        // index of refraction. 1.0 = none, 1.5 = glass
-uniform float uDepth;      // thickness -> how far the refracted ray travels
-uniform float uDispersion; // per-channel IOR spread
-uniform float uFrost;      // surface roughness
-uniform float uSplay;      // spread of the frost taps
-uniform float uAngle;
-uniform float uStroke;     // rim stroke weight
-uniform float uStrokeOp;
+// The halo is a SUN, not a lens. A solid body with a granular, convecting
+// surface and light leaving it -- not a window onto the pattern behind.
+uniform float uGrain;      // size of the surface granulation
+uniform float uChurn;      // how fast the surface convects
+uniform float uGlitter;    // bright speckle riding the granulation
+uniform float uLimb;       // limb darkening -- edge darker than centre
+uniform float uFlare;      // long rays
+uniform vec3  uHot;        // colour of the hottest part
 
 uniform vec3  uGroundA;
 uniform vec3  uGroundB;
@@ -42,6 +42,8 @@ uniform float uFieldOp;    // pattern opacity against the ground
 uniform vec2  uMouse;
 uniform float uMouseR;
 uniform float uMouseAmt;
+uniform float uGridAmt;    // cursor grid: quantise the field into cells
+uniform float uGridN;
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -146,7 +148,12 @@ vec3 field(vec2 uv) {
   float mr = length(md) / max(uMouseR, 1e-4);
   if (mr < 1.0) {
     float fall = pow(1.0 - mr, 2.0);
-    uv += normalize(md + 1e-6) * fall * uMouseAmt * 0.12;
+
+    // the cursor snaps the field onto a coarse grid and pushes each cell out
+    // along its own axis -- a readout resolving, not a blur
+    vec2 q = floor(uv * uGridN) / uGridN + 0.5 / uGridN;
+    uv = mix(uv, q, fall * uGridAmt);
+    uv += normalize(md + 1e-6) * fall * uMouseAmt * 0.06;
   }
 
   float scale = uGlyphScale;
@@ -184,59 +191,58 @@ void main() {
 
   vec3 col = field(uv);
 
-  // --- FRONT DISC: refraction through a glass hemisphere ----------------
-  if (r < 1.02) {
-    // surface normal of a hemisphere sitting on the page
+  // --- THE BODY --------------------------------------------------------
+  // Solid. Its interior is generated, not sampled -- domain-warped noise that
+  // convects slowly, the way a granulating surface does. Nothing behind it
+  // shows through, so it reads as a body rather than a window.
+  {
+    vec2 p = dv / max(uR, 1e-4);
+    float t = uTime * uChurn * 0.06;
+
+    // domain warp: noise displaced by noise. one fold is enough to stop it
+    // reading as a texture and start it reading as motion in a fluid.
+    vec2 w = vec2(fbm(p * uGrain + vec2(t, -t * 0.7)),
+                  fbm(p * uGrain + vec2(5.2 - t * 0.8, 1.3 + t)));
+    float cellsz = fbm(p * uGrain * 1.6 + w * 1.4 + t * 0.5);
+
+    // glitter: sparse bright points riding the granulation, blinking on their
+    // own clock so the surface never settles
+    float sp = hash21(floor(p * uGrain * 9.0) + floor(t * 3.0));
+    float glit = pow(max(sp - 0.86, 0.0) / 0.14, 3.0) * step(0.55, cellsz);
+
+    // limb darkening -- a real star is brighter in the middle
     float h = sqrt(max(1.0 - r * r, 0.0));
-    vec3  n = normalize(vec3(dv / max(uR, 1e-4), h));
-    vec3  view = vec3(0.0, 0.0, -1.0);
+    float limb = mix(1.0, pow(h, 0.55), uLimb);
 
-    float ang  = radians(uAngle);
-    vec2  axis = vec2(cos(ang), sin(ang));
-
-    // frost roughens the normal before refracting -- that is what makes it
-    // read as etched glass rather than a clean lens
-    vec3 acc = vec3(0.0);
-    float wsum = 0.0;
-    for (int i = 0; i < 5; i++) {
-      float fi = (float(i) - 2.0) / 2.0;
-      vec2 jit = (hash22(gl_FragCoord.xy + float(i) * 7.3) - 0.5) * uFrost * 0.35;
-      vec3 nn = normalize(n + vec3(jit + axis * fi * uSplay * 0.25 * uFrost, 0.0));
-
-      // one refracted ray per channel, each with its own IOR
-      float wgt = 1.0 - abs(fi) * 0.5;
-      for (int ch = 0; ch < 3; ch++) {
-        float ior = uIOR + (float(ch) - 1.0) * uDispersion * 0.09;
-        vec3  rr  = refract(view, nn, 1.0 / max(ior, 1.0001));
-        // march to a back plane uDepth below the surface
-        float travel = (uDepth * 0.9 + 0.1) * uR * 1.6;
-        vec2  hit = uv + rr.xy * travel;
-        float c = field(hit)[ch];
-        acc[ch] += c * wgt;
-      }
-      wsum += wgt;
-    }
-    vec3 refr = acc / wsum;
-
-    vec3 glass = mix(refr, uPigment, uFrontOp);
-
-    // fresnel: a glancing view of a thick body gathers light at the rim
-    float fres = pow(1.0 - h, 5.0);
-    glass += uPigment * fres * uIntensity * 0.6;
+    vec3 body = mix(uPigment * 0.42, uPigment, cellsz);
+    body = mix(body, uHot, pow(cellsz, 2.4) * 0.7);
+    body *= limb;
+    body += uHot * glit * uGlitter;
 
     float aaR = fwidth(r) * 1.5;
     float disc = 1.0 - smoothstep(1.0 - aaR, 1.0 + aaR, r);
-    col = mix(col, glass, disc * uIntensity);
-
-    // rim stroke
-    float ring = 1.0 - smoothstep(0.0, uStroke * 0.06 + aaR, abs(r - 1.0));
-    col = mix(col, uPigment * 1.5, ring * uStrokeOp);
+    col = mix(col, body, disc * uIntensity);
   }
 
-  // --- BACK DISC: the bloom ----------------------------------------------
-  // a wide gaussian skirt outside the rim. added, not mixed -- it is light.
-  float skirt = exp(-pow(max(r - 1.0, 0.0) / max(uBloom, 1e-4), 1.6));
-  col += uPigment * skirt * uBloomOp * (r > 0.98 ? 1.0 : 0.35);
+  // --- CORONA ------------------------------------------------------------
+  // light leaving the body. added, never mixed. two skirts -- a tight one that
+  // sits on the rim and a wide one that sets the mood of the whole frame.
+  float out_ = max(r - 1.0, 0.0);
+  float near = exp(-out_ / max(uBloom * 0.28, 1e-4));
+  float far  = exp(-out_ / max(uBloom * 1.6,  1e-4));
+  vec3  glow = uPigment * (near * 0.85 + far * 0.5) * uBloomOp;
+
+  // flares: a few long rays, drifting. keeps the edge from reading as a circle
+  // cut out of paper.
+  float th2 = atan(dv.y, dv.x);
+  // broad and few, and only outside the body -- sharp spokes read as a lens
+  // flare, which is the cheapest thing a light can do
+  float ray = pow(abs(sin(th2 * 1.5 + uTime * 0.021)), 3.0) * 0.6
+            + pow(abs(sin(th2 * 2.5 - uTime * 0.013 + 1.9)), 5.0) * 0.4;
+  ray *= smoothstep(0.0, 0.25, out_);
+  glow += uPigment * ray * exp(-out_ / max(uBloom * 2.2, 1e-4)) * uFlare * 0.28;
+
+  col += glow;
 
   col += (hash21(gl_FragCoord.xy + floor(uTime * 8.0)) - 0.5) * 0.022;
   fragColor = vec4(col, 1.0);

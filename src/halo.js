@@ -6,13 +6,13 @@ const $ = (id) => document.getElementById(id);
 
 const NUM = {
   r: 'uR', bloom: 'uBloom', bloomOp: 'uBloomOp', frontOp: 'uFrontOp',
-  intensity: 'uIntensity', ior: 'uIOR', depth: 'uDepth',
-  dispersion: 'uDispersion', frost: 'uFrost', splay: 'uSplay', angle: 'uAngle',
-  stroke: 'uStroke', strokeOp: 'uStrokeOp',
+  intensity: 'uIntensity',
+  grainSz: 'uGrain', churn: 'uChurn', glitter: 'uGlitter', limb: 'uLimb', flare: 'uFlare',
+  gridAmt: 'uGridAmt', gridN: 'uGridN',
   glyphScale: 'uGlyphScale', groundShape: 'uGroundShape', fieldOp: 'uFieldOp',
   mouseR: 'uMouseR', mouseAmt: 'uMouseAmt',
 };
-const COL = { pigment: 'uPigment', glyphInk: 'uGlyphInk', groundA: 'uGroundA', groundB: 'uGroundB' };
+const COL = { pigment: 'uPigment', hot: 'uHot', glyphInk: 'uGlyphInk', groundA: 'uGroundA', groundB: 'uGroundB' };
 
 function push() {
   for (const [id, u] of Object.entries(NUM)) {
