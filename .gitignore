@@ -4,3 +4,9 @@ dist
 .env.*
 !.env.example
 .DS_Store
+
+# GT trial fonts -- not licensed for redistribution
+public/fonts/
+
+# generated figures: brief-specific and heavy
+src/figures/

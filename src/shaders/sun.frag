@@ -25,6 +25,8 @@ uniform float uCoreSize;
 uniform vec3  uPigment;    // the body
 uniform vec3  uBg;         // the ground
 uniform float uBgFall;     // how fast the ground falls away from the body
+uniform float uBgFloor;    // how dark the corners get. the ground colour is
+                           // only seen where this leaves it visible.
 uniform float uSpread;     // brightness/saturation travel from core to rim
 uniform float uWarmth;     // hue travel. 0 keeps the pigment's exact hue.
 uniform float uPurity;     // how much of the body is the pigment itself
@@ -154,7 +156,7 @@ void main() {
   // round light never lines up and reads as a seam. It falls off slowly and
   // never reaches pure black, so the frame keeps air in the corners.
   float bgr = smoothstep(0.0, 1.0, clamp(r * uBgFall, 0.0, 1.0));
-  vec3 col = mix(uBg, uBg * 0.12, bgr);
+  vec3 col = mix(uBg, uBg * uBgFloor, bgr);
   col += uPigment * (near * 1.0 + wide * 0.45) * uGlow;
 
   col = mix(col, body, disc);

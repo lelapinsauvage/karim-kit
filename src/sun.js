@@ -13,22 +13,22 @@ const PRESETS = {
   // luminance than blue at the same value, so it takes slightly more spread and
   // glow to sit at the same weight in the frame.
   EMBER: {
-    r:0.30, edge:0.055, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
+    r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.34,
-    bgFall:0.70, warmth:0.55, purity:0.24, wobble:1.42,
-    coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#202020',
+    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
-    r:0.30, edge:0.055, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
+    r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.28,
-    bgFall:0.70, warmth:0.55, purity:0.24, wobble:1.42,
-    coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#202020',
+    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
   },
 };
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', grain:'uGrain', grainSize:'uGrainSize',
-  grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', warmth:'uWarmth', purity:'uPurity',
+  grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', bgFloor:'uBgFloor', warmth:'uWarmth', purity:'uPurity',
   wobble:'uWobble' };
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg' };
