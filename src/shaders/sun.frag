@@ -25,7 +25,9 @@ uniform float uCoreSize;
 uniform vec3  uPigment;    // the body
 uniform vec3  uBg;         // the ground
 uniform float uBgFall;     // how fast the ground falls away from the body
-uniform float uSpread;     // how far the derived core and rim depart from it
+uniform float uSpread;     // brightness/saturation travel from core to rim
+uniform float uWarmth;     // hue travel. 0 keeps the pigment's exact hue.
+uniform float uPurity;     // how much of the body is the pigment itself
 
 uniform float uRimBand;
 uniform float uGlow;
@@ -78,16 +80,20 @@ vec3 hsv2rgb(vec3 c) {
 // climbs the spectrum toward yellow and loses saturation, and cools and
 // saturates toward the rim. Driving both off ONE pigment keeps them in the same
 // family automatically, which is what hand-picking three swatches never does.
-vec3 core(vec3 pigment, float k) {
+// Hue travel is SEPARATE from brightness travel. They were one control, which
+// meant you could not brighten the core without also pushing it toward yellow --
+// and desaturating a red always reads as orange, so the pigment stopped being
+// the pigment. uWarmth = 0 keeps the exact hue you typed at every radius.
+vec3 core(vec3 pigment, float k, float w) {
   vec3 h = rgb2hsv(pigment);
-  h.x = fract(h.x + 0.055 * k);          // toward yellow
-  h.y = clamp(h.y * (1.0 - 0.42 * k), 0.0, 1.0);
+  h.x = fract(h.x + 0.055 * k * w);
+  h.y = clamp(h.y * (1.0 - 0.42 * k * mix(0.25, 1.0, w)), 0.0, 1.0);
   h.z = clamp(h.z * (1.0 + 0.55 * k), 0.0, 1.0);
   return hsv2rgb(h);
 }
-vec3 edgeOf(vec3 pigment, float k) {
+vec3 edgeOf(vec3 pigment, float k, float w) {
   vec3 h = rgb2hsv(pigment);
-  h.x = fract(h.x - 0.022 * k);          // away from yellow
+  h.x = fract(h.x - 0.022 * k * w);
   h.y = clamp(h.y * (1.0 + 0.16 * k), 0.0, 1.0);
   h.z = clamp(h.z * (1.0 - 0.34 * k), 0.0, 1.0);
   return hsv2rgb(h);
@@ -108,11 +114,16 @@ void main() {
   // what stops it reading as a button and starts it reading as lit from one side.
   float cr = length(dv - uCore * R) / max(R * uCoreSize, 1e-4);
 
-  vec3 hot = core(uPigment, uSpread);
-  vec3 rim = edgeOf(uPigment, uSpread);
+  vec3 hot = core(uPigment, uSpread, uWarmth);
+  vec3 rim = edgeOf(uPigment, uSpread, uWarmth);
 
-  vec3 body = mix(hot, uPigment, smoothstep(0.0, 1.0, cr));
-  body = mix(body, rim, smoothstep(1.0 - uRimBand, 1.0, r));
+  // uPurity biases the body toward the pigment itself. At 1 the centre is the
+  // derived core; at 0 the pigment holds everywhere and the core only tints it.
+  // Previously the centre was 100% core and 0% pigment, so most of what you saw
+  // was never the colour you typed.
+  float mixC = pow(smoothstep(0.0, 1.0, cr), mix(0.35, 1.0, uPurity));
+  vec3 body = mix(hot, uPigment, mixC);
+  body = mix(body, rim, smoothstep(1.0 - uRimBand, 1.0, r) * uPurity);
 
   // --- edge --------------------------------------------------------------
   float soft = uEdge * 0.5 + fwidth(r) * 1.5;

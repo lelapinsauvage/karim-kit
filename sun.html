@@ -24,11 +24,23 @@
     font:10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
     padding:6px;cursor:pointer;margin-top:2px}
   .btn:hover{background:#ffffff20}
+  .presets{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .preset{background:#ffffff10;border:1px solid #ffffff1f;color:#eee9;
+    font:10px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
+    padding:7px 4px;cursor:pointer;display:flex;justify-content:center;gap:6px}
+  .preset span{opacity:.35}
+  .preset:hover{background:#ffffff18}
+  .preset[aria-current="true"]{background:#ffffff1f;color:#fff;border-color:#ffffff45}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div class="panel">
+  <h2>look</h2>
+  <div class="presets">
+    <button class="preset" data-k="EMBER">ember <span>1</span></button>
+    <button class="preset" data-k="ULTRA">ultra <span>2</span></button>
+  </div>
   <h2>body</h2>
   <div class="row"><label>radius</label><output id="o-r"></output><input id="r" type="range" min="0.05" max="0.8" step="0.005" value="0.30"></div>
   <div class="row"><label>edge</label><output id="o-edge"></output><input id="edge" type="range" min="0.001" max="0.4" step="0.001" value="0.125"></div>
@@ -48,6 +60,8 @@
   <div class="crow"><label>pigment</label><input id="pigment" type="color" value="#f03b0c"><input id="pigment-hex" class="hex" type="text" spellcheck="false" value="#f03b0c"></div>
   <div class="crow"><label>ground</label><input id="bg" type="color" value="#202020"><input id="bg-hex" class="hex" type="text" spellcheck="false" value="#202020"></div>
   <div class="row"><label>ground fall</label><output id="o-bgFall"></output><input id="bgFall" type="range" min="0.05" max="1.2" step="0.01" value="0.38"></div>
+  <div class="row"><label>warmth</label><output id="o-warmth"></output><input id="warmth" type="range" min="0" max="1" step="0.01" value="0.35"></div>
+  <div class="row"><label>purity</label><output id="o-purity"></output><input id="purity" type="range" min="0" max="1" step="0.01" value="0.7"></div>
   <div class="row"><label>spread</label><output id="o-spread"></output><input id="spread" type="range" min="0" max="2" step="0.01" value="0.3"></div>
   <button class="btn" id="copy">copy settings</button>
 </div>
