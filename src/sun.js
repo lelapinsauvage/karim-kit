@@ -1,7 +1,9 @@
 import { quad, hexToRgb } from './gl.js';
 import frag from './shaders/sun.frag?raw';
+
 const view = quad(document.getElementById('c'), frag);
 const $ = (id) => document.getElementById(id);
+
 // Two locked looks. Switch with the buttons or 1 / 2 -- so a direction can be
 // compared instantly instead of re-dialled, which is the only way to judge two
 // options fairly.
@@ -10,13 +12,13 @@ const PRESETS = {
     r:0.30, edge:0.125, coreSize:0.99, rimBand:0.53, drift:1, glow:0.68,
     glowSize:0.26, grain:0.09, grainSize:2.98, grainMask:0.40, spread:0.28,
     bgFall:0.78, warmth:0.55, purity:0, wobble:0.45,
-    coreX:0.22, coreY:0.07, pigment:'#990000',
+    coreX:0.22, coreY:0.07, pigment:'#990000', bg:'#202020',
   },
   ULTRA: {
-    r:0.30, edge:0.40, coreSize:0.99, rimBand:0.82, drift:1, glow:0.88,
-    glowSize:0.39, grain:0.22, grainSize:2.98, grainMask:0.46, spread:0.28,
-    bgFall:0.78, warmth:0.55, purity:0, wobble:0.45,
-    coreX:0.22, coreY:0.07, pigment:'#0805e1',
+    r:0.30, edge:0.055, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
+    glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.28,
+    bgFall:0.70, warmth:0.55, purity:0.24, wobble:1.42,
+    coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#202020',
   },
 };
 
@@ -37,6 +39,7 @@ function push(){
   $('bg-hex').disabled = linked;
   if (linked) { $('bg').value = $('pigment').value; $('bg-hex').value = $('pigment').value; }
   for(const [id,u] of Object.entries(COL)) view.set(u,hexToRgb($(id).value));
+
   const cx=parseFloat($('coreX').value), cy=parseFloat($('coreY').value);
   view.set('uCore',[cx,cy]); $('o-coreX').textContent=cx.toFixed(2); $('o-coreY').textContent=cy.toFixed(2);
   view.set('uPos',[0,0]);

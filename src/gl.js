@@ -127,6 +127,7 @@ export function quad(canvas, frag) {
 
   return {
     gl,
+    program: prog,
     texture,
     bind: (rec, uniformName) => {
       gl.activeTexture(gl.TEXTURE0 + rec.unit);
@@ -135,6 +136,9 @@ export function quad(canvas, frag) {
       if (l !== null) gl.uniform1i(l, rec.unit);
     },
     set: (name, v) => {
+      // explicit: once a second program exists (a feedback pass), uniform
+      // writes land on whatever program is current, not on this one
+      gl.useProgram(prog);
       const l = u(name);
       if (l === null) return;
       if (typeof v === 'number') gl.uniform1f(l, v);
@@ -144,6 +148,10 @@ export function quad(canvas, frag) {
       else gl.uniform3fv(l, v);   // flat Float32Array -> vec3[]
     },
     draw: () => {
+      gl.useProgram(prog);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
       syncSize();
       gl.uniform2f(u('uRes'), canvas.width, canvas.height);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
