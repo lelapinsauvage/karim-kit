@@ -50,6 +50,8 @@ uniform float uCloth;      // opacity in the darkest part of the frame
 uniform float uClothScale;
 uniform float uClothShape; // 0 arc, 1 chord, 2 elbow, 3 step -- continuous
 uniform float uClothMorph; // how far the family drifts on its own
+uniform float uClothWave;  // spatial: how tight the family wave travels
+uniform float uClothSpeed; // temporal: how fast it crosses
 uniform float uClothWeight;
 uniform vec3  uClothInk;
 
@@ -253,14 +255,23 @@ void main() {
       // Two slow mutually prime periods. Tiles are always crossing between
       // families somewhere in the frame, but no single cell moves fast enough
       // to be caught doing it -- felt, never seen.
-      // Per-cell morph. Each cell runs the same slow oscillation but at its own
-      // phase, so the family is always travelling somewhere in the frame while
-      // no two neighbours change together -- continuous without ever being a
-      // visible event.
-      float ph = noise(cellUV * 3.1 + 19.0) * 6.28318;
-      float drift = sin(uTime * 0.055 + ph) * 0.7
-                  + sin(uTime * 0.031 + ph * 1.7 + 2.2) * 0.45;
-      float sh = mod(uClothShape + drift * uClothMorph, 3.0);
+      // The family change TRAVELS. A phase built from position means the wave
+      // crosses the frame rather than the whole field pulsing at once -- one
+      // region resolving into arcs while another is still stepping. Two
+      // directions at mutually prime frequencies so the sweep never repeats,
+      // and a per-cell offset so the wavefront is never a straight line.
+      // cellUV spans about -0.7..0.7, so uClothWave has to be large enough to
+      // fit several cycles across the frame. Too low and every cell is in phase
+      // -- the field pulses as one instead of a front travelling over it.
+      float ph = dot(cellUV, vec2(0.62, 0.41)) * uClothWave * 2.2
+               + dot(cellUV, vec2(-0.37, 0.55)) * uClothWave * 1.3
+               + noise(cellUV * 3.1 + 19.0) * 2.4;
+
+      float drift = sin(uTime * uClothSpeed * 0.20 + ph) * 0.80
+                  + sin(uTime * uClothSpeed * 0.115 + ph * 1.7 + 2.2) * 0.46;
+
+      // wrap rather than clamp -- the family cycles arc -> step -> arc forever
+      float sh = mod(uClothShape + drift * uClothMorph + 3.0, 3.0);
 
       float d  = tile(f, h, sh);
       float aa = fwidth(d) * 1.2;

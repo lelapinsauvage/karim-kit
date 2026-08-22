@@ -15,16 +15,18 @@ const PRESETS = {
   EMBER: {
     r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.34,
-    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42, cloth:0.105, clothScale:19, clothShape:2, clothMorph:1.15, clothWeight:0.095,
-    charge:0.85, chargeSpd:0.55, chargeLen:9, clothInk:'#8c8c8c',
-    coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
+    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
+    clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
+    clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
     r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.28,
-    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42, cloth:0.105, clothScale:19, clothShape:2, clothMorph:1.15, clothWeight:0.095,
-    charge:0.85, chargeSpd:0.55, chargeLen:9, clothInk:'#8c8c8c',
-    coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
+    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
+    clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
+    clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
   },
 };
 
@@ -32,7 +34,7 @@ const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', dr
   glow:'uGlow', glowSize:'uGlowSize', grain:'uGrain', grainSize:'uGrainSize',
   grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', bgFloor:'uBgFloor', warmth:'uWarmth', purity:'uPurity',
   wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
-  clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight',
+  clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };
