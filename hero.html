@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>hero</title>
+<style>
+  @font-face { font-family: 'Sectra'; src: url('/public/fonts/sectra-display.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'SectraBook'; src: url('/public/fonts/sectra-book.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'America'; src: url('/public/fonts/america-regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'AmericaMed'; src: url('/public/fonts/america-medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+
+  :root {
+    --ink: #EDE6D8;          /* efun -- white clay */
+    --dim: rgba(237,230,216,.42);
+    --rule: rgba(237,230,216,.16);
+    --pad: clamp(18px, 2.4vw, 38px);
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #0B0B0C; }
+  body { font-family: 'America', system-ui, sans-serif; color: var(--ink); }
+  canvas { position: fixed; top: 0; left: 0; display: block; }
+
+  /* type sits on the ground, never on the halo */
+  .frame { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+  .frame > * { pointer-events: auto; }
+
+  .meta {
+    position: absolute; font-size: 10px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .tl { top: var(--pad); left: var(--pad); }
+  .tr { top: var(--pad); right: var(--pad); text-align: right; }
+  .bl { bottom: var(--pad); left: var(--pad); }
+  .br { bottom: var(--pad); right: var(--pad); text-align: right; }
+
+  .mark {
+    position: absolute; top: var(--pad); left: var(--pad);
+    font-family: 'Sectra', Georgia, serif; font-size: 19px;
+    letter-spacing: .01em; color: var(--ink);
+  }
+  .mark sup { font-family: 'America'; font-size: 8px; letter-spacing: .16em; vertical-align: super; opacity: .55; }
+
+  /* left rail -- the catalogue data */
+  .rail {
+    position: absolute; left: var(--pad); top: 50%; transform: translateY(-50%);
+    display: grid; gap: 18px; max-width: 22ch;
+  }
+  .rail .lot { font-size: 10px; letter-spacing: .2em; color: var(--dim); }
+  .rail h1 {
+    font-family: 'Sectra', Georgia, serif; font-weight: 400;
+    font-size: clamp(38px, 5.6vw, 86px); line-height: .92; letter-spacing: -.015em;
+  }
+  .rail h1 em { font-style: italic; }
+  .rail dl { display: grid; grid-template-columns: 8ch 1fr; gap: 4px 14px; font-size: 10.5px; letter-spacing: .05em; }
+  .rail dt { color: var(--dim); text-transform: uppercase; letter-spacing: .14em; font-size: 9px; padding-top: 1px; }
+  .rail dd { color: var(--ink); text-transform: uppercase; letter-spacing: .1em; }
+
+  .statement {
+    position: absolute; right: var(--pad); bottom: calc(var(--pad) + 26px);
+    max-width: 30ch; text-align: right;
+    font-family: 'SectraBook', Georgia, serif; font-size: 14px; line-height: 1.5;
+    color: var(--dim);
+  }
+  .statement b { color: var(--ink); font-weight: 400; }
+
+  .nav { position: absolute; bottom: var(--pad); left: 50%; transform: translateX(-50%); display: flex; gap: 9px; }
+  .dot { width: 22px; height: 2px; background: var(--rule); border: 0; padding: 0; cursor: pointer; transition: background .4s; }
+  .dot[aria-current="true"] { background: var(--ink); }
+
+  /* loader -- tracks real decode progress */
+  .loader {
+    position: fixed; inset: 0; z-index: 20; background: #0B0B0C;
+    display: grid; place-items: center; transition: opacity .5s ease;
+  }
+  .loader.done { opacity: 0; pointer-events: none; }
+  .loader .pct {
+    font-family: 'Sectra', Georgia, serif; font-size: clamp(60px, 11vw, 150px);
+    line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+  }
+  .loader .cap { position: absolute; bottom: var(--pad); left: var(--pad); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="frame">
+  <div class="mark">Adire<sup>ARCHIVE</sup></div>
+  <div class="meta tr" id="m-count">FOUR PIECES<br>SS 26</div>
+
+  <div class="rail">
+    <div class="lot" id="r-lot">LOT 01 — 04</div>
+    <h1 id="r-name">Otjize</h1>
+    <dl>
+      <dt>Pigment</dt><dd id="r-pig">Red earth</dd>
+      <dt>Origin</dt><dd id="r-org">Kunene</dd>
+      <dt>Cloth</dt><dd id="r-cloth">Raffia, brass</dd>
+    </dl>
+  </div>
+
+  <p class="statement">Four garments, cut once and catalogued.
+     Each is dyed with a single pigment and <b>kept, not sold</b>.</p>
+
+  <div class="nav" id="nav"></div>
+  <div class="meta bl">↑↓ / CLICK</div>
+  <div class="meta br" id="m-mark">◼ 40181 · REG</div>
+</div>
+
+<div class="loader" id="loader">
+  <div class="pct" id="pct">0</div>
+  <div class="cap">Loading archive</div>
+</div>
+
+<script type="module" src="/src/hero.js"></script>
+</body>
+</html>
