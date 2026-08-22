@@ -8,11 +8,15 @@ const $ = (id) => document.getElementById(id);
 // compared instantly instead of re-dialled, which is the only way to judge two
 // options fairly.
 const PRESETS = {
+  // Same structure as ULTRA -- soft edge, wide glow, a little purity so the
+  // body has depth rather than reading as a flat fill. Red carries less
+  // luminance than blue at the same value, so it takes slightly more spread and
+  // glow to sit at the same weight in the frame.
   EMBER: {
-    r:0.30, edge:0.125, coreSize:0.99, rimBand:0.53, drift:1, glow:0.68,
-    glowSize:0.26, grain:0.09, grainSize:2.98, grainMask:0.40, spread:0.28,
-    bgFall:0.78, warmth:0.55, purity:0, wobble:0.45,
-    coreX:0.22, coreY:0.07, pigment:'#990000', bg:'#202020',
+    r:0.30, edge:0.055, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
+    glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.34,
+    bgFall:0.70, warmth:0.55, purity:0.24, wobble:1.42,
+    coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#202020',
   },
   ULTRA: {
     r:0.30, edge:0.055, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
