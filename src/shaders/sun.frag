@@ -38,6 +38,7 @@ uniform float uGrainSize;
 uniform float uGrainMask;  // 1 = grain only on the body, 0 = across the frame
 uniform float uDrift;      // the body breathes
 
+uniform float uWobble;     // low-frequency breathing on the rim
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -61,6 +62,15 @@ float noise(vec2 p) {
 }
 float fbm(vec2 p) {
   return noise(p) * 0.6 + noise(p * 2.3 + 3.1) * 0.28 + noise(p * 5.7 - 1.7) * 0.12;
+}
+
+// curl of a scalar field -> divergence-free flow. nothing bunches or thins,
+// which is exactly why it reads as a fluid rather than as a wobble.
+vec2 curl(vec2 p) {
+  const float e = 0.06;
+  float a = fbm(p + vec2(0.0, e)), b = fbm(p - vec2(0.0, e));
+  float c = fbm(p + vec2(e, 0.0)), d = fbm(p - vec2(e, 0.0));
+  return vec2(a - b, d - c) / (2.0 * e);
 }
 
 vec3 rgb2hsv(vec3 c) {
@@ -105,7 +115,10 @@ void main() {
 
   // the rim is not a perfect circle -- a very slight low-frequency wobble,
   // barely a percent, is the difference between a body and a vector shape
-  float wob = 1.0 + (fbm(normalize(dv + 1e-6) * 2.2 + uTime * uDrift * 0.05) - 0.5) * 0.018;
+  // A sub-percent low-frequency breathing on the rim. The circle stays a
+  // circle -- this is only enough to stop it reading as a vector shape.
+  float wob = 1.0 + (fbm(normalize(dv + 1e-6) * 2.2 + uTime * uDrift * 0.05) - 0.5)
+                    * 0.014 * uWobble;
   float R = uR * wob;
   float r = length(dv) / max(R, 1e-4);
 
@@ -121,7 +134,7 @@ void main() {
   // derived core; at 0 the pigment holds everywhere and the core only tints it.
   // Previously the centre was 100% core and 0% pigment, so most of what you saw
   // was never the colour you typed.
-  float mixC = pow(smoothstep(0.0, 1.0, cr), mix(0.35, 1.0, uPurity));
+  float mixC = pow(smoothstep(0.0, 1.0, clamp(cr, 0.0, 4.0)), mix(0.35, 1.0, uPurity));
   vec3 body = mix(hot, uPigment, mixC);
   body = mix(body, rim, smoothstep(1.0 - uRimBand, 1.0, r) * uPurity);
 

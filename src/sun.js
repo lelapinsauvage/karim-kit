@@ -8,30 +8,40 @@ const $ = (id) => document.getElementById(id);
 const PRESETS = {
   EMBER: {
     r:0.30, edge:0.125, coreSize:0.99, rimBand:0.53, drift:1, glow:0.68,
-    glowSize:0.26, grain:0.09, grainSize:2.98, grainMask:0.40, spread:0.30,
-    bgFall:0.38, warmth:0.35, purity:0.70, coreX:0.22, coreY:0.07, pigment:'#f03b0c', bg:'#202020',
+    glowSize:0.26, grain:0.09, grainSize:2.98, grainMask:0.40, spread:0.28,
+    bgFall:0.78, warmth:0.55, purity:0, wobble:0.45,
+    coreX:0.22, coreY:0.07, pigment:'#990000',
   },
   ULTRA: {
     r:0.30, edge:0.40, coreSize:0.99, rimBand:0.82, drift:1, glow:0.88,
-    glowSize:0.39, grain:0.22, grainSize:2.98, grainMask:0.46, spread:0.30,
-    bgFall:0.38, warmth:0.35, purity:0.70, coreX:0.22, coreY:0.07, pigment:'#0805e1', bg:'#202020',
+    glowSize:0.39, grain:0.22, grainSize:2.98, grainMask:0.46, spread:0.28,
+    bgFall:0.78, warmth:0.55, purity:0, wobble:0.45,
+    coreX:0.22, coreY:0.07, pigment:'#0805e1',
   },
 };
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', grain:'uGrain', grainSize:'uGrainSize',
-  grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', warmth:'uWarmth', purity:'uPurity' };
+  grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', warmth:'uWarmth', purity:'uPurity',
+  wobble:'uWobble' };
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg' };
 function push(){
   for(const [id,u] of Object.entries(NUM)){const v=parseFloat($(id).value);view.set(u,v);
     const o=$('o-'+id); if(o)o.textContent=v.toFixed(3);}
+  // The ground is the pigment by default. One colour to change, and the frame
+  // is automatically in the same family as the light -- which is what a lit
+  // room actually looks like. Untick to drive it separately.
+  const linked = $('linkBg').checked;
+  $('bg').disabled = linked;
+  $('bg-hex').disabled = linked;
+  if (linked) { $('bg').value = $('pigment').value; $('bg-hex').value = $('pigment').value; }
   for(const [id,u] of Object.entries(COL)) view.set(u,hexToRgb($(id).value));
   const cx=parseFloat($('coreX').value), cy=parseFloat($('coreY').value);
   view.set('uCore',[cx,cy]); $('o-coreX').textContent=cx.toFixed(2); $('o-coreY').textContent=cy.toFixed(2);
   view.set('uPos',[0,0]);
 }
-for(const id of [...Object.keys(NUM),...Object.keys(COL),'coreX','coreY']) $(id).addEventListener('input',push);
+for(const id of [...Object.keys(NUM),...Object.keys(COL),'coreX','coreY','linkBg']) $(id).addEventListener('input',push);
 
 // hex field <-> swatch, both directions. colours arrive as hex, from a
 // reference or from Figma, and typing one is faster than the native picker.
