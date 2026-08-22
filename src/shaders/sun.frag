@@ -42,6 +42,17 @@ uniform float uDrift;      // the body breathes
 
 uniform float uWobble;     // low-frequency breathing on the rim
 
+// --- the cloth --------------------------------------------------------------
+// A Truchet field standing in for woven pattern. It lives where the light does
+// NOT: washed out as the glow rises, so cloth and sun are one lit scene rather
+// than two stacked layers. Ancient object, modern light.
+uniform float uCloth;      // opacity in the darkest part of the frame
+uniform float uClothScale;
+uniform float uClothShape; // 0 arc, 1 chord, 2 elbow, 3 step -- continuous
+uniform float uClothMorph; // how far the family drifts on its own
+uniform float uClothWeight;
+uniform vec3  uClothInk;
+
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -73,6 +84,63 @@ vec2 curl(vec2 p) {
   float a = fbm(p + vec2(0.0, e)), b = fbm(p - vec2(0.0, e));
   float c = fbm(p + vec2(e, 0.0)), d = fbm(p - vec2(e, 0.0));
   return vec2(a - b, d - c) / (2.0 * e);
+}
+
+float seg(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a, ba = b - a;
+  return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0));
+}
+
+// Four tile families as 7-point polylines, L->T and R->B. Morphing happens on
+// the CONTROL POINTS, never on the finished distance fields: mixing two SDFs
+// interpolates the field rather than the path and the contour pinches off
+// mid-blend. Mixing points keeps one continuous path with its ends nailed to
+// the edge midpoints, so tiles chain at every family and every value between.
+const int NP = 7;
+const vec2 PA[28] = vec2[28](
+  vec2(-0.5000, 0.0000), vec2(-0.3706, 0.0170), vec2(-0.2500, 0.0670),
+  vec2(-0.1464, 0.1464), vec2(-0.0670, 0.2500), vec2(-0.0170, 0.3706),
+  vec2( 0.0000, 0.5000),
+  vec2(-0.5000, 0.0000), vec2(-0.4167, 0.0833), vec2(-0.3333, 0.1667),
+  vec2(-0.2500, 0.2500), vec2(-0.1667, 0.3333), vec2(-0.0833, 0.4167),
+  vec2( 0.0000, 0.5000),
+  vec2(-0.5000, 0.0000), vec2(-0.3333, 0.0000), vec2(-0.1667, 0.0000),
+  vec2( 0.0000, 0.0000), vec2( 0.0000, 0.1667), vec2( 0.0000, 0.3333),
+  vec2( 0.0000, 0.5000),
+  vec2(-0.5000, 0.0000), vec2(-0.3333, 0.0000), vec2(-0.2500, 0.0833),
+  vec2(-0.2500, 0.2500), vec2(-0.0833, 0.2500), vec2( 0.0000, 0.3333),
+  vec2( 0.0000, 0.5000)
+);
+const vec2 PB[28] = vec2[28](
+  vec2( 0.5000, 0.0000), vec2( 0.3706,-0.0170), vec2( 0.2500,-0.0670),
+  vec2( 0.1464,-0.1464), vec2( 0.0670,-0.2500), vec2( 0.0170,-0.3706),
+  vec2( 0.0000,-0.5000),
+  vec2( 0.5000, 0.0000), vec2( 0.4167,-0.0833), vec2( 0.3333,-0.1667),
+  vec2( 0.2500,-0.2500), vec2( 0.1667,-0.3333), vec2( 0.0833,-0.4167),
+  vec2( 0.0000,-0.5000),
+  vec2( 0.5000, 0.0000), vec2( 0.5000,-0.1667), vec2( 0.5000,-0.3333),
+  vec2( 0.5000,-0.5000), vec2( 0.3333,-0.5000), vec2( 0.1667,-0.5000),
+  vec2( 0.0000,-0.5000),
+  vec2( 0.5000, 0.0000), vec2( 0.3333, 0.0000), vec2( 0.2500,-0.0833),
+  vec2( 0.2500,-0.2500), vec2( 0.0833,-0.2500), vec2( 0.0000,-0.3333),
+  vec2( 0.0000,-0.5000)
+);
+
+float polyD(vec2 p, int i0, int i1, float t, bool second) {
+  vec2 a = second ? mix(PB[i0*NP], PB[i1*NP], t) : mix(PA[i0*NP], PA[i1*NP], t);
+  float d = 1e9;
+  for (int k = 1; k < NP; k++) {
+    vec2 b = second ? mix(PB[i0*NP+k], PB[i1*NP+k], t) : mix(PA[i0*NP+k], PA[i1*NP+k], t);
+    d = min(d, seg(p, a, b)); a = b;
+  }
+  return d;
+}
+float tile(vec2 p, float h, float shape) {
+  if (h < 0.5) p.x = -p.x;
+  float sh = clamp(shape, 0.0, 2.999);
+  int i0 = int(floor(sh));
+  float t = smoothstep(0.0, 1.0, fract(sh));
+  return min(polyD(p, i0, i0+1, t, false), polyD(p, i0, i0+1, t, true));
 }
 
 vec3 rgb2hsv(vec3 c) {
@@ -158,6 +226,39 @@ void main() {
   float bgr = smoothstep(0.0, 1.0, clamp(r * uBgFall, 0.0, 1.0));
   vec3 col = mix(uBg, uBg * uBgFloor, bgr);
   col += uPigment * (near * 1.0 + wide * 0.45) * uGlow;
+
+  // --- cloth --------------------------------------------------------------
+  // drawn before the body, and only where the light is weak
+  {
+    float shade = 1.0 - clamp(near * 1.0 + wide * 0.45, 0.0, 1.0) * uGlow;
+    shade *= smoothstep(1.0, 1.35, r);          // never under the body itself
+
+    if (uCloth > 0.001 && shade > 0.003) {
+      vec2 g  = uv * uClothScale;
+      vec2 id = floor(g);
+      vec2 f  = fract(g) - 0.5;
+
+      // tile chosen from smooth noise at the cell's WORLD position. a hash of
+      // the cell index re-rolls the whole field the instant scale animates.
+      vec2  cellUV = (id + 0.5) / max(uClothScale, 1e-4);
+      float h = noise(cellUV * 26.0);
+
+      // Two slow mutually prime periods. Tiles are always crossing between
+      // families somewhere in the frame, but no single cell moves fast enough
+      // to be caught doing it -- felt, never seen.
+      float drift = sin(uTime * 0.043 + 1.3) * 0.55 + sin(uTime * 0.027 + 4.1) * 0.35;
+      float sh = mod(uClothShape + drift * uClothMorph, 3.0);
+
+      float d  = tile(f, h, sh);
+      float aa = fwidth(d) * 1.2;
+      float ink = 1.0 - smoothstep(uClothWeight - aa, uClothWeight + aa, d);
+
+      // uneven impression -- woven, not printed
+      ink *= 0.55 + 0.45 * fbm(g * 2.1);
+
+      col = mix(col, uClothInk, ink * uCloth * shade);
+    }
+  }
 
   col = mix(col, body, disc);
 

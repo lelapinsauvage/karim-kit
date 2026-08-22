@@ -15,13 +15,13 @@ const PRESETS = {
   EMBER: {
     r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.34,
-    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42, cloth:0.16, clothScale:26, clothShape:2, clothMorph:0.6, clothWeight:0.095, clothInk:'#8c8c8c',
     coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
     r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.28,
-    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42, cloth:0.16, clothScale:26, clothShape:2, clothMorph:0.6, clothWeight:0.095, clothInk:'#8c8c8c',
     coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
   },
 };
@@ -29,9 +29,10 @@ const PRESETS = {
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', grain:'uGrain', grainSize:'uGrainSize',
   grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', bgFloor:'uBgFloor', warmth:'uWarmth', purity:'uPurity',
-  wobble:'uWobble' };
+  wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
+  clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight' };
 // two colours. core and rim are derived in the shader.
-const COL = { pigment:'uPigment', bg:'uBg' };
+const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };
 function push(){
   for(const [id,u] of Object.entries(NUM)){const v=parseFloat($(id).value);view.set(u,v);
     const o=$('o-'+id); if(o)o.textContent=v.toFixed(3);}
