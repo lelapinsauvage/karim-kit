@@ -14,11 +14,12 @@ const PRESETS = {
   // glow to sit at the same weight in the frame.
   EMBER: {
     r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
-    glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.34,
-    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
+    glowSize:0.58, grain:0.235, grainSize:1.45, grainMask:0.55, spread:2.0,
+    bgFall:0.70, bgFloor:0, warmth:0.60, purity:0.37, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
+    figH:0.82, figX:-0.03, figY:-0.34, figDark:0.96, figTint:0.61, figLift:0,
     clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
@@ -28,6 +29,7 @@ const PRESETS = {
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
+    figH:0.82, figX:-0.03, figY:-0.34, figDark:0.96, figTint:0.61, figLift:0,
     clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
   },
 };
@@ -38,10 +40,16 @@ const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', dr
   wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
   clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
   light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
+  figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift',
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
+const figTex = view.texture('/src/figures/m3.png', 0);
+
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };
 function push(){
+  for (const id of ['figH','figX','figY']) {
+    const o=$('o-'+id); if(o)o.textContent=parseFloat($(id).value).toFixed(3);
+  }
   for(const [id,u] of Object.entries(NUM)){const v=parseFloat($(id).value);view.set(u,v);
     const o=$('o-'+id); if(o)o.textContent=v.toFixed(3);}
   // The ground is the pigment by default. One colour to change, and the frame
@@ -56,8 +64,16 @@ function push(){
   const cx=parseFloat($('coreX').value), cy=parseFloat($('coreY').value);
   view.set('uCore',[cx,cy]); $('o-coreX').textContent=cx.toFixed(2); $('o-coreY').textContent=cy.toFixed(2);
   view.set('uPos',[0,0]);
+
+  // the rect is the cutout's alpha bounding box, measured at load, so padding
+  // differences cannot change how big she renders
+  view.bind(figTex, 'uFigTex');
+  view.set('uFigRect', figTex.rect);
+  view.set('uFigPos', [figTex.aspect, parseFloat($('figH').value),
+                       parseFloat($('figX').value), parseFloat($('figY').value)]);
+  view.set('uFigShow', $('figShow').checked ? 1 : 0);
 }
-for(const id of [...Object.keys(NUM),...Object.keys(COL),'coreX','coreY','linkBg']) $(id).addEventListener('input',push);
+for(const id of [...Object.keys(NUM),...Object.keys(COL),'coreX','coreY','linkBg','figShow','figH','figX','figY']) $(id).addEventListener('input',push);
 
 // hex field <-> swatch, both directions. colours arrive as hex, from a
 // reference or from Figma, and typing one is faster than the native picker.

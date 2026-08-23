@@ -74,6 +74,17 @@ uniform float uRake;       // 0 = light sits at the halo, 1 = grazing
 uniform float uSheen;      // specular strength
 uniform float uCord;       // how much each stroke bulges
 
+// --- the figure -------------------------------------------------------------
+// Composited in the shader, not stacked as a DOM image: it sits in the same
+// exposure as the light, gets the same grain, and is occluded by nothing.
+uniform sampler2D uFigTex;
+uniform vec4  uFigRect;    // alpha bounding box of the cutout
+uniform vec4  uFigPos;     // aspect, height (uv units), x, y
+uniform float uFigShow;
+uniform float uFigDark;    // pull toward silhouette
+uniform float uFigTint;    // how far the figure takes the pigment's colour
+uniform float uFigLift;    // light spilling onto her from the body
+
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -339,6 +350,34 @@ void main() {
   }
 
   col = mix(col, body, disc);
+
+  // --- figure ---------------------------------------------------------------
+  if (uFigShow > 0.5) {
+    float aspect = uFigPos.x, fh = uFigPos.y;
+    vec2  q  = (uv - uFigPos.zw) / fh;
+    vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
+
+    if (lc.x > 0.0 && lc.x < 1.0 && lc.y > 0.0 && lc.y < 1.0) {
+      vec4 tex = texture(uFigTex, uFigRect.xy + lc * uFigRect.zw);
+
+      if (tex.a > 0.004) {
+        // The photograph is left alone. darken / tint / spill all default to 0,
+        // so what lands on screen is exactly the pixels that were generated --
+        // grading it is a decision, not something the compositor does for you.
+        vec3 fig = tex.rgb * (1.0 - uFigDark);
+        if (uFigTint > 0.0) {
+          float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+          fig = mix(fig, uPigment * lum * 0.8, uFigTint);
+        }
+        if (uFigLift > 0.0) {
+          float sp = exp(-max(length(uv - uPos) - uR, 0.0) / max(uGlowSize * 0.7, 1e-4));
+          fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
+        }
+
+        col = mix(col, fig, tex.a);
+      }
+    }
+  }
 
   // --- grain -------------------------------------------------------------
   // fine and dense, at device resolution, and strongest in the mid-tones --
