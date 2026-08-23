@@ -5,102 +5,101 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>hero</title>
 <style>
-  /* Bayard — Vocal Type Co. Drawn from the placards of the 1963 March on
-     Washington. Sign-painter caps: it carries weight without needing size. */
-  @font-face { font-family:'Bayard'; src:url('/public/fonts/bayard.woff2') format('woff2'); font-display:swap }
-  @font-face { font-family:'America'; src:url('/public/fonts/america-regular.woff2') format('woff2'); font-display:swap }
+  /* Display: Bayard, always. Vocal Type Co., drawn from the placards of the
+     1963 March on Washington -- it is the only element on the page carrying the
+     concept in the letterforms themselves, and no grotesque substitutes for
+     that. Data: IBM Plex Mono, tabular by nature, says "catalogue" without
+     decoration. One loud face, one quiet one. */
+  @font-face{font-family:'Disp';src:url('/public/fonts/bayard.woff2') format('woff2');font-display:swap}
+  @font-face{font-family:'Mono';src:url('/public/fonts/plex-mono-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+  @font-face{font-family:'Mono';src:url('/public/fonts/plex-mono-semibold.woff2') format('woff2');font-weight:600;font-display:swap}
+  
 
   :root{
-    --ink:#F2EDE4;
-    --dim:rgba(242,237,228,.45);
-    --faint:rgba(242,237,228,.22);
-    --pad:clamp(20px,2.6vw,44px);
-  }
-  /* light ground: the DOM layer inverts with the scene, or it vanishes */
-  body.paper{
     --ink:#141414;
-    --dim:rgba(20,20,20,.55);
-    --faint:rgba(20,20,20,.22);
+    --dim:rgba(20,20,20,.52);
+    --hair:rgba(20,20,20,.16);
+    --pad:clamp(22px,2.8vw,48px);
   }
-  body.paper .rule{background:rgba(20,20,20,.14)}
   *{margin:0;box-sizing:border-box}
-  html,body{height:100%;overflow:hidden;background:#0a0708}
-  body{font-family:'America',system-ui,sans-serif;color:var(--ink)}
+  html,body{height:100%;overflow:hidden;background:#F5F5F5}
+  body{font-family:'Mono',ui-monospace,monospace;color:var(--ink)}
   canvas{position:fixed;top:0;left:0;display:block}
 
   .frame{position:fixed;inset:0;z-index:3;pointer-events:none}
   .frame *{pointer-events:auto}
 
-  .meta{
-    position:absolute;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-    color:var(--dim);font-variant-numeric:tabular-nums;line-height:1.7;
+  /* the one hard edge on the page */
+  .rule{position:absolute;left:0;right:0;top:calc(var(--pad) + 40px);height:1px;background:var(--hair)}
+
+  .mark{
+    position:absolute;top:var(--pad);left:50%;transform:translateX(-50%);
+    font-family:'Disp',Impact,sans-serif;font-size:18px;letter-spacing:0;
+    text-transform:uppercase;
   }
+
+  .meta{position:absolute;font-size:11px;letter-spacing:.04em;color:var(--dim);
+    text-transform:uppercase;font-variant-numeric:tabular-nums;line-height:1.8}
   .tl{top:var(--pad);left:var(--pad)}
   .tr{top:var(--pad);right:var(--pad);text-align:right}
   .bl{bottom:var(--pad);left:var(--pad)}
-  .br{bottom:var(--pad);right:var(--pad);text-align:right}
 
-  /* the mark: Bayard, flat and enormous. one loud face, never two. */
-
-  .rail{
-    position:absolute;left:var(--pad);bottom:calc(var(--pad) + 74px);
-    display:grid;gap:3px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  /* THE LOCKUP, split across her on a shared baseline. She interrupts a line
+     the eye wants to finish, which is what makes her the subject rather than a
+     picture the type sits beside. */
+  .lock{
+    position:absolute;left:0;right:0;top:46%;transform:translateY(-50%);
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:0 var(--pad);
+    font-family:'Disp',Impact,sans-serif;
+    font-size:clamp(38px,7.6vw,140px);line-height:.86;letter-spacing:-.015em;
+    text-transform:uppercase;
   }
-  .rail div{display:grid;grid-template-columns:9ch 1fr;gap:12px}
-  .rail dt{color:var(--dim)}
+  .lock sup{font-size:.34em;letter-spacing:-.02em;vertical-align:super;margin-left:.04em}
 
-  nav{position:absolute;top:var(--pad);right:var(--pad);display:flex;gap:26px}
-  nav a{
-    font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-    color:var(--dim);text-decoration:none;transition:color .25s;
-  }
+  /* the record. bold labels, regular values, one column each. */
+  .rail{position:absolute;left:var(--pad);bottom:calc(var(--pad) + 46px);
+    display:grid;gap:7px;font-size:11px;letter-spacing:.04em}
+  .rail div{display:grid;grid-template-columns:8ch 1fr;gap:16px}
+  .rail dt{font-weight:600;text-transform:uppercase}
+  .rail dd{color:var(--dim);text-transform:uppercase}
+
+  nav{position:absolute;top:var(--pad);right:var(--pad);display:flex;gap:22px}
+  nav a{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);
+    text-decoration:none;transition:color .2s}
   nav a:hover{color:var(--ink)}
 
-  .drop{
-    position:absolute;right:var(--pad);bottom:var(--pad);text-align:right;
-    font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-  }
-  .drop b{display:block;font-family:'Bayard',Impact,sans-serif;font-size:26px;letter-spacing:0;font-weight:400;margin-top:6px}
-
-  /* the counter lives on the loader's paper, so it is near-black */
-  .count{
-    position:fixed;left:var(--pad);bottom:var(--pad);z-index:30;
-    font-family:'Bayard',Impact,sans-serif;font-size:clamp(40px,7vw,110px);
-    line-height:.8;color:#141414;font-variant-numeric:tabular-nums;
-    mix-blend-mode:multiply;pointer-events:none;
-  }
-  .rule{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--pad) + 34px);height:1px;background:rgba(242,237,228,.10)}
+  .count{position:fixed;left:var(--pad);bottom:var(--pad);z-index:30;
+    font-family:'Disp',Impact,sans-serif;font-size:clamp(36px,6vw,92px);line-height:.8;
+    color:#141414;font-variant-numeric:tabular-nums;letter-spacing:-.04em;
+    mix-blend-mode:multiply;pointer-events:none}
 </style>
 </head>
 <body class="paper">
 <canvas id="c"></canvas>
 
 <div class="frame" id="shell" style="opacity:0">
-  <div class="meta tl"><span id="r-lot">Lot 01 / 04</span><br>SS 26</div>
-  <nav>
-    <a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a>
-  </nav>
   <div class="rule"></div>
+  <div class="mark">Maison Noir</div>
+  <div class="meta tl"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
+  <nav><a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a></nav>
+
+  <h1 class="lock">
+    <span id="r-name">Edition</span>
+    <span>N<sup id="r-num">°01</sup></span>
+  </h1>
 
   <div class="rail">
     <div><dt>Pigment</dt><dd id="r-pig">—</dd></div>
     <div><dt>Origin</dt><dd id="r-org">—</dd></div>
     <div><dt>Cloth</dt><dd id="r-cloth">—</dd></div>
-    <div><dt>Edition</dt><dd>Of twelve</dd></div>
+    <div><dt>Edition</dt><dd id="r-ed">Twenty seven of one hundred</dd></div>
   </div>
 
-  <div class="meta bl" style="bottom:var(--pad)">← → to change lot</div>
-  <div class="drop">First release<b>09 · 26</b></div>
+  <div class="meta bl">← → to change lot</div>
 </div>
 
-<script>
-  // set before the module loads, so the wordmark draws as soon as Bayard is ready
-  // left-aligned and pushed left: she should interrupt the word near its end, not
-  // swallow it. reading OTJI- and inferring the rest is the effect; reading OT is
-  // just a covered headline.
-  window.__wordmark = ['OTJIZE', { size: 0.175, x: 0.035, y: 0.42, align: 'left', tracking: '-0.035em' }];
-</script>
+<div class="count" id="pct">000</div>
 <script type="module" src="/src/sun.js"></script>
-  <div class="count" id="pct">000</div>
 </body>
 </html>

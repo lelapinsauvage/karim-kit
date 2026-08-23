@@ -530,7 +530,7 @@ function paintCopy(name) {
   // the rail restates itself row by row -- a stagger reads as a record being
   // rewritten, where all four changing at once reads as a page reload
   const rows = [['#r-pig', l.pig], ['#r-org', l.origin], ['#r-cloth', l.material],
-                ['#r-lot', `Lot ${String(ORDER.indexOf(name) + 1).padStart(2, '0')} / ${ORDER.length}`]];
+                ['#r-ed', 'Twenty seven of one hundred']];
   rows.forEach(([sel, v], i) => {
     const el = document.querySelector(sel); if (!el) return;
     el.style.transition = 'opacity .20s ease';
@@ -538,7 +538,13 @@ function paintCopy(name) {
     setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 180 + i * 90);
   });
 
-  if (window.__wordmark) scrambleTo(l.name.toUpperCase(), window.__wordmark[1]);
+  // the lockup is DOM now: it has to sit either side of her on a shared
+  // baseline, which is a layout problem, not a texture one
+  const n = ORDER.indexOf(name) + 1;
+  const set = (sel, v) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
+  set('#r-name', l.name);
+  set('#r-num', '°' + String(n).padStart(2, '0'));
+  set('#r-lot', 'Lot ' + String(n).padStart(2, '0'));
   window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
