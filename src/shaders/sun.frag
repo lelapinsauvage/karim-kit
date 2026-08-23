@@ -503,14 +503,14 @@ void main() {
 
       // the outgoing figure is pushed ahead of the front, the incoming one is
       // still catching up -- they move in opposite directions through the edge
-      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv - push,       uRes, 0.0);
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv - push,       uRes, 0.0, uFlipA);
       vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6, uRes, 0.0, uFlipB);
 
       // per-channel separation ONLY inside the band, scaled by how fast the edge
       // is moving. dispersion everywhere is an RGB-split filter; dispersion at a
       // moving boundary is refraction.
       float disp = edge * 0.026 * uTear;
-      vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0);
+      vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0, uFlipB);
       vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0, uFlipB);
       fb.r = fbR.r; fb.b = fbB.b;
 
@@ -534,8 +534,8 @@ void main() {
       vec2  ax  = vec2(0.94, 0.34);
 
       vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv, uRes, 0.0, uFlipA);
-      vec4 r  = figAt(uFigB, uFigRectB, uFigPosB, uv + ax * d,        uRes, 0.0);
-      vec4 g  = figAt(uFigB, uFigRectB, uFigPosB, uv,                 uRes, 0.0);
+      vec4 r  = figAt(uFigB, uFigRectB, uFigPosB, uv + ax * d,        uRes, 0.0, uFlipB);
+      vec4 g  = figAt(uFigB, uFigRectB, uFigPosB, uv,                 uRes, 0.0, uFlipB);
       vec4 b  = figAt(uFigB, uFigRectB, uFigPosB, uv - ax * d * 1.15, uRes, 0.0, uFlipB);
       vec4 fb = vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
       tex = mix(fa, fb, hit);
@@ -546,8 +546,8 @@ void main() {
       // become another.
       float go  = smoothstep(0.0, 0.48, m);
       float in_ = smoothstep(0.40, 1.0, m);
-      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(-0.55 * go, 0.0), uRes, 0.0);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(0.55 * (1.0 - in_), 0.0), uRes, 0.0);
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(-0.55 * go, 0.0), uRes, 0.0, uFlipA);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(0.55 * (1.0 - in_), 0.0), uRes, 0.0, uFlipB);
       tex = fb.a > 0.004 ? fb : fa;
 
     } else {

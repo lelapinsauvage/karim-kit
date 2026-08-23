@@ -226,6 +226,9 @@ if (!HAS_PANEL) {
       letter-spacing:.14em;text-transform:uppercase;padding:7px;cursor:pointer">
       copy settings</button>
      <div style="opacity:.3;margin-top:8px;line-height:1.6">H hide · ←→ look</div>`;
+  // hidden by default -- the panel is a tool, and the piece has to be seen
+  // without it. H toggles.
+  el.style.display = 'none';
   document.body.appendChild(el);
 
   const ALLNUM = GROUPS.flatMap(([, k]) => k);
