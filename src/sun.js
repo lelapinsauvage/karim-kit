@@ -37,27 +37,33 @@ const BASE = {
 //
 // To swap one out, change `fig` to any other generated figure. Everything else
 // -- pigment, ground, provenance -- travels with the entry.
+// Four looks. Chosen for the figures that hold the camera rather than turning
+// away from it -- a subject cropped at the shoulder and looking off frame reads
+// as a stock photo, whichever way it is lit.
+//
+// The pigment is taken from what each one is actually wearing: barkcloth and
+// cowrie, white clay and cotton, indigo resist, undyed raffia.
 const LOOKS = [
-  { id:'l1', name:'Cowrie',  fig:'n01',
-    pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94', purity:0.70,
+  { id:'l1', name:'Barkcloth', fig:'n02',
+    pigment:'#A8531F', bg:'#E2DBD1', clothInk:'#967154', warmth:0.58,
+    figH:1.05, figX:0.055, figBleed:0.06,
+    pig:'Beaten fig bark · ómútuba', origin:'Buganda, Uganda',
+    material:'Barkcloth, cowrie, raffia' },
+
+  { id:'l2', name:'Efun', fig:'n06',
+    pigment:'#5C6660', bg:'#DDDDD9', clothInk:'#7E857F', purity:0.50,
+    figH:1.05, figX:0.055, figBleed:0.06,
+    pig:'White clay · efun', origin:'Cross River, Nigeria',
+    material:'Cotton veil, seed pearl, brass' },
+
+  { id:'l3', name:'Adire', fig:'n08',
+    pigment:'#243A7A', bg:'#D5D7DB', clothInk:'#6C7791',
+    rimW:0.035, rimStr:1.05, purity:0.70,
     figH:1.05, figX:0.055, figBleed:0.06,
     pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
-    material:'Cowrie, seed bead' },
+    material:'Adire cotton, cast brass' },
 
-  { id:'l2', name:'Brass',   fig:'n03',
-    pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52',
-    glow:0.30, rimStr:1.25, warmth:0.62,
-    figH:1.05, figX:0.055, figBleed:0.06,
-    pig:'Cast brass · lost wax', origin:'Kumasi, Ghana',
-    material:'Gold chain, brass' },
-
-  { id:'l3', name:'Otjize',  fig:'n04',
-    pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E', warmth:0.55,
-    figH:1.05, figX:0.055, figBleed:0.06,
-    pig:'Red ochre · butterfat', origin:'Kunene, Namibia',
-    material:'Seed bead, cowrie' },
-
-  { id:'l4', name:'Raffia',  fig:'n10',
+  { id:'l4', name:'Raffia', fig:'n10',
     pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
     figH:1.05, figX:0.055, figBleed:0.06,
     pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
