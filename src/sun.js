@@ -18,6 +18,7 @@ const PRESETS = {
     bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
+    light:1.4, rake:0.82, sheen:0.9, cord:1.3,
     clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
@@ -26,6 +27,7 @@ const PRESETS = {
     bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
+    light:1.4, rake:0.82, sheen:0.9, cord:1.3,
     clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
   },
 };
@@ -35,6 +37,7 @@ const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', dr
   grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', bgFloor:'uBgFloor', warmth:'uWarmth', purity:'uPurity',
   wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
   clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
+  light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };

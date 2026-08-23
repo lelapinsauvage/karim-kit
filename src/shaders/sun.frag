@@ -62,6 +62,18 @@ uniform float uCharge;     // strength
 uniform float uChargeSpd;
 uniform float uChargeLen;  // wavelength
 
+// --- the body as a light ----------------------------------------------------
+// The halo stops being a graphic and becomes the scene's only light source.
+// The cloth is given a surface normal derived from its own distance field --
+// each stroke bulges like a cord -- and is then lit by the body: diffuse from
+// the direction of the light, plus a grazing specular that only catches where
+// the weave turns toward it. Rake the light low and the fabric shows its
+// structure, which is exactly what a garment needs to do.
+uniform float uLight;      // how hard the halo lights the cloth
+uniform float uRake;       // 0 = light sits at the halo, 1 = grazing
+uniform float uSheen;      // specular strength
+uniform float uCord;       // how much each stroke bulges
+
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -277,6 +289,34 @@ void main() {
       float aa = fwidth(d) * 1.2;
       float ink = 1.0 - smoothstep(uClothWeight - aa, uClothWeight + aa, d);
 
+      // --- surface -------------------------------------------------------
+      // The gradient of the distance field points across the stroke, so it is
+      // the surface normal of a cord lying on the cloth. Height is highest at
+      // the centre of the stroke and falls to nothing at its edge.
+      float e = 0.004;
+      vec2  grad = vec2(tile(f + vec2(e, 0.0), h, sh) - tile(f - vec2(e, 0.0), h, sh),
+                        tile(f + vec2(0.0, e), h, sh) - tile(f - vec2(0.0, e), h, sh));
+      float lift = smoothstep(uClothWeight, 0.0, d);          // 0 at edge, 1 at centre
+      vec3  n = normalize(vec3(-grad / (2.0 * e) * uCord * 0.05 * lift, 1.0));
+
+      // --- light ---------------------------------------------------------
+      // Direction to the body. uRake pushes the light down toward the surface,
+      // which is what makes a weave show: a light from straight on flattens it,
+      // a grazing one carves it.
+      vec3  toL = normalize(vec3(uPos - uv, mix(0.9, 0.06, uRake)));
+      float dist = length(uv - uPos);
+      float atten = 1.0 / (1.0 + pow(dist / max(uR * 1.4, 1e-4), 2.0));
+
+      float diff = max(dot(n, toL), 0.0);
+
+      // specular: the halo is a broad source, so a wide lobe rather than a point
+      vec3  view = vec3(0.0, 0.0, 1.0);
+      vec3  hv   = normalize(toL + view);
+      float spec = pow(max(dot(n, hv), 0.0), 22.0);
+
+      vec3 lightCol = core(uPigment, uSpread * 1.6, 1.0);
+      vec3 lit = lightCol * (diff * 0.85 + spec * uSheen * 2.4) * atten * uLight;
+
       // uneven impression -- woven, not printed
       ink *= 0.55 + 0.45 * fbm(g * 2.1);
 
@@ -288,8 +328,11 @@ void main() {
       // it gathers as it nears the light -- brightest just before it lands
       pulse *= smoothstep(2.4, 1.05, r);
 
-      vec3 lit = core(uPigment, uSpread * 2.4, 1.0);
-      vec3 inkC = mix(uClothInk, lit, pulse * uCharge);
+      vec3 chargeCol = core(uPigment, uSpread * 2.4, 1.0);
+      vec3 inkC = mix(uClothInk, chargeCol, pulse * uCharge);
+
+      // the cloth is its own colour PLUS what the halo puts on it
+      inkC += lit;
 
       col = mix(col, inkC, ink * uCloth * shade * (1.0 + pulse * uCharge * 1.6));
     }
