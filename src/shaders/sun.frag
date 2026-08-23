@@ -74,23 +74,6 @@ uniform float uRake;       // 0 = light sits at the halo, 1 = grazing
 uniform float uSheen;      // specular strength
 uniform float uCord;       // how much each stroke bulges
 
-// --- the figure -------------------------------------------------------------
-// Relit from a flat-lit photograph. The normal comes from two gradients: the
-// DEPTH map, which knows the body's form but is far too smooth to hold a weave,
-// and the image's own LUMINANCE, which holds the weave but has no idea which way
-// a shoulder turns. Neither works alone. Together they give a usable surface.
-uniform sampler2D uFigTex;
-uniform sampler2D uFigDepth;
-uniform vec4  uFigRect;    // alpha bounding box in texture space
-uniform vec4  uFigPos;     // aspect, height (uv units), x, y
-uniform float uFigShow;
-uniform float uFigForm;    // weight of the depth gradient -- body shape
-uniform float uFigWeave;   // weight of the luminance gradient -- fabric
-uniform float uFigAmbient; // fill, so the dark side is not pure black
-uniform float uFigSheen;   // specular on the cloth
-uniform float uFigRake;    // how low the light grazes the garment
-uniform float uFigExpose;
-
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -179,22 +162,6 @@ float tile(vec2 p, float h, float shape) {
   int i0 = int(floor(sh));
   float t = smoothstep(0.0, 1.0, fract(sh));
   return min(polyD(p, i0, i0+1, t, false), polyD(p, i0, i0+1, t, true));
-}
-
-// A depth map arrives 8-bit, so its quantisation steps become contour rings the
-// moment you differentiate it. Smooth before taking the gradient: a small
-// gaussian over the neighbourhood costs 9 taps and removes the banding without
-// touching the form.
-float smoothDepth(sampler2D t, vec2 uv, vec2 px) {
-  float sum = 0.0, wsum = 0.0;
-  for (int y = -1; y <= 1; y++) {
-    for (int x = -1; x <= 1; x++) {
-      float w = (x == 0 && y == 0) ? 4.0 : ((x == 0 || y == 0) ? 2.0 : 1.0);
-      sum  += texture(t, uv + vec2(float(x), float(y)) * px).r * w;
-      wsum += w;
-    }
-  }
-  return sum / wsum;
 }
 
 vec3 rgb2hsv(vec3 c) {
@@ -372,72 +339,6 @@ void main() {
   }
 
   col = mix(col, body, disc);
-
-  // --- figure ---------------------------------------------------------------
-  if (uFigShow > 0.5) {
-    float aspect = uFigPos.x, fh = uFigPos.y;
-    vec2  fc = vec2(uFigPos.z, uFigPos.w);
-    vec2  q  = (uv - fc) / fh;
-    vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
-
-    if (lc.x > 0.0 && lc.x < 1.0 && lc.y > 0.0 && lc.y < 1.0) {
-      vec2 tc = uFigRect.xy + lc * uFigRect.zw;
-      vec4 tex = texture(uFigTex, tc);
-
-      if (tex.a > 0.004) {
-        vec2 px = uFigRect.zw / vec2(textureSize(uFigTex, 0));
-
-        // form: gradient of the SMOOTHED depth, sampled wide. both the blur and
-        // the wide step are needed -- either alone still bands.
-        vec2 blurPx = px * 2.0;
-        vec2 ds = px * 5.0;
-        float dl = smoothDepth(uFigDepth, tc - vec2(ds.x, 0.0), blurPx);
-        float dr = smoothDepth(uFigDepth, tc + vec2(ds.x, 0.0), blurPx);
-        float db = smoothDepth(uFigDepth, tc - vec2(0.0, ds.y), blurPx);
-        float dt = smoothDepth(uFigDepth, tc + vec2(0.0, ds.y), blurPx);
-        vec2 form = vec2(dr - dl, db - dt) * uFigForm * 16.0;
-
-        // weave: gradient of the image's own luminance, sampled tight
-        vec2 ls = px * 1.0;
-        vec3 L = vec3(0.299, 0.587, 0.114);
-        float ll = dot(texture(uFigTex, tc - vec2(ls.x, 0.0)).rgb, L);
-        float lr = dot(texture(uFigTex, tc + vec2(ls.x, 0.0)).rgb, L);
-        float lb = dot(texture(uFigTex, tc - vec2(0.0, ls.y)).rgb, L);
-        float lt = dot(texture(uFigTex, tc + vec2(0.0, ls.y)).rgb, L);
-        vec2 weave = vec2(lr - ll, lb - lt) * uFigWeave * 9.0;
-
-        // the weave term belongs on cloth, not on skin. skin is smooth in the
-        // photograph, so its local luminance variance is low -- use that to fade
-        // the term out over the face and keep it on the garment.
-        float variance = abs(lr - ll) + abs(lt - lb);
-        weave *= smoothstep(0.004, 0.05, variance);
-
-        vec3 fn = normalize(vec3(-(form + weave), 1.0));
-
-        // lit by the body -- same light everything else in the frame uses
-        vec3  toL = normalize(vec3(uPos - uv, mix(0.85, 0.05, uFigRake)));
-        float fdist = length(uv - uPos);
-        float fatt = 1.0 / (1.0 + pow(fdist / max(uR * 1.7, 1e-4), 2.0));
-
-        float fdiff = max(dot(fn, toL), 0.0);
-        vec3  fh2 = normalize(toL + vec3(0.0, 0.0, 1.0));
-        float fspec = pow(max(dot(fn, fh2), 0.0), 30.0);
-
-        vec3 lightCol = core(uPigment, uSpread * 1.4, 1.0);
-
-        // the photograph is only the albedo -- its own lighting is discarded.
-        // desaturating first stops the source's colour fighting the pigment.
-        float alb = dot(tex.rgb, L);
-        vec3 albedo = mix(vec3(alb), tex.rgb, 0.35);
-
-        vec3 figCol = albedo * (lightCol * fdiff * fatt * uFigExpose
-                                + uFigAmbient * 0.12)
-                    + lightCol * fspec * uFigSheen * fatt;
-
-        col = mix(col, figCol, tex.a);
-      }
-    }
-  }
 
   // --- grain -------------------------------------------------------------
   // fine and dense, at device resolution, and strongest in the mid-tones --
