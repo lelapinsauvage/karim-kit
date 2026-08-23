@@ -34,15 +34,6 @@
   .br{bottom:var(--pad);right:var(--pad);text-align:right}
 
   /* the mark: Bayard, flat and enormous. one loud face, never two. */
-  .mark{
-    position:absolute;left:var(--pad);top:50%;transform:translateY(-50%);
-    font-family:'Bayard',Impact,sans-serif;
-    font-size:clamp(52px,11.5vw,190px);
-    line-height:.80;letter-spacing:-.02em;text-transform:uppercase;
-    /* the scale jump is where brutalism lives -- 190px against 10px */
-  }
-  .mark span{display:block}
-  .mark .b{color:var(--faint)}
 
   .rail{
     position:absolute;left:var(--pad);bottom:calc(var(--pad) + 74px);
@@ -77,8 +68,6 @@
   </nav>
   <div class="rule"></div>
 
-  <h1 class="mark"><span>Otjize</span><span class="b">Archive</span></h1>
-
   <div class="rail">
     <div><dt>Pigment</dt><dd>Red earth · Otjize</dd></div>
     <div><dt>Origin</dt><dd>Kunene</dd></div>
@@ -90,6 +79,13 @@
   <div class="drop">First release<b>09 · 26</b></div>
 </div>
 
+<script>
+  // set before the module loads, so the wordmark draws as soon as Bayard is ready
+  // left-aligned and pushed left: she should interrupt the word near its end, not
+  // swallow it. reading OTJI- and inferring the rest is the effect; reading OT is
+  // just a covered headline.
+  window.__wordmark = ['OTJIZE', { size: 0.175, x: 0.035, y: 0.42, align: 'left', tracking: '-0.035em' }];
+</script>
 <script type="module" src="/src/sun.js"></script>
 </body>
 </html>

@@ -85,6 +85,14 @@ uniform float uFigDark;    // pull toward silhouette
 uniform float uFigTint;    // how far the figure takes the pigment's colour
 uniform float uFigLift;    // light spilling onto her from the body
 
+// --- the wordmark -----------------------------------------------------------
+// Drawn to a 2D canvas and sampled here, BEFORE the figure is composited, so she
+// physically interrupts it. Type beside an image is a caption; type behind one
+// is part of the same space.
+uniform sampler2D uType;
+uniform float uTypeShow;
+uniform float uTypeInk;
+
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -350,6 +358,13 @@ void main() {
   }
 
   col = mix(col, body, disc);
+
+  // --- wordmark (behind her) ---------------------------------------------
+  if (uTypeShow > 0.5) {
+    vec2 tuv = vec2(gl_FragCoord.x / uRes.x, 1.0 - gl_FragCoord.y / uRes.y);
+    vec4 ty = texture(uType, tuv);
+    col = mix(col, vec3(uTypeInk), ty.a);
+  }
 
   // --- figure ---------------------------------------------------------------
   if (uFigShow > 0.5) {

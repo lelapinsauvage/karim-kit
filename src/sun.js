@@ -2,6 +2,7 @@ import { quad, hexToRgb } from './gl.js';
 import frag from './shaders/sun.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
+const gl0 = view.gl;
 const $ = (id) => document.getElementById(id);
 // hero.html renders the same scene with no control panel, so every lookup has
 // to tolerate a missing element and fall back to the preset value
@@ -22,7 +23,7 @@ const PRESETS = {
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:1.23, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
+    figH:1.19, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
     clothInk:'#ff0000', coreX:0.19, coreY:0.10, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
@@ -32,7 +33,7 @@ const PRESETS = {
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:1.23, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
+    figH:1.19, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
     clothInk:'#ff0000', coreX:0.19, coreY:0.10, pigment:'#0805e1', bg:'#333333',
   },
 };
@@ -47,6 +48,34 @@ const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', dr
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
 const figTex = view.texture('/src/figures/m3.png', 0);
 
+// --- wordmark ---------------------------------------------------------------
+// Rasterised by the browser onto a 2D canvas, then handed to the shader as a
+// texture so it can be drawn BEFORE the figure and therefore be occluded by her.
+const typeCv = document.createElement('canvas');
+const typeCtx = typeCv.getContext('2d');
+let typeTex = null;
+
+export function setWordmark(text, opts = {}) {
+  const dpr = Math.min(devicePixelRatio, 2);
+  const w = Math.round(innerWidth * dpr), h = Math.round(innerHeight * dpr);
+  if (typeCv.width !== w || typeCv.height !== h) { typeCv.width = w; typeCv.height = h; }
+  typeCtx.setTransform(1, 0, 0, 1, 0, 0);
+  typeCtx.clearRect(0, 0, w, h);
+
+  const size = (opts.size ?? 0.15) * w;          // fraction of viewport width
+  typeCtx.font = `${size}px Bayard, Impact, sans-serif`;
+  typeCtx.textAlign = opts.align ?? 'center';
+  typeCtx.textBaseline = 'middle';
+  typeCtx.fillStyle = '#fff';                     // alpha is what matters
+  typeCtx.letterSpacing = opts.tracking ?? '-0.02em';
+  typeCtx.fillText(text, (opts.x ?? 0.5) * w, (opts.y ?? 0.5) * h);
+
+  if (!typeTex) typeTex = view.canvasTexture(typeCv, 3);
+  else typeTex.upload();
+}
+
+document.fonts?.ready.then(() => { if (window.__wordmark) setWordmark(...window.__wordmark); });
+
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };
 // One place that pushes a settings object at the shader. The panel writes into
@@ -60,6 +89,7 @@ function send(v) {
   view.set('uFigRect', figTex.rect);
   view.set('uFigPos', [figTex.aspect, v.figH, v.figX, v.figY]);
   view.set('uFigShow', v.figShow === false ? 0 : 1);
+
 }
 
 let state = { ...PRESETS.EMBER };
@@ -139,6 +169,18 @@ if (HAS_PANEL) $('copy').onclick = () => {
 apply('EMBER');
 
 function frame(t) {
+  // bound every frame, not inside send(): the font finishes loading long after
+  // the single send() that a panel-less page makes, so a one-shot bind misses it
+  if (typeTex) {
+    gl0.activeTexture(gl0.TEXTURE0 + 3);
+    gl0.bindTexture(gl0.TEXTURE_2D, typeTex.tex);
+    view.set('uType', 3);
+    view.set('uTypeShow', 1);
+    view.set('uTypeInk', state.typeInk ?? 0.95);
+  } else {
+    view.set('uTypeShow', 0);
+  }
+
   view.set('uTime', t * 0.001);
   view.draw();
   requestAnimationFrame(frame);
