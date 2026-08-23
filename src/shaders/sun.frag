@@ -394,8 +394,15 @@ void main() {
 
   // --- figure ---------------------------------------------------------------
   if (uFigShow > 0.5) {
+    // Bottom-anchored. The figure's content bottom is pinned to the frame's
+    // bottom edge (minus a bleed), so height and x are the only things worth
+    // tuning and no figure can ever float. Cutouts crop differently every time
+    // they are generated -- tuning y per model is fighting that instead of
+    // removing it.
     float aspect = uFigPos.x, fh = uFigPos.y;
-    vec2  q  = (uv - uFigPos.zw) / fh;
+    float frameBottom = -0.5 * uRes.y / min(uRes.x, uRes.y);
+    float cy = frameBottom + fh * 0.5 - uFigPos.w;   // w is now BLEED, not y
+    vec2  q  = (uv - vec2(uFigPos.z, cy)) / fh;
     vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
 
     if (lc.x > 0.0 && lc.x < 1.0 && lc.y > 0.0 && lc.y < 1.0) {
@@ -404,7 +411,9 @@ void main() {
       // Cut the matte's soft skirt. Background removal leaves a band of low
       // alpha carrying dark colour from the original backdrop -- keep it and it
       // reads as a dark outline traced around the whole figure.
-      tex.a = smoothstep(0.35, 0.72, tex.a);
+      // the matte's skirt carries backdrop colour; cut it hard or it traces a
+      // dark rectangle where the original image ended
+      tex.a = smoothstep(0.55, 0.88, tex.a);
 
       if (tex.a > 0.01) {
         // The photograph is left alone. darken / tint / spill all default to 0,

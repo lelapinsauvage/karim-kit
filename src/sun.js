@@ -26,7 +26,7 @@ const BASE = {
   cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
   clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
   light:0.85, rake:0.82, sheen:0.4, cord:1.3,
-  figH:0.72, figX:0.055, figY:-0.045, figDark:0.07, figTint:0.18, figLift:0,
+  figH:1.05, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
   coreX:0.19, coreY:-0.110, typeInk:0.07,
 };
 
@@ -40,26 +40,26 @@ const BASE = {
 const LOOKS = [
   { id:'l1', name:'Cowrie',  fig:'n01',
     pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94', purity:0.70,
-    figH:0.72, figX:0.055, figY:-0.045,
+    figH:1.05, figX:0.055, figBleed:0.06,
     pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
     material:'Cowrie, seed bead' },
 
   { id:'l2', name:'Brass',   fig:'n03',
     pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52',
     glow:0.30, rimStr:1.25, warmth:0.62,
-    figH:0.72, figX:0.055, figY:-0.045,
+    figH:1.05, figX:0.055, figBleed:0.06,
     pig:'Cast brass · lost wax', origin:'Kumasi, Ghana',
     material:'Gold chain, brass' },
 
   { id:'l3', name:'Otjize',  fig:'n04',
     pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E', warmth:0.55,
-    figH:0.72, figX:0.055, figY:-0.045,
+    figH:1.05, figX:0.055, figBleed:0.06,
     pig:'Red ochre · butterfat', origin:'Kunene, Namibia',
     material:'Seed bead, cowrie' },
 
   { id:'l4', name:'Raffia',  fig:'n10',
     pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
-    figH:0.72, figX:0.055, figY:-0.045,
+    figH:1.05, figX:0.055, figBleed:0.06,
     pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
     material:'Open-weave raffia' },
 ];
@@ -176,7 +176,7 @@ if (!HAS_PANEL) {
     ['ground', ['bgFall','bgFloor']],
     ['cloth',  ['cloth','clothScale','clothShape','clothMorph','clothWave','clothSpeed','clothWeight','charge','chargeSpd','chargeLen']],
     ['surface',['light','rake','sheen','cord']],
-    ['figure', ['figH','figX','figY','figDark','figTint','figLift']],
+    ['figure', ['figH','figX','figBleed','figDark','figTint','figLift']],
     ['grain',  ['grain','grainSize','grainMask']],
     ['type',   ['typeInk']],
   ];
@@ -504,7 +504,7 @@ function frame(t) {
   // snapped correct the instant any slider forced a second send().
   view.bind(figTex, 'uFigTex');
   view.set('uFigRect', figTex.rect);
-  view.set('uFigPos', [figTex.aspect, state.figH, state.figX, state.figY]);
+  view.set('uFigPos', [figTex.aspect, state.figH, state.figX, state.figBleed ?? 0]);
 
   if (typeTex) {
     gl0.activeTexture(gl0.TEXTURE0 + 3);
