@@ -19,8 +19,17 @@
     --ink:#141414;
     --dim:rgba(20,20,20,.52);
     --hair:rgba(20,20,20,.16);
-    --pad:clamp(22px,2.8vw,48px);
+    --pad:3rem;                      /* 48px on the reference board */
   }
+
+  /* THE SCALE.
+     Every size below is in rem, taken straight off the 1920 artboard: 1rem is
+     16px there, so a 169px heading is 10.5625rem and it stays 169px at 1920 and
+     scales proportionally everywhere else. Hard pixel values would have been
+     right on exactly one screen width -- which is the width the mock happened
+     to be drawn at, not a decision.
+     Clamped so it neither collapses on a laptop nor runs away on a 4K panel. */
+  html{ font-size: clamp(10.5px, 100vw / 120, 19px); }
   *{margin:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;background:#F5F5F5}
   body{font-family:'Mono',ui-monospace,monospace;color:var(--ink)}
@@ -30,15 +39,15 @@
   .frame *{pointer-events:auto}
 
   /* the one hard edge on the page */
-  .rule{position:absolute;left:0;right:0;top:calc(var(--pad) + 40px);height:1px;background:var(--hair)}
+  .rule{position:absolute;left:0;right:0;top:calc(var(--pad) + 3.5rem);height:1px;background:var(--hair)}
 
   .mark{
     position:absolute;top:var(--pad);left:50%;transform:translateX(-50%);
-    font-family:'Disp',Impact,sans-serif;font-size:18px;letter-spacing:0;
+    font-family:'Disp',Impact,sans-serif;font-size:3.125rem;letter-spacing:0;
     text-transform:uppercase;
   }
 
-  .meta{position:absolute;font-size:11px;letter-spacing:.04em;color:var(--dim);
+  .meta{position:absolute;font-size:1rem;font-weight:600;letter-spacing:-.04em;color:var(--dim);
     text-transform:uppercase;font-variant-numeric:tabular-nums;line-height:1.8}
   .tl{top:var(--pad);left:var(--pad)}
   .tr{top:var(--pad);right:var(--pad);text-align:right}
@@ -52,25 +61,25 @@
     display:flex;justify-content:space-between;align-items:baseline;
     padding:0 var(--pad);
     font-family:'Disp',Impact,sans-serif;
-    font-size:clamp(38px,7.6vw,140px);line-height:.86;letter-spacing:-.015em;
+    font-size:10.5625rem;line-height:.86;letter-spacing:-.04em;
     text-transform:uppercase;
   }
-  .lock sup{font-size:.34em;letter-spacing:-.02em;vertical-align:super;margin-left:.04em}
+  .lock sup{font-size:4rem;font-weight:400;letter-spacing:-.04em;vertical-align:super;margin-left:.12rem}
 
   /* the record. bold labels, regular values, one column each. */
-  .rail{position:absolute;left:var(--pad);bottom:calc(var(--pad) + 46px);
-    display:grid;gap:7px;font-size:11px;letter-spacing:.04em}
-  .rail div{display:grid;grid-template-columns:8ch 1fr;gap:16px}
+  .rail{position:absolute;left:var(--pad);bottom:calc(var(--pad) + 3rem);
+    display:grid;gap:.5rem;font-size:1rem;letter-spacing:-.04em}
+  .rail div{display:grid;grid-template-columns:8ch 1fr;gap:1.5rem}
   .rail dt{font-weight:600;text-transform:uppercase}
   .rail dd{color:var(--dim);text-transform:uppercase}
 
-  nav{position:absolute;top:var(--pad);right:var(--pad);display:flex;gap:22px}
-  nav a{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);
+  nav{position:absolute;top:var(--pad);right:var(--pad);display:flex;gap:2rem}
+  nav a{font-size:1rem;font-weight:600;letter-spacing:-.04em;text-transform:uppercase;color:var(--dim);
     text-decoration:none;transition:color .2s}
   nav a:hover{color:var(--ink)}
 
   .count{position:fixed;left:var(--pad);bottom:var(--pad);z-index:30;
-    font-family:'Disp',Impact,sans-serif;font-size:clamp(36px,6vw,92px);line-height:.8;
+    font-family:'Disp',Impact,sans-serif;font-size:6rem;line-height:.8;
     color:#141414;font-variant-numeric:tabular-nums;letter-spacing:-.04em;
     mix-blend-mode:multiply;pointer-events:none}
 </style>
