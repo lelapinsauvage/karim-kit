@@ -384,7 +384,42 @@ const HEXKEYS = ['pigment', 'bg', 'clothInk'];
 
 const hex2 = (h) => { const n = parseInt(h.slice(1), 16);
   return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
-const rgb2 = (a) => '#' + a.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+const rgb2 = (a) => '#' + a.map((v) => Math.round(Math.min(255, Math.max(0, v)))
+  .toString(16).padStart(2, '0')).join('');
+
+// Pigments interpolate in HSV, taking the SHORT way round the hue circle.
+//
+// An RGB lerp between two saturated colours passes through grey: measured on
+// indigo -> brass, saturation falls from 0.79 to 0.13 at the midpoint. That
+// desaturated middle is what reads as the frame going dead halfway through a
+// switch and then snapping back. Travelling around the wheel keeps every
+// intermediate a real pigment.
+function rgb2hsv([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) {
+    if (mx === r) h = ((g - b) / d + 6) % 6;
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, mx ? d / mx : 0, mx];
+}
+function hsv2rgb([h, s, v]) {
+  const i = Math.floor(h * 6), f = h * 6 - i;
+  const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  const m = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i % 6];
+  return m.map((c) => c * 255);
+}
+function mixPigment(A, B, t) {
+  const a = rgb2hsv(hex2(A)), b = rgb2hsv(hex2(B));
+  let dh = b[0] - a[0];
+  if (dh > 0.5) dh -= 1; if (dh < -0.5) dh += 1;   // short way round
+  return rgb2(hsv2rgb([(a[0] + dh * t + 1) % 1,
+                       a[1] + (b[1] - a[1]) * t,
+                       a[2] + (b[2] - a[2]) * t]));
+}
 
 // One clock. The values, the wordmark and the rail all run on this, so the move
 // lands as a single event -- three durations means three things arriving, which
@@ -409,16 +444,18 @@ function stepTween(now) {
     const a = tween.from[k], b = tween.to[k];
     if (typeof a === 'number' && typeof b === 'number') state[k] = a + (b - a) * t;
   }
-  for (const k of HEXKEYS) {
-    const a = hex2(tween.from[k]), b = hex2(tween.to[k]);
-    state[k] = rgb2(a.map((v, i) => v + (b[i] - v) * t));
-  }
+  for (const k of HEXKEYS) state[k] = mixPigment(tween.from[k], tween.to[k], t);
 
   // the halo swells through the middle of the move -- the light reacts to the
   // change rather than the palette simply sliding under it
   const swell = Math.sin(Math.PI * raw);
   state.r = state.r * (1 + 0.20 * swell);
   state.rimStr = state.rimStr * (1 + 1.4 * swell);
+
+  // a ring leaves the body and crosses the cloth. it is a position, not an
+  // amount, so the wave travels rather than the whole field pulsing at once.
+  view.set('uWave', raw);
+  view.set('uWaveAmt', swell);
 
   send(state);
   if (raw >= 1) {
@@ -529,6 +566,7 @@ function frame(t) {
   view.set('uFigMix', tween ? tween.mix : 1);
   view.set('uTear', state.tear ?? 1);
   view.set('uThread', state.thread ?? 0.7);
+  if (!tween) { view.set('uWave', 0); view.set('uWaveAmt', 0); }
 
   if (typeTex) {
     gl0.activeTexture(gl0.TEXTURE0 + 3);

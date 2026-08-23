@@ -97,6 +97,12 @@ uniform vec4  uFigPosB;
 uniform float uFigMix;     // 0 outgoing, 1 incoming
 uniform float uTear;       // how far the weave eats into her
 uniform float uThread;     // scale of the threads she comes apart along
+
+// A ring leaving the body on a switch. uWave is where the front is, uWaveAmt is
+// how strong -- separating them means the wave travels instead of the whole
+// field pulsing in place.
+uniform float uWave;
+uniform float uWaveAmt;
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
 uniform float uFigShow;
@@ -334,7 +340,14 @@ void main() {
     shade *= smoothstep(1.0, 1.35, r);          // never under the body itself
 
     if (uCloth > 0.001 && shade > 0.003) {
-      vec2 g  = uv * uClothScale;
+      // the wave: a narrow ring expanding from the body, pushing the weave
+      // outward ahead of it and letting it settle behind
+      float ringR = uWave * 2.2;
+      float dRing = length(uv - uPos) - ringR;
+      float ring  = exp(-pow(dRing / 0.18, 2.0)) * uWaveAmt;
+      vec2  outward = normalize(uv - uPos + 1e-5);
+
+      vec2 g  = (uv + outward * ring * 0.10) * uClothScale;
       vec2 id = floor(g);
       vec2 f  = fract(g) - 0.5;
 
@@ -413,7 +426,11 @@ void main() {
       // the cloth is its own colour PLUS what the halo puts on it
       inkC += lit;
 
-      col = mix(col, inkC, ink * uCloth * shade * (1.0 + pulse * uCharge * 1.6));
+      // the crest lights up as it passes -- the cloth reacting to the light,
+      // not a separate effect drawn on top of it
+      inkC += core(uPigment, uSpread * 2.2, 1.0) * ring * 1.4;
+
+      col = mix(col, inkC, ink * uCloth * shade * (1.0 + pulse * uCharge * 1.6 + ring * 2.0));
     }
   }
 
