@@ -454,7 +454,13 @@ function stepTween(now) {
 
   // the halo swells through the middle of the move -- the light reacts to the
   // change rather than the palette simply sliding under it
-  const swell = Math.sin(Math.PI * raw);
+  // Everything that swells uses the SAME asymmetric curve as the dip. This was
+  // still on sin(pi*t): rim strength was 1.43x at 90% of the move and 1.00x at
+  // the end, and since the rim tints the ground in tint mode, that fall is
+  // precisely the ground jumping from deep to pale. Grow fast, return slowly --
+  // and the return is the half that has to be gentle, because it is the one you
+  // watch land.
+  const swell = DIP(raw);
   state.r = state.r * (1 + 0.20 * swell);
   state.rimStr = state.rimStr * (1 + 1.4 * swell);
 
