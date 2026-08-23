@@ -26,7 +26,7 @@ const BASE = {
   cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
   clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
   light:0.85, rake:0.82, sheen:0.4, cord:1.3,
-  tear:1.0, thread:0.7, figH:1.05, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
+  figMode:0, tear:1.0, thread:0.7, figH:1.05, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
   coreX:0.19, coreY:-0.110, typeInk:0.07,
 };
 
@@ -167,7 +167,7 @@ if (!HAS_PANEL) {
     clothSpeed:[0,5,0.01], light:[0,4,0.01], rake:[0,1,0.01], sheen:[0,3,0.01],
     cord:[0,4,0.01], figDark:[0,1,0.01], figTint:[0,1,0.01], figLift:[0,3,0.01],
     charge:[0,2,0.01], chargeSpd:[0,3,0.01], chargeLen:[1,30,0.1],
-    tear:[0,3,0.01], thread:[0.2,3,0.01], figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005],
+    tear:[0,3,0.01], thread:[0.2,3,0.01], figMode:[0,3,1], figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005],
     coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
   };
   const GROUPS = [
@@ -176,7 +176,7 @@ if (!HAS_PANEL) {
     ['ground', ['bgFall','bgFloor']],
     ['cloth',  ['cloth','clothScale','clothShape','clothMorph','clothWave','clothSpeed','clothWeight','charge','chargeSpd','chargeLen']],
     ['surface',['light','rake','sheen','cord']],
-    ['figure', ['figH','figX','figBleed','figDark','figTint','figLift','tear','thread']],
+    ['figure', ['figH','figX','figBleed','figMode','tear','thread','figDark','figTint','figLift']],
     ['grain',  ['grain','grainSize','grainMask']],
     ['type',   ['typeInk']],
   ];
@@ -478,7 +478,9 @@ function stepTween(now) {
 
   // a ring leaves the body and crosses the cloth. it is a position, not an
   // amount, so the wave travels rather than the whole field pulsing at once.
-  view.set('uWave', raw);
+  // the wave IS the transition clock now -- the figure turns over as it passes,
+  // so it has to sweep the full frame within the move, not peak halfway
+  view.set('uWave', t);
   view.set('uWaveAmt', swell);
 
   send(state);
@@ -590,6 +592,7 @@ function frame(t) {
   view.set('uFigMix', tween ? tween.mix : 1);
   view.set('uTear', state.tear ?? 1);
   view.set('uThread', state.thread ?? 0.7);
+  view.set('uFigMode', Math.round(state.figMode ?? 0));
   if (!tween) { view.set('uWave', 0); view.set('uWaveAmt', 0); }
 
   if (typeTex) {

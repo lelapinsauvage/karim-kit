@@ -103,6 +103,7 @@ uniform float uThread;     // scale of the threads she comes apart along
 // field pulsing in place.
 uniform float uWave;
 uniform float uWaveAmt;
+uniform int   uFigMode;    // 0 stamp, 1 plate, 2 page, 3 weave
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
 uniform float uFigShow;
@@ -445,52 +446,93 @@ void main() {
 
   // --- figure ---------------------------------------------------------------
   if (uFigShow > 0.5) {
-    // She dissolves INTO THE WEAVE and reforms out of it. The same Truchet field
-    // that makes the cloth is used as the dissolve mask, so she comes apart
-    // along thread lines rather than along scanlines -- a material transition
-    // instead of a display one. A band tear would work identically on a car ad;
-    // this only works on a brief about cloth.
-    vec2 wg  = uv * uClothScale * uThread;
-    vec2 wid = floor(wg);
-    vec2 wf  = fract(wg) - 0.5;
-    float wsel = noise((wid + 0.5) / max(uClothScale * uThread, 1e-4) * 26.0);
-    float wd = tile(wf, wsel, uClothShape);
+    // The field is already doing something soft, radial and slow. Whatever the
+    // figure does has to CONTRAST with that -- hard, linear, mechanical -- or
+    // the two gestures rhyme and you have one motion happening twice.
+    float m = clamp(uFigMix, 0.0, 1.0);
+    vec4 tex = vec4(0.0);
+    vec3 bloom = vec3(0.0);
 
-    // distance to the nearest thread, 0 on a thread and 1 in open cloth
-    float thread = smoothstep(0.0, 0.34, wd);
+    if (uFigMode == 0) {
+      // WAVEFRONT TEAR.
+      //
+      // The ring leaving the body is what changes her. Each pixel turns over as
+      // the wave reaches it, so the two motions are not two gestures competing
+      // on one beat -- one causes the other. That is why this reads as a single
+      // event where the earlier pairing read as noise.
+      //
+      // She does not move. Only the tear does. A figure that translates is a
+      // slide dressed up as a glitch.
+      float dist  = length(uv - uPos);
+      float ringR = uWave * 2.2;
 
-    // ONE front, and the two figures take strictly complementary shares of it.
-    // Two independent thresholds both went high at the midpoint and she
-    // disappeared entirely -- the handover has to be a partition, not two
-    // separate fades.
-    // The sweep has to CLEAR the whole range at both ends, not merely start and
-    // finish inside it. At 1.5/-0.25 the front stopped short: keepA was still
-    // 0.26 near the body at mix 1, so a quarter of the outgoing figure was
-    // present when the tween cleared and it vanished in one frame. Verified:
-    // 2.1/-0.35 lands exactly on 1 and 0 at every distance and thread value.
-    float front = uFigMix * 2.1 - 0.35 + (length(uv - uPos) - uR) * 0.22;
+      // horizontal bands, each lagging the wavefront by its own amount, so the
+      // front arrives broken instead of as a clean radial wipe
+      float band = floor((uv.y + 0.5) * 30.0);
+      float lag  = (hash21(vec2(band, 3.1)) - 0.5) * 0.26;
 
-    // open cloth lets go first, threads hold longest: she unravels along the
-    // weave rather than fading, and the last of her to go is the thread itself
-    // NOT inverted. thread*0.8+0.30 spans 0.30..1.10 and front sweeps -0.25..1.45,
-    // so at mix 0 every sample sits ABOVE the front and smoothstep returns 1 --
-    // which is A fully present. The 1.0 - form had A invisible from the first
-    // frame, so only B was ever drawn and the move read as a hard cut.
-    float keepA = smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
-    float keepB = 1.0 - keepA;
+      float turn = smoothstep(dist + lag - 0.10, dist + lag + 0.10, ringR);
 
-    // threads pull apart along their own direction as they let go
-    vec2 pull = normalize(wf + 1e-5) * (1.0 - thread) * uTear * 0.05
-              * sin(3.14159 * clamp(uFigMix, 0.0, 1.0));
+      // bands shear only while the front is inside them -- a narrow window, so
+      // the displacement is an event rather than a state
+      float atFront = exp(-pow((ringR - dist - lag) / 0.13, 2.0));
+      float jit = (hash21(vec2(band, floor(uTime * 24.0))) - 0.5);
+      float shear = jit * 0.10 * atFront * uTear;
 
-    vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + pull, uRes, 0.0);
-    vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0);
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(shear, 0.0), uRes, 0.0);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(shear, 0.0), uRes, 0.0);
 
-    // premultiplied blend: the two shares sum to one, so total coverage never
-    // dips and she is present at every instant of the move
-    vec3 rgb = fa.rgb * fa.a * keepA + fb.rgb * fb.a * keepB;
-    float a  = fa.a * keepA + fb.a * keepB;
-    vec4 tex = vec4(a > 0.001 ? rgb / a : vec3(0.0), a);
+      vec3 rgb = fa.rgb * fa.a * (1.0 - turn) + fb.rgb * fb.a * turn;
+      float al = fa.a * (1.0 - turn) + fb.a * turn;
+      tex = vec4(al > 0.001 ? rgb / al : vec3(0.0), al);
+
+      // the torn edge catches the light as the front crosses it
+      bloom = core(uPigment, uSpread * 2.2, 1.0) * atFront * abs(jit) * al * 1.3;
+
+    } else if (uFigMode == 1) {
+      // PLATE. Three impressions, one per channel, arriving out of register and
+      // converging. Real misregistration is DIRECTIONAL and it RESOLVES --
+      // that is what separates it from an RGB-split glitch, which is random and
+      // never lands.
+      float hit = step(0.42, m);
+      float set = smoothstep(0.42, 0.90, m);
+      float d   = (1.0 - set) * 0.035 * uTear;
+      vec2  ax  = vec2(0.94, 0.34);
+
+      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv, uRes, 0.0);
+      vec4 r  = figAt(uFigB, uFigRectB, uFigPosB, uv + ax * d,        uRes, 0.0);
+      vec4 g  = figAt(uFigB, uFigRectB, uFigPosB, uv,                 uRes, 0.0);
+      vec4 b  = figAt(uFigB, uFigRectB, uFigPosB, uv - ax * d * 1.15, uRes, 0.0);
+      vec4 fb = vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
+      tex = mix(fa, fb, hit);
+
+    } else if (uFigMode == 2) {
+      // PAGE. No dissolve at all: she leaves and the next arrives. Archive
+      // logic -- you are turning a page in a catalogue, not watching one image
+      // become another.
+      float go  = smoothstep(0.0, 0.48, m);
+      float in_ = smoothstep(0.40, 1.0, m);
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(-0.55 * go, 0.0), uRes, 0.0);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(0.55 * (1.0 - in_), 0.0), uRes, 0.0);
+      tex = fb.a > 0.004 ? fb : fa;
+
+    } else {
+      // WEAVE. Kept for reference: she comes apart along the pattern's own
+      // thread lines. Sound technique, but it rhymes with the radial wave.
+      vec2 wg  = uv * uClothScale * uThread;
+      vec2 wf  = fract(wg) - 0.5;
+      float wsel = noise((floor(wg) + 0.5) / max(uClothScale * uThread, 1e-4) * 26.0);
+      float thread = smoothstep(0.0, 0.34, tile(wf, wsel, uClothShape));
+      float front  = m * 2.1 - 0.35 + (length(uv - uPos) - uR) * 0.22;
+      float keepA  = smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
+      vec2  pull   = normalize(wf + 1e-5) * (1.0 - thread) * uTear * 0.05 * sin(3.14159 * m);
+
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + pull, uRes, 0.0);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0);
+      vec3 rgb = fa.rgb * fa.a * keepA + fb.rgb * fb.a * (1.0 - keepA);
+      float al = fa.a * keepA + fb.a * (1.0 - keepA);
+      tex = vec4(al > 0.001 ? rgb / al : vec3(0.0), al);
+    }
 
     if (tex.a > 0.01) {
       vec3 fig = tex.rgb * (1.0 - uFigDark);
@@ -502,13 +544,9 @@ void main() {
         float sp = exp(-max(length(uv - uPos) - uR, 0.0) / max(uGlowSize * 0.7, 1e-4));
         fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
       }
-
-      // the thread she is coming apart along catches the light as it lets go
-      float letting = (1.0 - thread) * (1.0 - abs(keepA * 2.0 - 1.0));
-      fig += core(uPigment, uSpread * 2.2, 1.0) * letting * 0.9;
-
       col = mix(col, fig, tex.a);
     }
+    col += bloom;
   }
 
   // --- grain -------------------------------------------------------------

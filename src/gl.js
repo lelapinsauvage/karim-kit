@@ -177,7 +177,8 @@ export function quad(canvas, frag) {
       // silent no-op in some drivers and an error in others, and either way the
       // value never lands
       if (name === 'uType' || name.startsWith('uFigTex')
-          || name === 'uFigA' || name === 'uFigB') gl.uniform1i(l, v);
+          || name === 'uFigA' || name === 'uFigB'
+          || name === 'uFigMode') gl.uniform1i(l, v);
       else if (typeof v === 'number') gl.uniform1f(l, v);
       else if (v.length === 2) gl.uniform2f(l, v[0], v[1]);
       else if (v.length === 3) gl.uniform3f(l, v[0], v[1], v[2]);
