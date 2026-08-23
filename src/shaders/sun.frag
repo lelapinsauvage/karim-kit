@@ -116,6 +116,9 @@ uniform vec2  uEclA;
 uniform vec2  uEclB;
 uniform float uEclR;
 uniform vec3  uPaper;
+uniform float uEclWhite;   // black -> white
+uniform float uEclFill;    // white -> pigment
+uniform float uEclSeam;    // flare at the moment of joining
 
 uniform int   uFigMode;    // 0 stamp, 1 plate, 2 page, 3 weave
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
@@ -620,39 +623,37 @@ void main() {
 
   // --- loader ---------------------------------------------------------------
   if (uLoadCover > 0.001) {
-    vec3 paper = uPaper;
+    // Two bodies genuinely merge. smin is a polynomial smooth minimum, so as
+    // they approach they bulge toward one another and grow a neck before they
+    // touch -- that is what two masses joining actually does. A cross-fade or a
+    // scale would be the fake version of the same beat.
+    float d1 = length(uv - uEclA) - uEclR;
+    float d2 = length(uv - uEclB) - uEclR;
+    float k  = 0.16;
+    float h  = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
+    float d  = mix(d2, d1, h) - k * h * (1.0 - h);
 
-    // the emitting body
-    float dA = length(uv - uEclA) / max(uEclR, 1e-4);
-    float aaA = fwidth(dA) * 1.5;
+    float aa = fwidth(d) * 1.4;
+    float inside = 1.0 - smoothstep(-aa, aa, d);
 
-    vec3 lit = core(uPigment, uSpread * 1.4, 1.0);
-    vec3 body = mix(lit, uPigment, smoothstep(0.0, 1.0, dA * 0.9));
+    // black -> white -> pigment. the body has no light of its own until the two
+    // halves are one, and then it lights from the inside out.
+    vec3 fill = mix(vec3(0.06), vec3(1.0), uEclWhite);
+    fill = mix(fill, mix(core(uPigment, uSpread * 1.4, 1.0), uPigment,
+                         smoothstep(0.0, 1.0, length(uv - uPos) / max(uEclR, 1e-4))),
+               uEclFill);
 
-    // rim: brightest where a body of light meets its own edge
-    float rimA = exp(-pow(abs(dA - 1.0) / 0.10, 1.6));
+    // the rim only exists once there is light in it
+    float rim = exp(-pow(abs(d) / 0.055, 1.5)) * uEclFill;
 
-    vec3 lc = paper;
-    lc = mix(lc, lit, rimA * 0.55);                          // corona on paper
-    lc = mix(lc, body, 1.0 - smoothstep(1.0 - aaA, 1.0 + aaA, dA));
+    vec3 lc = uPaper;
+    lc = mix(lc, fill, inside);
+    lc += core(uPigment, uSpread * 2.0, 1.0) * rim * 0.9;
 
-    // the occluder. same size, no light of its own -- it takes the ground's
-    // colour, so what you see is the sun being covered rather than a second
-    // object arriving.
-    float dB = length(uv - uEclB) / max(uEclR, 1e-4);
-    float aaB = fwidth(dB) * 1.5;
-    float mB = 1.0 - smoothstep(1.0 - aaB, 1.0 + aaB, dB);
+    // the seam flares at the instant the two become one
+    lc += vec3(1.0) * uEclSeam * exp(-pow(abs(d + 0.02) / 0.03, 2.0));
 
-    // light squeezes out along the closing gap: the thinner the crescent, the
-    // harder the remaining edge burns. that is the whole drama of an eclipse.
-    float gap = abs(length(uEclA - uEclB) / max(uEclR, 1e-4));
-    float tight = 1.0 - smoothstep(0.0, 1.4, gap);
-    float bead = exp(-pow(abs(dA - 1.0) / 0.055, 1.4)) * tight;
-
-    lc = mix(lc, paper, mB * 0.97);
-    lc += lit * bead * 1.9;
-
-    lc += (white(gl_FragCoord.xy * uGrainSize, floor(uTime * 12.0)) - 0.5) * 0.045;
+    lc += (white(gl_FragCoord.xy * uGrainSize, floor(uTime * 12.0)) - 0.5) * 0.03;
 
     col = mix(col, lc, uLoadCover);
   }

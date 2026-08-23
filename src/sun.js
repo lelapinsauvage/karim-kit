@@ -590,7 +590,7 @@ for (const f of ASSETS) {
   img.src = `/src/figures/${f}.png`;
 }
 
-const LOAD_MIN = 2600;              // the opening is a shot, not a wait
+const LOAD_MIN = 4200;              // the opening is a shot, not a wait
 const bootAt = performance.now();
 let load = 0, loadDone = false;
 
@@ -607,37 +607,69 @@ const smoothstep01 = smoothstep;
 function stepLoader(now) {
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
   const clock = Math.min((now - bootAt) / LOAD_MIN, 1);
-  const target = Math.min(real, clock);
-  load += (target - load) * 0.06;                 // damped, so it never snaps
-  if (load > 0.995) { load = 1; loadDone = true; }
+  load += (Math.min(real, clock) - load) * 0.045;      // slower, damped
+  if (load > 0.995) load = 1;
 
   const p = easeIO(load);
 
-  // ARRIVE: the two bodies come in from opposite sides and grow
-  // ECLIPSE:  they cross, the crescent closes, the last edge burns
-  // BREAK:    the occluder withdraws and the sun is left
-  const arrive  = smoothstep(0.00, 0.55, p);
-  const cross   = smoothstep(0.40, 0.86, p);
-  const breakUp = smoothstep(0.80, 1.00, p);
+  // APPROACH  two black bodies, FIXED size, closing on the centre
+  // JOIN      they merge, the seam flares, the mass turns white
+  // IGNITE    it fills with pigment and grows into the sun
+  // BREAK     the wave leaves it, the ground floods, the scene arrives
+  const close  = smoothstep(0.00, 0.66, p);
+  const white_ = smoothstep(0.60, 0.76, p);
+  const fill   = smoothstep(0.74, 0.90, p);
+  const grow   = smoothstep(0.76, 0.96, p);
+  const seam   = Math.exp(-(((p - 0.66) / 0.045) ** 2));
 
-  const spread = (1 - cross) * 0.62;
-  view.set('uEclA', [-spread * 0.55 + 0.02, 0.02]);
-  view.set('uEclB', [ spread * 1.45 + 0.02 + breakUp * 1.6, 0.02]);
-  view.set('uEclR', 0.06 + arrive * 0.30);
+  const start = 0.46;
+  const cx = state.figX !== undefined ? 0.0 : 0.0;
+  view.set('uEclA', [cx - start * (1 - close), 0.02]);
+  view.set('uEclB', [cx + start * (1 - close), 0.02]);
+
+  // size is constant until the two are one, then the single mass grows into the
+  // halo. scaling during the approach would read as a zoom, not as a meeting.
+  view.set('uEclR', 0.062 + grow * (state.r - 0.062));
+
+  view.set('uEclWhite', white_);
+  view.set('uEclFill', fill);
+  view.set('uEclSeam', seam * 0.85);
   view.set('uPaper', hexToRgb('#F5F5F5'));
-
-  // the loader hands the frame over only once the sun is clear of the occluder
   view.set('uLoad', p);
-  view.set('uLoadCover', 1 - smoothstep(0.90, 1.0, p));
+
+  // the loader holds the frame until the body IS the sun, then hands over in
+  // one beat and lets the wave do the reveal
+  view.set('uLoadCover', 1 - smoothstep(0.90, 0.99, p));
+
+  // The scene's own ground starts as paper and floods to the look's colour as
+  // the loader lets go, so the colour arrives WITH the reveal instead of being
+  // uncovered already finished underneath it.
+  if (p < 0.999) {
+    const flood = smoothstep(0.86, 1.0, p);
+    const look = PRESETS[ORDER[lookIx]];
+    state.bg = mixPigment('#F5F5F5', look.bg, flood);
+    state.cloth = look.cloth * flood;
+    state.figDark = look.figDark;
+    state.figTint = look.figTint * flood;
+    send(state);
+  }
+
+  // the burst: the same wave the transition uses, fired once on opening
+  if (p > 0.88) {
+    const bp = (p - 0.88) / 0.12;
+    view.set('uWave', bp);
+    view.set('uWaveAmt', Math.sin(Math.PI * bp) ** 0.6);
+  }
 
   const el = document.getElementById('pct');
   if (el) {
     el.textContent = String(Math.round(load * 100)).padStart(3, '0');
-    el.style.opacity = String(1 - smoothstep01(0.86, 0.97, p));
+    el.style.opacity = String(1 - smoothstep(0.60, 0.76, p));
   }
   const sh = document.getElementById('shell');
-  if (sh) sh.style.opacity = String(smoothstep01(0.88, 1.0, p));
+  if (sh) sh.style.opacity = String(smoothstep(0.90, 1.0, p));
 }
+
 function frame(t) {
   stepLoader(performance.now());
 
