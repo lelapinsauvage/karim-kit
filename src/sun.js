@@ -111,7 +111,7 @@ export function setWordmark(text, opts = {}) {
 // like something being decoded. Letters lock at different times or it reads as
 // a single flicker.
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\|<>#*+=';
-let wm = { from: '', to: '', t0: -1, dur: 620, opts: {} };
+let wm = { from: '', to: '', t0: -1, dur: 820, opts: {} };
 
 export function scrambleTo(text, opts) {
   wm = { from: wm.to || text, to: text, t0: performance.now(), dur: DUR,
@@ -424,7 +424,13 @@ function mixPigment(A, B, t) {
 // One clock. The values, the wordmark and the rail all run on this, so the move
 // lands as a single event -- three durations means three things arriving, which
 // is what read as slow even when each part was fast.
-const DUR = 620;
+// asymmetric dip: rises fast, decays slowly, lands on zero with zero slope
+const DIP_PK = Math.pow(0.35 / 2.05, 0.35) * Math.pow(1 - 0.35 / 2.05, 1.7);
+const DIP = (t) => Math.pow(t, 0.35) * Math.pow(1 - t, 1.7) / DIP_PK;
+
+// a longer clock: the colour travels a long way round the hue circle, and 620ms
+// was not enough room for that to read as a move rather than a cut
+const DUR = 820;
 let tween = null;
 
 function transitionTo(name) {
@@ -452,12 +458,15 @@ function stepTween(now) {
   state.r = state.r * (1 + 0.20 * swell);
   state.rimStr = state.rimStr * (1 + 1.4 * swell);
 
-  // The ground dips dark through the move and comes back up. It was doing this
-  // by accident -- the pigment lerp used to pass through grey -- and it read
-  // well, so it is now deliberate and eased rather than a side effect. The
-  // curve is asymmetric: down fast, back slowly, which is how a light actually
-  // recovers.
-  const dip = Math.sin(Math.PI * raw) ** 0.7;
+  // The ground dips dark through the move and comes back up.
+  //
+  // The curve matters more than the amount. sin(pi*t)^0.7 is symmetric and has
+  // FAT tails -- still 0.44 at 90% of the move, then 0 at the end. That last
+  // drop is a cliff, and it is what reads as the ground snapping from deep to
+  // pale. This one peaks early and decays with a vanishing derivative: 0.05 at
+  // 90%, 0.001 at 99%, exactly 0 at the end. Fast fall, long recovery, soft
+  // landing -- which is how a light actually behaves.
+  const dip = DIP(raw);
   state.bgFloor = state.bgFloor * (1 - 0.62 * dip);
   state.glow    = state.glow * (1 + 0.55 * dip);
 
