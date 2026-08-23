@@ -50,11 +50,10 @@
      mark's 50% was the container's centre, not the frame's -- so it sat left of
      true centre by half the padding. */
   .top{
-    position:absolute;top:var(--pad);left:0;right:0;
+    position:absolute;top:calc(var(--pad) * .55);left:0;right:0;
     height:3.5rem;padding:0 var(--pad);
     display:flex;align-items:center;justify-content:space-between;
   }
-  .rule{position:absolute;left:0;right:0;top:calc(var(--pad) + 3.5rem);height:1px;background:var(--hair)}
 
   .mark{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -106,7 +105,7 @@
   }
   .nb{
     width:3.4rem;height:3.4rem;border-radius:50%;
-    border:0;outline:0;background:transparent;color:var(--ink);
+    border:1px solid rgba(20,20,20,.28);background:transparent;color:var(--ink);
     display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;
     transition:color .3s, border-color .3s;
   }
@@ -114,12 +113,11 @@
      is never the optical centre of a circle, so it always reads low */
   .nb svg{width:1.15rem;height:1.15rem;display:block;position:relative}
   /* the fill sweeps in from the direction the button points */
-  /* no ring at rest -- the arrow alone is the control. the ink disc sweeps in
-     from the side the arrow points, which is the whole affordance. */
+  /* the fill sweeps in from the side the arrow points */
   .nb::before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--ink);
     transform:translateX(-101%);transition:transform .38s cubic-bezier(.2,.8,.2,1)}
   .nb.next::before{transform:translateX(101%)}
-  .nb:hover{color:#F5F5F5}
+  .nb:hover{color:#F5F5F5;border-color:var(--ink)}
   .nb:hover::before{transform:translateX(0)}
   .nb:disabled{opacity:.3;cursor:default}
 
@@ -147,7 +145,6 @@
 <canvas id="c"></canvas>
 
 <div class="frame" id="shell" style="opacity:0">
-  <div class="rule"></div>
 
   <div class="top">
     <div class="meta"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
