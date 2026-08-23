@@ -18,7 +18,7 @@ const PRESETS = {
   // glow to sit at the same weight in the frame.
   EMBER: {
     r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
-    glowSize:0.58, grain:0.235, grainSize:1.45, grainMask:0.55, spread:2.0,
+    glowSize:0.58, glowMode:0, rimW:0.030, rimStr:0.55, rimIn:0.04, grain:0.235, grainSize:1.45, grainMask:0.55, spread:2.0,
     bgFall:0.70, bgFloor:0, warmth:0.60, purity:0.37, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
@@ -45,20 +45,22 @@ const PRESETS = {
   //   - the cloth ink and the type ink have to invert -- dark on light.
   // Everything else is the same machine.
   PAPER: {
-    r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.22,
-    glowSize:0.34, grain:0.10, grainSize:1.45, grainMask:0.75, spread:0.30,
+    r:0.350, edge:0.146, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.22,
+    glowSize:0.34, glowMode:1, rimW:0.045, rimStr:0.9, rimIn:0.06,
+    grain:0.15, grainSize:1.45, grainMask:0.75, spread:0.30,
     bgFall:0.62, bgFloor:0.88, warmth:0.40, purity:0.62, wobble:1.42,
     cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
-    light:0.6, rake:0.82, sheen:0.4, cord:1.3,
-    figH:1.125, figX:0.040, figY:-0.170, figDark:0.94, figTint:0.18, figLift:0,
-    clothInk:'#141414', coreX:0.19, coreY:-0.110,
-    pigment:'#0A5C3B', bg:'#F5F5F5', typeInk:0.07,
+    light:0.85, rake:0.82, sheen:0.4, cord:1.3,
+    figH:1.105, figX:0.040, figY:-0.155, figDark:0.07, figTint:0.18, figLift:0,
+    clothInk:'#608a6b', coreX:0.19, coreY:-0.110,
+    pigment:'#008f56', bg:'#d9d9d9', typeInk:0.07,
   },
 };
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
-  glow:'uGlow', glowSize:'uGlowSize', grain:'uGrain', grainSize:'uGrainSize',
+  glow:'uGlow', glowSize:'uGlowSize', glowMode:'uGlowMode',
+  rimW:'uRimW', rimStr:'uRimStr', rimIn:'uRimIn', grain:'uGrain', grainSize:'uGrainSize',
   grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', bgFloor:'uBgFloor', warmth:'uWarmth', purity:'uPurity',
   wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
   clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
@@ -109,6 +111,7 @@ if (!HAS_PANEL) {
     r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
     rimBand:[0,1,0.01], drift:[0,4,0.01], glow:[0,2,0.01], glowSize:[0.02,1.2,0.005],
     grain:[0,0.6,0.005], grainSize:[0.2,3,0.01], grainMask:[0,1,0.01],
+    glowMode:[0,1,0.01], rimW:[0.002,0.2,0.002], rimStr:[0,3,0.01], rimIn:[0.005,0.4,0.005],
     spread:[0,2,0.01], bgFall:[0.05,1.2,0.01], bgFloor:[0,1,0.01],
     warmth:[0,1,0.01], purity:[0,1,0.01], wobble:[0,2,0.01],
     cloth:[0,1,0.005], clothScale:[4,60,0.5], clothShape:[0,2.999,0.001],
@@ -121,7 +124,7 @@ if (!HAS_PANEL) {
   };
   const GROUPS = [
     ['body',   ['r','edge','coreX','coreY','coreSize','rimBand','drift','wobble']],
-    ['light',  ['glow','glowSize','spread','warmth','purity']],
+    ['light',  ['glow','glowSize','glowMode','rimW','rimStr','rimIn','spread','warmth','purity']],
     ['ground', ['bgFall','bgFloor']],
     ['cloth',  ['cloth','clothScale','clothShape','clothMorph','clothWave','clothSpeed','clothWeight','charge','chargeSpd','chargeLen']],
     ['surface',['light','rake','sheen','cord']],

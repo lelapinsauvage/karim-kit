@@ -34,6 +34,15 @@ uniform float uPurity;     // how much of the body is the pigment itself
 uniform float uRimBand;
 uniform float uGlow;
 uniform float uGlowSize;
+// On a dark ground, light ADDS. On paper it cannot -- you cannot brighten white,
+// so an additive glow simply vanishes. A real emitter on paper stains it toward
+// its own colour instead. uGlowMode blends between the two: 0 add, 1 tint.
+uniform float uGlowMode;
+// The rim: a band sitting on the edge itself, separate from the skirt. This is
+// what reads as "emitting" -- the outline is where a body of light is brightest.
+uniform float uRimW;
+uniform float uRimStr;
+uniform float uRimIn;      // how far it bleeds inward
 
 uniform float uGrain;      // fine, dense
 uniform float uGrainSize;
@@ -265,7 +274,18 @@ void main() {
   // never reaches pure black, so the frame keeps air in the corners.
   float bgr = smoothstep(0.0, 1.0, clamp(r * uBgFall, 0.0, 1.0));
   vec3 col = mix(uBg, uBg * uBgFloor, bgr);
-  col += uPigment * (near * 1.0 + wide * 0.45) * uGlow;
+  float halo = (near * 1.0 + wide * 0.45) * uGlow;
+
+  // the rim, both sides of the edge. narrow and outside, softer and inside.
+  float band = abs(r - 1.0);
+  float rim  = exp(-pow(band / max(uRimW, 1e-4), 1.5))
+             + exp(-max(1.0 - r, 0.0) / max(uRimIn, 1e-4)) * 0.6;
+  halo += rim * uRimStr;
+
+  vec3 lightCol = core(uPigment, uSpread * 1.5, 1.0);
+  col = mix(col + lightCol * halo,                       // add
+            mix(col, lightCol, clamp(halo, 0.0, 1.0)),   // tint
+            uGlowMode);
 
   // --- cloth --------------------------------------------------------------
   // drawn before the body, and only where the light is weak
