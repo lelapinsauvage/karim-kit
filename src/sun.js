@@ -26,7 +26,7 @@ const BASE = {
   cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
   clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
   light:0.85, rake:0.82, sheen:0.4, cord:1.3,
-  figMode:0, tear:1.0, thread:0.7, figH:1.05, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
+  figMode:0, tear:1.0, thread:0.7, figH:0.85, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
   coreX:0.19, coreY:-0.110, typeInk:0.07,
 };
 
@@ -46,26 +46,26 @@ const BASE = {
 const LOOKS = [
   { id:'l1', name:'Barkcloth', fig:'n02',
     pigment:'#A8531F', bg:'#E2DBD1', clothInk:'#967154', warmth:0.58,
-    figH:1.05, figX:0.055, figBleed:0.06,
+    figH:0.85, figX:0.055, figBleed:0.06,
     pig:'Beaten fig bark · ómútuba', origin:'Buganda, Uganda',
     material:'Barkcloth, cowrie, raffia' },
 
   { id:'l2', name:'Efun', fig:'n06',
     pigment:'#5C6660', bg:'#DDDDD9', clothInk:'#7E857F', purity:0.50,
-    figH:1.05, figX:0.055, figBleed:0.06,
+    figH:0.85, figX:0.055, figBleed:0.06,
     pig:'White clay · efun', origin:'Cross River, Nigeria',
     material:'Cotton veil, seed pearl, brass' },
 
   { id:'l3', name:'Adire', fig:'n08',
     pigment:'#243A7A', bg:'#D5D7DB', clothInk:'#6C7791',
     rimW:0.035, rimStr:1.05, purity:0.70,
-    figH:1.05, figX:0.055, figBleed:0.06,
+    figH:0.85, figX:0.055, figBleed:0.06,
     pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
     material:'Adire cotton, cast brass' },
 
   { id:'l4', name:'Raffia', fig:'n10',
     pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
-    figH:1.05, figX:0.055, figBleed:0.06,
+    figH:0.85, figX:0.055, figBleed:0.06,
     pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
     material:'Open-weave raffia' },
 ];
