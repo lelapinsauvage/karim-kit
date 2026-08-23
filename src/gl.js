@@ -72,7 +72,11 @@ export function quad(canvas, frag) {
   }
 
   // one-time readback to find the opaque extent of a cutout
-  function alphaBounds(img, threshold = 8) {
+  // threshold is deliberately high and the box is INSET rather than padded.
+  // Background removal leaves a rim of semi-transparent, near-black pixels along
+  // the original image edge; a low threshold includes them in the box and they
+  // render as a dark frame around the figure.
+  function alphaBounds(img, threshold = 40) {
     const W = 220, H = Math.max(1, Math.round(W * img.height / img.width));
     const cv = Object.assign(document.createElement('canvas'), { width: W, height: H });
     const ctx = cv.getContext('2d', { willReadFrequently: true });
@@ -88,9 +92,9 @@ export function quad(canvas, frag) {
       }
     }
     if (x1 < 0) return [0, 0, 1, 1];
-    const pad = 1;
-    x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
-    x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
+    const inset = 1;
+    x0 = Math.min(x1, x0 + inset); y0 = Math.min(y1, y0 + inset);
+    x1 = Math.max(x0, x1 - inset); y1 = Math.max(y0, y1 - inset);
     return [x0 / W, y0 / H, (x1 - x0 + 1) / W, (y1 - y0 + 1) / H];
   }
 

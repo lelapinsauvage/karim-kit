@@ -401,7 +401,12 @@ void main() {
     if (lc.x > 0.0 && lc.x < 1.0 && lc.y > 0.0 && lc.y < 1.0) {
       vec4 tex = texture(uFigTex, uFigRect.xy + lc * uFigRect.zw);
 
-      if (tex.a > 0.004) {
+      // Cut the matte's soft skirt. Background removal leaves a band of low
+      // alpha carrying dark colour from the original backdrop -- keep it and it
+      // reads as a dark outline traced around the whole figure.
+      tex.a = smoothstep(0.35, 0.72, tex.a);
+
+      if (tex.a > 0.01) {
         // The photograph is left alone. darken / tint / spill all default to 0,
         // so what lands on screen is exactly the pixels that were generated --
         // grading it is a decision, not something the compositor does for you.

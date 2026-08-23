@@ -40,22 +40,26 @@ const BASE = {
 const LOOKS = [
   { id:'l1', name:'Cowrie',  fig:'n01',
     pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94', purity:0.70,
+    figH:0.72, figX:0.055, figY:-0.045,
     pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
     material:'Cowrie, seed bead' },
 
   { id:'l2', name:'Brass',   fig:'n03',
     pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52',
     glow:0.30, rimStr:1.25, warmth:0.62,
+    figH:0.72, figX:0.055, figY:-0.045,
     pig:'Cast brass · lost wax', origin:'Kumasi, Ghana',
     material:'Gold chain, brass' },
 
   { id:'l3', name:'Otjize',  fig:'n04',
     pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E', warmth:0.55,
+    figH:0.72, figX:0.055, figY:-0.045,
     pig:'Red ochre · butterfat', origin:'Kunene, Namibia',
     material:'Seed bead, cowrie' },
 
   { id:'l4', name:'Raffia',  fig:'n10',
     pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
+    figH:0.72, figX:0.055, figY:-0.045,
     pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
     material:'Open-weave raffia' },
 ];
@@ -232,10 +236,18 @@ if (!HAS_PANEL) {
   };
   window.__syncPanel = sync;
 
+  // Edits persist into the ACTIVE look, not just into the live state. Otherwise
+  // placing one figure and switching away throws the work out, which is exactly
+  // the thing that forces you to copy values by hand.
+  const commit = (k, v) => {
+    state[k] = v;
+    const look = PRESETS[ORDER[lookIx]];
+    if (look) look[k] = v;
+  };
   for (const k of ALLNUM) {
     const i = document.getElementById('p-' + k); if (!i) continue;
     i.addEventListener('input', (e) => {
-      state[k] = parseFloat(e.target.value);
+      commit(k, parseFloat(e.target.value));
       document.getElementById('v-' + k).textContent = state[k].toFixed(3);
       send(state);
     });
@@ -245,19 +257,32 @@ if (!HAS_PANEL) {
   for (const k of COLKEYS) {
     const hex = document.getElementById('c-' + k);
     const sw  = document.getElementById('s-' + k);
-    const set = (v) => { state[k] = v; hex.value = v; sw.value = v; send(state); };
+    const set = (v) => { commit(k, v); hex.value = v; sw.value = v; send(state); };
     sw.addEventListener('input', () => set(sw.value));
     hex.addEventListener('input', () => {
       let v = hex.value.trim(); if (v[0] !== '#') v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { state[k] = v; sw.value = v; send(state); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { commit(k, v); sw.value = v; send(state); }
     });
   }
   for (const b of el.querySelectorAll('[data-look]'))
     b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.look); apply(b.dataset.look); };
 
+  // Dump ALL looks, formatted as the LOOKS array. Copying the live state alone
+  // only ever captures one look, which is why placing four figures meant four
+  // round trips.
   document.getElementById('p-copy').onclick = () => {
-    navigator.clipboard.writeText(JSON.stringify(state, null, 2));
-    console.log(state);
+    const KEEP = ['id','name','fig','pigment','bg','clothInk','figH','figX','figY',
+                  'glow','rimStr','rimW','warmth','purity','pig','origin','material'];
+    const out = ORDER.map((id) => {
+      const l = PRESETS[id], o = {};
+      for (const k of KEEP) if (l[k] !== undefined && l[k] !== BASE[k]) o[k] = l[k];
+      return o;
+    });
+    const txt = 'const LOOKS = ' + JSON.stringify(out, null, 2) + ';';
+    navigator.clipboard.writeText(txt);
+    console.log(txt);
+    document.getElementById('p-copy').textContent = 'copied all looks';
+    setTimeout(() => document.getElementById('p-copy').textContent = 'copy settings', 1200);
   };
 
   addEventListener('keydown', (e) => {
