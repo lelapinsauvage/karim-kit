@@ -65,20 +65,20 @@
   .rule{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--pad) + 34px);height:1px;background:rgba(242,237,228,.10)}
 </style>
 </head>
-<body>
+<body class="paper">
 <canvas id="c"></canvas>
 
 <div class="frame">
-  <div class="meta tl">Lot 04 / 04<br>SS 26</div>
+  <div class="meta tl"><span id="r-lot">Lot 01 / 04</span><br>SS 26</div>
   <nav>
     <a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a>
   </nav>
   <div class="rule"></div>
 
   <div class="rail">
-    <div><dt>Pigment</dt><dd>Red earth · Otjize</dd></div>
-    <div><dt>Origin</dt><dd>Kunene</dd></div>
-    <div><dt>Cloth</dt><dd>Bogolan, cast brass</dd></div>
+    <div><dt>Pigment</dt><dd id="r-pig">—</dd></div>
+    <div><dt>Origin</dt><dd id="r-org">—</dd></div>
+    <div><dt>Cloth</dt><dd id="r-cloth">—</dd></div>
     <div><dt>Edition</dt><dd>Of twelve</dd></div>
   </div>
 

@@ -11,51 +11,47 @@ const HAS_PANEL = !!document.getElementById('r');
 // Two locked looks. Switch with the buttons or 1 / 2 -- so a direction can be
 // compared instantly instead of re-dialled, which is the only way to judge two
 // options fairly.
-const PRESETS = {
-  // Same structure as ULTRA -- soft edge, wide glow, a little purity so the
-  // body has depth rather than reading as a flat fill. Red carries less
-  // luminance than blue at the same value, so it takes slightly more spread and
-  // glow to sit at the same weight in the frame.
-  EMBER: {
-    r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
-    glowSize:0.58, glowMode:0, rimW:0.030, rimStr:0.55, rimIn:0.04, grain:0.235, grainSize:1.45, grainMask:0.55, spread:2.0,
-    bgFall:0.70, bgFloor:0, warmth:0.60, purity:0.37, wobble:1.42,
-    cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
-    clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
-    light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:1.125, figX:0.040, figY:-0.170, figDark:0.86, figTint:0.35, figLift:0,
-    clothInk:'#ff0000', coreX:0.19, coreY:-0.110, pigment:'#990000', bg:'#333333',
-    typeInk:0.95,
-  },
-  ULTRA: {
-    r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
-    glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.28,
-    bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
-    cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
-    clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
-    light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:1.125, figX:0.040, figY:-0.170, figDark:0.86, figTint:0.35, figLift:0,
-    clothInk:'#ff0000', coreX:0.19, coreY:-0.110, pigment:'#0805e1', bg:'#333333',
-    typeInk:0.95,
-  },
+// Four looks, one idiom.
+//
+// The PAPER treatment is the whole system now: a light ground, the glow TINTING
+// rather than adding (you cannot brighten paper), a strong rim doing the
+// emitting, and the figure left almost undarkened so she stays a photograph
+// instead of becoming a silhouette.
+//
+// Only the pigment changes between them -- each is a real dye or pigment
+// tradition, and the ground is a neutral tuned a few points toward it. Brutalism
+// is truth to materials; a palette of pigments rather than colours is that rule
+// applied to colour.
+const BASE = {
+  r:0.350, edge:0.146, coreSize:0.99, rimBand:0.75, drift:1.18,
+  glow:0.22, glowSize:0.34, glowMode:1, rimW:0.045, rimStr:0.9, rimIn:0.06,
+  grain:0.15, grainSize:1.45, grainMask:0.75, spread:0.30,
+  bgFall:0.62, bgFloor:0.88, warmth:0.40, purity:0.62, wobble:1.42,
+  cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
+  clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
+  light:0.85, rake:0.82, sheen:0.4, cord:1.3,
+  figH:1.105, figX:0.040, figY:-0.155, figDark:0.07, figTint:0.18, figLift:0,
+  coreX:0.19, coreY:-0.110, typeInk:0.07,
+};
 
-  // A light ground changes three things structurally, not just the hex:
-  //   - the glow is ADDED, so on near-white it blows straight to paper. Cut it.
-  //   - bgFloor has to stay high or the radial fall drags the corners to grey.
-  //   - the cloth ink and the type ink have to invert -- dark on light.
-  // Everything else is the same machine.
-  PAPER: {
-    r:0.350, edge:0.146, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.22,
-    glowSize:0.34, glowMode:1, rimW:0.045, rimStr:0.9, rimIn:0.06,
-    grain:0.15, grainSize:1.45, grainMask:0.75, spread:0.30,
-    bgFall:0.62, bgFloor:0.88, warmth:0.40, purity:0.62, wobble:1.42,
-    cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
-    clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
-    light:0.85, rake:0.82, sheen:0.4, cord:1.3,
-    figH:1.105, figX:0.040, figY:-0.155, figDark:0.07, figTint:0.18, figLift:0,
-    clothInk:'#608a6b', coreX:0.19, coreY:-0.110,
-    pigment:'#008f56', bg:'#d9d9d9', typeInk:0.07,
-  },
+const PRESETS = {
+  // Bàmbara mud cloth, Mali. Fermented river mud on woven strips.
+  BOGOLAN:  { ...BASE, pigment:'#008f56', bg:'#d9d9d9', clothInk:'#608a6b' },
+
+  // Himba red ochre and butterfat, Kunene. Worn on skin, not cloth.
+  OTJIZE:   { ...BASE, pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E',
+              warmth:0.55, purity:0.55 },
+
+  // Yoruba resist-dyed indigo, Abeokuta. The deepest dye tradition on the
+  // continent -- it needs a cooler ground and a tighter rim to stay a pigment
+  // rather than reading as a screen colour.
+  ADIRE:    { ...BASE, pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94',
+              rimW:0.035, rimStr:1.05, purity:0.70 },
+
+  // Ashanti cast brass and Benin bronze. Metal, so the rim carries more of it
+  // and the body less -- brass is an edge before it is a mass.
+  BRASS:    { ...BASE, pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52',
+              glow:0.30, rimStr:1.25, warmth:0.62, purity:0.48 },
 };
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
@@ -100,7 +96,7 @@ document.fonts?.ready.then(() => { if (window.__wordmark) setWordmark(...window.
 // Declared here because the panel below builds its look switcher from it.
 // Arrows rather than number keys: the digits sit behind Shift on AZERTY, so a
 // plain keypress never reaches them.
-const ORDER = ['EMBER', 'ULTRA', 'PAPER'];
+const ORDER = ['BOGOLAN', 'OTJIZE', 'ADIRE', 'BRASS'];
 let lookIx = 0;
 
 // Full control panel, generated from the uniform tables rather than written in
@@ -152,11 +148,11 @@ if (!HAS_PANEL) {
     letter-spacing:.2em;margin:12px 0 6px">${t}</div>`;
 
   el.innerHTML =
-    `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px">` +
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">` +
     ORDER.map((n) => `<button data-look="${n}" style="background:#ffffff10;
       border:1px solid #ffffff1f;color:#eee;font:9px ui-monospace,monospace;
       letter-spacing:.12em;text-transform:uppercase;padding:6px 2px;cursor:pointer">
-      ${n.slice(0,5)}</button>`).join('') + `</div>` +
+      ${n}</button>`).join('') + `</div>` +
     GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
     head('colour') +
     COLKEYS.map((k) => `<div style="display:grid;
@@ -257,7 +253,7 @@ function send(v) {
 
 }
 
-let state = { ...PRESETS.EMBER };
+let state = { ...PRESETS.BOGOLAN };
 
 function push() {
   if (!HAS_PANEL) { send(state); return; }
@@ -305,7 +301,22 @@ function apply(name) {
   const p = PRESETS[name];
   state = { ...p };
   // the DOM type layer has to follow the ground, or it disappears on paper
-  document.body.classList.toggle('paper', name === 'PAPER');
+  document.body.classList.add('paper');
+
+  // the page copy follows the look, so switching changes the whole record and
+  // not just the colour
+  const COPY = {
+    BOGOLAN: ['Bogolan', 'Mud cloth · fermented river silt', 'Ségou, Mali',      'Strip-woven cotton, brass'],
+    OTJIZE:  ['Otjize',  'Red ochre · butterfat',            'Kunene, Namibia',  'Bogolan, cast brass'],
+    ADIRE:   ['Adire',   'Indigo · cassava resist',          'Abeokuta, Nigeria','Resist-dyed cotton'],
+    BRASS:   ['Brass',   'Cast brass · lost wax',            'Kumasi, Ghana',    'Wool, gold thread'],
+  };
+  const c = COPY[name]; if (c) {
+    const set = (sel, v) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
+    set('#r-pig', c[1]); set('#r-org', c[2]); set('#r-cloth', c[3]);
+    set('#r-lot', `Lot 0${ORDER.indexOf(name) + 1} / 04`);
+    if (window.__wordmark) setWordmark(c[0].toUpperCase(), window.__wordmark[1]);
+  }
   window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
@@ -340,7 +351,7 @@ if (HAS_PANEL) $('copy').onclick = () => {
   setTimeout(() => $('copy').textContent = 'copy settings', 900);
 };
 
-apply('EMBER');
+apply('BOGOLAN');
 
 function frame(t) {
   // Anything that depends on an async load is set HERE, not in send().

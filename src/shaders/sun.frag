@@ -277,10 +277,10 @@ void main() {
   float halo = (near * 1.0 + wide * 0.45) * uGlow;
 
   // the rim, both sides of the edge. narrow and outside, softer and inside.
-  float band = abs(r - 1.0);
-  float rim  = exp(-pow(band / max(uRimW, 1e-4), 1.5))
-             + exp(-max(1.0 - r, 0.0) / max(uRimIn, 1e-4)) * 0.6;
-  halo += rim * uRimStr;
+  float edgeBand = abs(r - 1.0);
+  float rimGlow  = exp(-pow(edgeBand / max(uRimW, 1e-4), 1.5))
+                 + exp(-max(1.0 - r, 0.0) / max(uRimIn, 1e-4)) * 0.6;
+  halo += rimGlow * uRimStr;
 
   vec3 lightCol = core(uPigment, uSpread * 1.5, 1.0);
   col = mix(col + lightCol * halo,                       // add
