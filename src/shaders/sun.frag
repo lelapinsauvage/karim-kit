@@ -95,7 +95,8 @@ uniform int   uFigB;       // and the incoming one
 uniform vec4  uFigRectB;
 uniform vec4  uFigPosB;
 uniform float uFigMix;     // 0 outgoing, 1 incoming
-uniform float uTear;       // how hard she comes apart in the middle of the move
+uniform float uTear;       // how far the weave eats into her
+uniform float uThread;     // scale of the threads she comes apart along
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
 uniform float uFigShow;
@@ -427,25 +428,43 @@ void main() {
 
   // --- figure ---------------------------------------------------------------
   if (uFigShow > 0.5) {
-    // She tears into horizontal bands and reassembles as the next figure. The
-    // bands belong to HER -- they are masked by her own silhouette and never
-    // touch the frame -- which is the difference between a subject coming apart
-    // and a screen glitching. The second is always cheap.
-    float band = floor((uv.y + 0.5) * 26.0);
-    float jit  = hash21(vec2(band, floor(uTime * 18.0))) - 0.5;
+    // She dissolves INTO THE WEAVE and reforms out of it. The same Truchet field
+    // that makes the cloth is used as the dissolve mask, so she comes apart
+    // along thread lines rather than along scanlines -- a material transition
+    // instead of a display one. A band tear would work identically on a car ad;
+    // this only works on a brief about cloth.
+    vec2 wg  = uv * uClothScale * uThread;
+    vec2 wid = floor(wg);
+    vec2 wf  = fract(wg) - 0.5;
+    float wsel = noise((wid + 0.5) / max(uClothScale * uThread, 1e-4) * 26.0);
+    float wd = tile(wf, wsel, uClothShape);
 
-    // strongest at the midpoint of the move, nothing at either end
-    float tear = sin(3.14159 * clamp(uFigMix, 0.0, 1.0)) * uTear;
-    float shift = jit * 0.13 * tear;
+    // distance to the nearest thread, 0 on a thread and 1 in open cloth
+    float thread = smoothstep(0.0, 0.34, wd);
 
-    // each band decides for itself which figure it is showing, and they do not
-    // all decide at once -- a single threshold would just be a wipe
-    float turn = hash21(vec2(band, 7.7));
-    float k = smoothstep(turn * 0.55, turn * 0.55 + 0.45, uFigMix);
+    // ONE front, and the two figures take strictly complementary shares of it.
+    // Two independent thresholds both went high at the midpoint and she
+    // disappeared entirely -- the handover has to be a partition, not two
+    // separate fades.
+    float front = uFigMix * 1.5 - 0.25 + (length(uv - uPos) - uR) * 0.22;
 
-    vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv, uRes,  shift);
-    vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv, uRes, -shift);
-    vec4 tex = mix(fa, fb, k);
+    // open cloth lets go first, threads hold longest: she unravels along the
+    // weave rather than fading, and the last of her to go is the thread itself
+    float keepA = 1.0 - smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
+    float keepB = 1.0 - keepA;
+
+    // threads pull apart along their own direction as they let go
+    vec2 pull = normalize(wf + 1e-5) * (1.0 - thread) * uTear * 0.05
+              * sin(3.14159 * clamp(uFigMix, 0.0, 1.0));
+
+    vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + pull, uRes, 0.0);
+    vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0);
+
+    // premultiplied blend: the two shares sum to one, so total coverage never
+    // dips and she is present at every instant of the move
+    vec3 rgb = fa.rgb * fa.a * keepA + fb.rgb * fb.a * keepB;
+    float a  = fa.a * keepA + fb.a * keepB;
+    vec4 tex = vec4(a > 0.001 ? rgb / a : vec3(0.0), a);
 
     if (tex.a > 0.01) {
       vec3 fig = tex.rgb * (1.0 - uFigDark);
@@ -458,8 +477,9 @@ void main() {
         fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
       }
 
-      // a torn band lifts toward the light, so the break reads as energy
-      fig += core(uPigment, uSpread * 2.0, 1.0) * abs(jit) * tear * 0.5;
+      // the thread she is coming apart along catches the light as it lets go
+      float letting = (1.0 - thread) * (1.0 - abs(keepA * 2.0 - 1.0));
+      fig += core(uPigment, uSpread * 2.2, 1.0) * letting * 0.9;
 
       col = mix(col, fig, tex.a);
     }
