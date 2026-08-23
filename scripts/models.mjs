@@ -1,27 +1,91 @@
-// Batch model generation.
+// Model generation prompts.
 //
-// Every prompt keeps the same six parts (see PROMPTING.md): format, subject and
-// crop, pose as silhouette, garment with material named, FLAT light, capture.
-// Only the pose and the garment change -- the light paragraph is identical
-// everywhere, because a set of figures that were lit differently can never be
-// dropped into the same scene.
+// Rebuilt after the first batch came back reading as AI. Four things caused
+// that, and each has a fix:
+//
+//   plastic skin      -> name a FILM STOCK and a focal length, and ask for pores
+//                        explicitly. Naming a stock is the single strongest
+//                        instruction available: it carries a whole tonal
+//                        signature -- grain, contrast curve, skin rendering --
+//                        where adjectives carry almost nothing.
+//   symmetrical faces -> negative constraints. "no beauty retouch, no smooth
+//                        skin filter, no symmetrical face."
+//   poses nobody      -> describe an ACTION, not a pose. "looking away from
+//   shoots               camera", "hand at the jaw", "chin lifted, eyes down".
+//                        Chin-level-shoulders-square is a passport photo.
+//   generic garments  -> describe the SHAPE and the material, not the culture.
+//                        "African-inspired" returns the model's average of
+//                        everything, which is why it looks like nothing.
+//
+// The lighting clause stays identical across every prompt. Figures lit
+// differently cannot share a scene, and by the time you notice you have
+// generated all of them.
 
-const LIGHT = 'Even flat studio lighting, soft frontal light, no strong shadows, '
-  + 'no rim light, neutral white balance, low contrast. Plain flat mid-grey '
-  + 'seamless backdrop, nothing else in frame. Sharp focus, fine fibre detail '
-  + 'visible, medium format, fashion editorial.';
+const CAPTURE =
+  'Shot on Kodak Portra 400, 85mm lens, Hasselblad. Visible skin pores and '
+  + 'natural skin texture, faint specular sheen on the skin, catchlight in the '
+  + 'eyes, fine film grain, slight asymmetry in the face. '
+  + 'No beauty retouch, no smooth skin filter, no plastic skin, no symmetrical face.';
+
+// Even and frontal, but from a large soft source -- flat enough to relight,
+// with enough shaping that it still reads as a photograph.
+const LIGHT =
+  'Lit by one large softbox directly front-on, very soft and even, shadows open '
+  + 'and weak, no rim light, no hard key, neutral white balance, low contrast. '
+  + 'Flat seamless studio backdrop in mid grey, nothing else in frame.';
 
 export const MODELS = [
-  ['p01', 'A dark-skinned woman facing camera straight on, shoulders square, chin level, gaze direct. Head shaved close. Wearing a wide flat disc collar of stacked brass rings sitting on the shoulders, and a matte black woven bodice.'],
-  ['p02', 'A dark-skinned woman in strict side profile facing left, chin lifted. Hair in tall sculpted coils rising vertically. Wearing a high funnel collar of cut-pile raffia, dense velvet nap, deep indigo.'],
-  ['p03', 'A dark-skinned man facing camera, shoulders square, head tilted slightly back. Short dense afro. Wearing an architectural shoulder piece in bogolan mud cloth, hard white geometry on near-black, standing away from the body.'],
-  ['p04', 'A dark-skinned woman three-quarter turn to the right, looking back over her shoulder at camera. Long braided hair gathered high. Wearing a structured cape in strip-woven aso-oke with metallic thread, raised collar.'],
-  ['p05', 'A dark-skinned woman facing camera, arms crossed low, shoulders wide. Sculptural headpiece of tightly coiled hair shaped into a flat crown. Wearing a beaded structural bodice, small coloured spheres in dense geometric rows.'],
-  ['p06', 'A dark-skinned man in strict side profile facing right, neck long, chin level. Head wrapped in a tall sculpted headwrap of dark barkcloth. Wearing stacked brass neck coils and a matte black sleeveless garment.'],
-  ['p07', 'A dark-skinned woman facing camera, head turned slightly left, eyes to camera. Hair sculpted into tall angular spikes standing out from the head. Wearing an oversized raffia dome collar covering the shoulders entirely.'],
-  ['p08', 'A dark-skinned woman three-quarter turn to the left, chin down, gaze up to camera. Close-cropped hair with fine geometric parting. Wearing a stiff adire indigo shoulder piece with hand-painted white resist patterning.'],
-  ['p09', 'A dark-skinned man facing camera straight on, shoulders square, expression still. Tall cylindrical hat in woven raffia. Wearing a heavy coat of open-weave wool with aged brass toggle fastenings, raised funnel collar.'],
-  ['p10', 'A dark-skinned woman in strict side profile facing left, head tipped back, throat exposed. Hair in a single tall vertical column. Wearing a wide flat brass torque at the throat and a bogolan wrap across one shoulder.'],
+  ['n01', 'A dark-skinned woman, head and shoulders, chin lifted and eyes '
+    + 'looking down past the lens, mouth relaxed. Hair sculpted into two tall '
+    + 'twin peaks rising from the crown, matte and dense. Cowrie shells strung '
+    + 'in rows across the brow. Heavy brass hoop at one ear.'],
+
+  ['n02', 'A dark-skinned man, head and shoulders, turned three-quarters away '
+    + 'and looking back over his shoulder at the lens, jaw set. Close-cropped '
+    + 'hair with a fine parting cut into it. Wearing a stiff triangular chest '
+    + 'panel in tan barkcloth edged with a dense row of cowrie shells, bare '
+    + 'shoulders, raffia tassels at the shoulder points.'],
+
+  ['n03', 'A dark-skinned woman, head and shoulders, one hand flat against her '
+    + 'jaw, elbow out of frame, eyes to camera. Hair in four large round Bantu '
+    + 'knots. Small gold nose ring, layered fine gold chains at the throat. '
+    + 'Freckles across the nose and cheeks.'],
+
+  ['n04', 'A dark-skinned woman in strict profile facing left, chin raised, '
+    + 'throat exposed, eyes closed. Beaded cap in burnt orange seed beads with '
+    + 'a fringe of cowrie shells across the forehead. Long beaded earring '
+    + 'falling in dense strands to the shoulder.'],
+
+  ['n05', 'A dark-skinned man, head and shoulders, facing camera, head tipped '
+    + 'slightly back, half-smile. Tall flat-topped hair squared off at the '
+    + 'edges. Wearing an oversized mesh jersey printed with dense black adinkra '
+    + 'symbols on rust red, collar open.'],
+
+  ['n06', 'A dark-skinned woman, head and shoulders, shoulders turned away and '
+    + 'face toward the lens, gaze level and unbothered. Fine raised scarification '
+    + 'lines across both cheekbones. White cotton veil draped over a beaded '
+    + 'skullcap. Long thin brass earring.'],
+
+  ['n07', 'A dark-skinned woman, head and shoulders, arms crossed low, leaning '
+    + 'slightly forward. Large round afro shaped into a perfect halo. Wearing a '
+    + 'cropped camp-collar shirt in a bold red, black and gold tile print, '
+    + 'buttons open at the throat.'],
+
+  ['n08', 'A dark-skinned man in strict profile facing right, chin down, brow '
+    + 'heavy. Head wrapped in indigo cloth with hand-painted white resist '
+    + 'markings, wrapped tall and flat at the crown. Stacked brass coils at the '
+    + 'neck, bare shoulders.'],
+
+  ['n09', 'A dark-skinned woman, head and shoulders, turning into the lens as if '
+    + 'caught mid-movement, hair still swinging. Long thin braids gathered high '
+    + 'and falling loose. Wearing a heavy collar of flat hammered brass discs '
+    + 'over a plain black tank.'],
+
+  ['n10', 'A dark-skinned woman, head and shoulders, seen from slightly below, '
+    + 'looking off to the right of frame. Hair in tight coiled locs pulled into '
+    + 'a high sculptural knot. Wearing an open-weave raffia shoulder piece in '
+    + 'natural straw, loose threads visible at the edge.'],
 ];
 
-export const prompt = (body) => `Editorial fashion photograph. ${body} ${LIGHT}`;
+export const prompt = (body) =>
+  `Editorial fashion photograph. ${body} ${LIGHT} ${CAPTURE}`;

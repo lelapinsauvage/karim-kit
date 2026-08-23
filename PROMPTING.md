@@ -12,6 +12,39 @@ Generates, removes the background, writes `src/figures/<name>.png`.
 
 ---
 
+## Making it look like a photograph
+
+The first batch on this project came back reading unmistakably as AI. Four
+causes, four fixes, in order of how much each one buys you:
+
+**1. Name a film stock.** This is the strongest single instruction available.
+`Kodak Portra 400` carries an entire tonal signature — grain, contrast curve,
+how it renders skin — where adjectives like "realistic" carry almost nothing.
+
+**2. Name a focal length and a body.** `85mm`, `135mm`, `Hasselblad`. Longer
+lenses compress the face and trigger denser texture rendering. This is doing
+real work, not decoration.
+
+**3. Ask for imperfection explicitly, and forbid perfection.**
+> visible skin pores, natural skin texture, faint specular sheen, catchlight in
+> the eyes, fine film grain, slight asymmetry in the face.
+> No beauty retouch, no smooth skin filter, no plastic skin, no symmetrical face.
+
+The negative half matters as much as the positive half.
+
+**4. Describe an action, not a pose.** "Chin level, shoulders square, gaze
+direct" is a passport photo, and it is why AI figures look posed. Real editorial
+catches someone mid-movement: *looking away past the lens*, *hand flat against
+the jaw*, *turning into the lens as if caught mid-movement*, *chin lifted, eyes
+closed*.
+
+**And for garments: describe the shape and the material, never the culture.**
+"African-inspired" returns the model's average of everything, which is precisely
+why it looks like nothing. `A stiff triangular chest panel in tan barkcloth
+edged with a dense row of cowrie shells` returns a garment.
+
+---
+
 ## The rule that matters most
 
 **Generate the ALBEDO, not the photograph.**
