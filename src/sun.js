@@ -11,17 +11,13 @@ const HAS_PANEL = !!document.getElementById('r');
 // Two locked looks. Switch with the buttons or 1 / 2 -- so a direction can be
 // compared instantly instead of re-dialled, which is the only way to judge two
 // options fairly.
-// Four looks, one idiom.
+// Ten looks. Each is a figure and the pigment taken from what that figure is
+// actually wearing -- the beaded cap, the jersey, the barkcloth, the brass. The
+// ground is a neutral tuned a few points toward the pigment.
 //
-// The PAPER treatment is the whole system now: a light ground, the glow TINTING
-// rather than adding (you cannot brighten paper), a strong rim doing the
-// emitting, and the figure left almost undarkened so she stays a photograph
-// instead of becoming a silhouette.
-//
-// Only the pigment changes between them -- each is a real dye or pigment
-// tradition, and the ground is a neutral tuned a few points toward it. Brutalism
-// is truth to materials; a palette of pigments rather than colours is that rule
-// applied to colour.
+// The treatment is shared: light ground, glow TINTING rather than adding (you
+// cannot brighten paper), the rim doing the emitting, and the figure left almost
+// undarkened so she stays a photograph rather than a silhouette.
 const BASE = {
   r:0.350, edge:0.146, coreSize:0.99, rimBand:0.75, drift:1.18,
   glow:0.22, glowSize:0.34, glowMode:1, rimW:0.045, rimStr:0.9, rimIn:0.06,
@@ -30,29 +26,44 @@ const BASE = {
   cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
   clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
   light:0.85, rake:0.82, sheen:0.4, cord:1.3,
-  figH:1.105, figX:0.040, figY:-0.155, figDark:0.07, figTint:0.18, figLift:0,
+  figH:0.72, figX:0.055, figY:-0.045, figDark:0.07, figTint:0.18, figLift:0,
   coreX:0.19, coreY:-0.110, typeInk:0.07,
 };
 
-const PRESETS = {
-  // Bàmbara mud cloth, Mali. Fermented river mud on woven strips.
-  BOGOLAN:  { ...BASE, pigment:'#008f56', bg:'#d9d9d9', clothInk:'#608a6b' },
+const LOOKS = [
+  { id:'n01', name:'Cowrie',   fig:'n01',
+    pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94',
+    pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria', material:'Cowrie, seed bead' },
+  { id:'n02', name:'Barkcloth', fig:'n02',
+    pigment:'#A8531F', bg:'#E2DBD1', clothInk:'#967154', warmth:0.58,
+    pig:'Beaten fig bark', origin:'Buganda, Uganda', material:'Barkcloth, cowrie, raffia' },
+  { id:'n03', name:'Brass',    fig:'n03',
+    pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52', glow:0.30, rimStr:1.25, warmth:0.62,
+    pig:'Cast brass · lost wax', origin:'Kumasi, Ghana', material:'Gold chain, brass' },
+  { id:'n04', name:'Otjize',   fig:'n04',
+    pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E', warmth:0.55,
+    pig:'Red ochre · butterfat', origin:'Kunene, Namibia', material:'Seed bead, cowrie' },
+  { id:'n05', name:'Adinkra',  fig:'n05',
+    pigment:'#8E2B12', bg:'#DFD8CF', clothInk:'#8E5D45', warmth:0.60,
+    pig:'Adinkra · stamped bark dye', origin:'Ntonso, Ghana', material:'Printed mesh' },
+  { id:'n06', name:'Efun',     fig:'n06',
+    pigment:'#5C6660', bg:'#DDDDD9', clothInk:'#7E857F', purity:0.50,
+    pig:'White clay · efun', origin:'Cross River, Nigeria', material:'Cotton veil, brass' },
+  { id:'n07', name:'Kente',    fig:'n07',
+    pigment:'#9C1B24', bg:'#DED9D2', clothInk:'#96625F', warmth:0.52,
+    pig:'Strip-weave · silk and cotton', origin:'Bonwire, Ghana', material:'Tile-print cotton' },
+  { id:'n08', name:'Adire',    fig:'n08',
+    pigment:'#243A7A', bg:'#D5D7DB', clothInk:'#6C7791', rimW:0.035, rimStr:1.05, purity:0.70,
+    pig:'Indigo · resist-dyed', origin:'Abeokuta, Nigeria', material:'Adire cotton, brass' },
+  { id:'n09', name:'Disc',     fig:'n09',
+    pigment:'#8A6A20', bg:'#E1DDD3', clothInk:'#8A7A56', glow:0.28, rimStr:1.15, warmth:0.58,
+    pig:'Hammered brass', origin:'Kumasi, Ghana', material:'Brass disc, cotton' },
+  { id:'n10', name:'Raffia',   fig:'n10',
+    pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
+    pig:'Raffia palm · undyed', origin:'Kasai, DR Congo', material:'Open-weave raffia' },
+];
 
-  // Himba red ochre and butterfat, Kunene. Worn on skin, not cloth.
-  OTJIZE:   { ...BASE, pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E',
-              warmth:0.55, purity:0.55 },
-
-  // Yoruba resist-dyed indigo, Abeokuta. The deepest dye tradition on the
-  // continent -- it needs a cooler ground and a tighter rim to stay a pigment
-  // rather than reading as a screen colour.
-  ADIRE:    { ...BASE, pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94',
-              rimW:0.035, rimStr:1.05, purity:0.70 },
-
-  // Ashanti cast brass and Benin bronze. Metal, so the rim carries more of it
-  // and the body less -- brass is an edge before it is a mass.
-  BRASS:    { ...BASE, pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52',
-              glow:0.30, rimStr:1.25, warmth:0.62, purity:0.48 },
-};
+const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id, { ...BASE, ...l }]));
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', glowMode:'uGlowMode',
@@ -63,7 +74,10 @@ const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', dr
   light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
   figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift',
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
-const figTex = view.texture('/src/figures/m3.png', 0);
+// one texture unit per figure. unit 3 is the wordmark, so figures start at 4.
+const FIGTEX = Object.fromEntries(
+  LOOKS.map((l, i) => [l.id, view.texture(`/src/figures/${l.fig}.png`, 4 + i)]));
+let figTex = FIGTEX[LOOKS[0].id];
 
 // --- wordmark ---------------------------------------------------------------
 // Rasterised by the browser onto a 2D canvas, then handed to the shader as a
@@ -121,13 +135,19 @@ function stepWordmark(now) {
 }
 
 document.fonts?.ready.then(() => {
-  if (window.__wordmark) { wm.opts = window.__wordmark[1]; setWordmark(...window.__wordmark); wm.to = window.__wordmark[0]; }
+  if (!window.__wordmark) return;
+  wm.opts = window.__wordmark[1];
+  // start on the look that is actually showing -- hero.html's literal is only a
+  // placeholder for the font-loading window
+  const first = PRESETS[ORDER[lookIx]]?.name?.toUpperCase() ?? window.__wordmark[0];
+  wm.to = first;
+  setWordmark(first, wm.opts);
 });
 
 // Declared here because the panel below builds its look switcher from it.
 // Arrows rather than number keys: the digits sit behind Shift on AZERTY, so a
 // plain keypress never reaches them.
-const ORDER = ['BOGOLAN', 'OTJIZE', 'ADIRE', 'BRASS'];
+const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0;
 
 // Full control panel, generated from the uniform tables rather than written in
@@ -284,7 +304,7 @@ function send(v) {
 
 }
 
-let state = { ...PRESETS.BOGOLAN };
+let state = { ...PRESETS[LOOKS[0].id] };
 
 function push() {
   if (!HAS_PANEL) { send(state); return; }
@@ -337,8 +357,7 @@ for (const id of (HAS_PANEL ? Object.keys(COL) : [])) {
 // still settles. in-out spends its first third barely moving, which is the
 // easing that was reading as sluggish.
 const EASE = (t) => 1 - (1 - t) ** 5;
-const NUMKEYS = () => Object.keys(PRESETS.BOGOLAN).filter(
-  (k) => typeof PRESETS.BOGOLAN[k] === 'number');
+const NUMKEYS = () => Object.keys(BASE).filter((k) => typeof BASE[k] === 'number');
 const HEXKEYS = ['pigment', 'bg', 'clothInk'];
 
 const hex2 = (h) => { const n = parseInt(h.slice(1), 16);
@@ -398,18 +417,13 @@ function apply(name) {
 // the page copy follows the look, so switching changes the whole record and not
 // just the colour
 function paintCopy(name) {
-  const COPY = {
-    BOGOLAN: ['Bogolan', 'Mud cloth · fermented river silt', 'Ségou, Mali',      'Strip-woven cotton, brass'],
-    OTJIZE:  ['Otjize',  'Red ochre · butterfat',            'Kunene, Namibia',  'Bogolan, cast brass'],
-    ADIRE:   ['Adire',   'Indigo · cassava resist',          'Abeokuta, Nigeria','Resist-dyed cotton'],
-    BRASS:   ['Brass',   'Cast brass · lost wax',            'Kumasi, Ghana',    'Wool, gold thread'],
-  };
-  const c = COPY[name]; if (!c) return;
+  const l = PRESETS[name]; if (!l) return;
+  figTex = FIGTEX[name];
 
   // the rail restates itself row by row -- a stagger reads as a record being
   // rewritten, where all four changing at once reads as a page reload
-  const rows = [['#r-pig', c[1]], ['#r-org', c[2]], ['#r-cloth', c[3]],
-                ['#r-lot', `Lot 0${ORDER.indexOf(name) + 1} / 04`]];
+  const rows = [['#r-pig', l.pig], ['#r-org', l.origin], ['#r-cloth', l.material],
+                ['#r-lot', `Lot ${String(ORDER.indexOf(name) + 1).padStart(2, '0')} / ${ORDER.length}`]];
   rows.forEach(([sel, v], i) => {
     const el = document.querySelector(sel); if (!el) return;
     el.style.transition = 'opacity .12s ease';
@@ -417,7 +431,7 @@ function paintCopy(name) {
     setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 70 + i * 45);
   });
 
-  if (window.__wordmark) scrambleTo(c[0].toUpperCase(), window.__wordmark[1]);
+  if (window.__wordmark) scrambleTo(l.name.toUpperCase(), window.__wordmark[1]);
   window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
@@ -453,7 +467,7 @@ if (HAS_PANEL) $('copy').onclick = () => {
   setTimeout(() => $('copy').textContent = 'copy settings', 900);
 };
 
-apply('BOGOLAN');
+apply(LOOKS[0].id);
 
 function frame(t) {
   stepTween(t);

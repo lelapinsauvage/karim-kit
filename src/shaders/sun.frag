@@ -283,8 +283,14 @@ void main() {
   halo += rimGlow * uRimStr;
 
   vec3 lightCol = core(uPigment, uSpread * 1.5, 1.0);
-  col = mix(col + lightCol * halo,                       // add
-            mix(col, lightCol, clamp(halo, 0.0, 1.0)),   // tint
+
+  // In tint mode the falloff has to be squared. A skirt that is merely small far
+  // from the body still stains a light ground everywhere, because tinting has no
+  // threshold the way adding does -- 2% of a saturated pigment over the whole
+  // frame is a colour cast, not a glow.
+  float tintAmt = clamp(halo * halo * 1.6, 0.0, 1.0);
+  col = mix(col + lightCol * halo,               // add
+            mix(col, lightCol, tintAmt),         // tint
             uGlowMode);
 
   // --- cloth --------------------------------------------------------------

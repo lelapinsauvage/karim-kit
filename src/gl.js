@@ -172,7 +172,8 @@ export function quad(canvas, frag) {
       else if (v.length === 2) gl.uniform2f(l, v[0], v[1]);
       else if (v.length === 3) gl.uniform3f(l, v[0], v[1], v[2]);
       else if (v.length === 4) gl.uniform4f(l, v[0], v[1], v[2], v[3]);
-      else gl.uniform3fv(l, v);   // flat Float32Array -> vec3[]
+      else if (ArrayBuffer.isView(v)) gl.uniform3fv(l, v);   // flat array -> vec3[]
+      else console.warn(`uniform ${name}: cannot set`, v);   // loud, not cryptic
     },
     draw: () => {
       gl.useProgram(prog);
