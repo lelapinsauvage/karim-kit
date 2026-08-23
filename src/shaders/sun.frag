@@ -463,7 +463,12 @@ void main() {
     // Two independent thresholds both went high at the midpoint and she
     // disappeared entirely -- the handover has to be a partition, not two
     // separate fades.
-    float front = uFigMix * 1.5 - 0.25 + (length(uv - uPos) - uR) * 0.22;
+    // The sweep has to CLEAR the whole range at both ends, not merely start and
+    // finish inside it. At 1.5/-0.25 the front stopped short: keepA was still
+    // 0.26 near the body at mix 1, so a quarter of the outgoing figure was
+    // present when the tween cleared and it vanished in one frame. Verified:
+    // 2.1/-0.35 lands exactly on 1 and 0 at every distance and thread value.
+    float front = uFigMix * 2.1 - 0.35 + (length(uv - uPos) - uR) * 0.22;
 
     // open cloth lets go first, threads hold longest: she unravels along the
     // weave rather than fading, and the last of her to go is the thread itself

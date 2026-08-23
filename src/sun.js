@@ -452,6 +452,15 @@ function stepTween(now) {
   state.r = state.r * (1 + 0.20 * swell);
   state.rimStr = state.rimStr * (1 + 1.4 * swell);
 
+  // The ground dips dark through the move and comes back up. It was doing this
+  // by accident -- the pigment lerp used to pass through grey -- and it read
+  // well, so it is now deliberate and eased rather than a side effect. The
+  // curve is asymmetric: down fast, back slowly, which is how a light actually
+  // recovers.
+  const dip = Math.sin(Math.PI * raw) ** 0.7;
+  state.bgFloor = state.bgFloor * (1 - 0.62 * dip);
+  state.glow    = state.glow * (1 + 0.55 * dip);
+
   // a ring leaves the body and crosses the cloth. it is a position, not an
   // amount, so the wave travels rather than the whole field pulsing at once.
   view.set('uWave', raw);
