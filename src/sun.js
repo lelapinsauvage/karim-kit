@@ -96,10 +96,10 @@ export function setWordmark(text, opts = {}) {
 // like something being decoded. Letters lock at different times or it reads as
 // a single flicker.
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\|<>#*+=';
-let wm = { from: '', to: '', t0: -1, dur: 900, opts: {} };
+let wm = { from: '', to: '', t0: -1, dur: 620, opts: {} };
 
 export function scrambleTo(text, opts) {
-  wm = { from: wm.to || text, to: text, t0: performance.now(), dur: 900,
+  wm = { from: wm.to || text, to: text, t0: performance.now(), dur: DUR,
          opts: opts ?? wm.opts };
 }
 
@@ -110,8 +110,8 @@ function stepWordmark(now) {
   let out = '';
   for (let i = 0; i < n; i++) {
     // each letter gets its own window: starts later, finishes later
-    const start = (i / n) * 0.55;
-    const p = (raw - start) / 0.45;
+    const start = (i / n) * 0.45;
+    const p = (raw - start) / 0.55;
     if (p >= 1) out += wm.to[i] ?? '';
     else if (p <= 0) out += wm.from[i] ?? GLYPHS[(i * 7) % GLYPHS.length];
     else out += GLYPHS[(Math.floor(now / 45) + i * 13) % GLYPHS.length];
@@ -333,7 +333,10 @@ for (const id of (HAS_PANEL ? Object.keys(COL) : [])) {
 // scrambles through to the new word. Switching a look is one move, not four
 // things changing at once -- which is the difference between a slider and a
 // system.
-const EASE = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
+// out-quint: most of the distance is covered early, so it feels immediate and
+// still settles. in-out spends its first third barely moving, which is the
+// easing that was reading as sluggish.
+const EASE = (t) => 1 - (1 - t) ** 5;
 const NUMKEYS = () => Object.keys(PRESETS.BOGOLAN).filter(
   (k) => typeof PRESETS.BOGOLAN[k] === 'number');
 const HEXKEYS = ['pigment', 'bg', 'clothInk'];
@@ -342,7 +345,10 @@ const hex2 = (h) => { const n = parseInt(h.slice(1), 16);
   return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
 const rgb2 = (a) => '#' + a.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
 
-const DUR = 1150;
+// One clock. The values, the wordmark and the rail all run on this, so the move
+// lands as a single event -- three durations means three things arriving, which
+// is what read as slow even when each part was fast.
+const DUR = 620;
 let tween = null;
 
 function transitionTo(name) {
@@ -367,8 +373,9 @@ function stepTween(now) {
 
   // the halo swells through the middle of the move -- the light reacts to the
   // change rather than the palette simply sliding under it
-  state.r = state.r * (1 + 0.28 * Math.sin(Math.PI * raw));
-  state.rimStr = state.rimStr * (1 + 1.1 * Math.sin(Math.PI * raw));
+  const swell = Math.sin(Math.PI * raw);
+  state.r = state.r * (1 + 0.20 * swell);
+  state.rimStr = state.rimStr * (1 + 1.4 * swell);
 
   send(state);
   if (raw >= 1) {
@@ -405,9 +412,9 @@ function paintCopy(name) {
                 ['#r-lot', `Lot 0${ORDER.indexOf(name) + 1} / 04`]];
   rows.forEach(([sel, v], i) => {
     const el = document.querySelector(sel); if (!el) return;
-    el.style.transition = 'opacity .18s ease';
+    el.style.transition = 'opacity .12s ease';
     el.style.opacity = '0';
-    setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 140 + i * 85);
+    setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 70 + i * 45);
   });
 
   if (window.__wordmark) scrambleTo(c[0].toUpperCase(), window.__wordmark[1]);
