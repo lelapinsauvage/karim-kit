@@ -17,24 +17,24 @@ const PRESETS = {
   // luminance than blue at the same value, so it takes slightly more spread and
   // glow to sit at the same weight in the frame.
   EMBER: {
-    r:0.40, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
+    r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
     glowSize:0.58, grain:0.235, grainSize:1.45, grainMask:0.55, spread:2.0,
     bgFall:0.70, bgFloor:0, warmth:0.60, purity:0.37, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:1.19, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
-    clothInk:'#ff0000', coreX:0.19, coreY:0.10, pigment:'#990000', bg:'#333333',
+    figH:1.125, figX:0.040, figY:-0.170, figDark:0.86, figTint:0.35, figLift:0,
+    clothInk:'#ff0000', coreX:0.19, coreY:-0.110, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
-    r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
+    r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
     glowSize:0.58, grain:0.13, grainSize:1.45, grainMask:0.55, spread:0.28,
     bgFall:0.70, bgFloor:0.35, warmth:0.55, purity:0.24, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:1.19, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
-    clothInk:'#ff0000', coreX:0.19, coreY:0.10, pigment:'#0805e1', bg:'#333333',
+    figH:1.125, figX:0.040, figY:-0.170, figDark:0.86, figTint:0.35, figLift:0,
+    clothInk:'#ff0000', coreX:0.19, coreY:-0.110, pigment:'#0805e1', bg:'#333333',
   },
 };
 
@@ -75,6 +75,78 @@ export function setWordmark(text, opts = {}) {
 }
 
 document.fonts?.ready.then(() => { if (window.__wordmark) setWordmark(...window.__wordmark); });
+
+// A minimal placement panel for pages that have no full control panel. Press H
+// to hide it -- it is a tool, not part of the design, and you have to be able to
+// see the composition without it.
+if (!HAS_PANEL) {
+  const SPEC = [
+    ['figH', 'height',  0.4,  2.5, 0.005],
+    ['figX', 'x',      -0.8,  0.8, 0.005],
+    ['figY', 'y',      -1.4,  0.6, 0.005],
+    ['r',    'disc',    0.05, 0.9, 0.005],
+    ['coreY','core y', -1,    1,   0.005],
+    ['figDark','darken',0,    1,   0.01],
+    ['figTint','tint',  0,    1,   0.01],
+  ];
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:40;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;
+    padding:12px 16px;background:#0a0708e8;backdrop-filter:blur(10px);
+    border:1px solid #ffffff1c;font:10px ui-monospace,monospace;color:#eee;
+    letter-spacing:.1em;text-transform:uppercase;width:min(940px,94vw)`;
+  el.innerHTML = SPEC.map(([k, label, lo, hi, st]) => `
+    <label style="display:grid;gap:5px">
+      <span style="opacity:.45;display:flex;justify-content:space-between">
+        ${label}<b id="v-${k}" style="font-weight:400;opacity:.7"></b></span>
+      <input id="p-${k}" type="range" min="${lo}" max="${hi}" step="${st}"
+             style="width:100%;accent-color:#ff3b1e;height:12px">
+    </label>`).join('');
+  document.body.appendChild(el);
+
+  const sync = () => {
+    for (const [k] of SPEC) {
+      document.getElementById('p-' + k).value = state[k];
+      document.getElementById('v-' + k).textContent = (+state[k]).toFixed(3);
+    }
+  };
+  for (const [k] of SPEC) {
+    document.getElementById('p-' + k).addEventListener('input', (e) => {
+      state[k] = parseFloat(e.target.value);
+      document.getElementById('v-' + k).textContent = state[k].toFixed(3);
+      send(state);
+    });
+  }
+  addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'h') el.style.display = el.style.display === 'none' ? 'grid' : 'none';
+    if (e.key.toLowerCase() === 'c') {
+      const out = Object.fromEntries(SPEC.map(([k]) => [k, +(+state[k]).toFixed(3)]));
+      navigator.clipboard.writeText(JSON.stringify(out));
+      console.log('copied', out);
+    }
+  });
+  queueMicrotask(sync);
+}
+
+// Live placement without a panel. In the console:
+//   fig({ h: 1.05, x: 0.14, y: -0.42 })
+// h is drawn height in uv units (viewport short axis = 1.0), x/y shift her.
+// Logs the values back so a placement you like can be pasted into the preset.
+window.fig = (o = {}) => {
+  Object.assign(state, {
+    figH: o.h ?? state.figH,
+    figX: o.x ?? state.figX,
+    figY: o.y ?? state.figY,
+  });
+  send(state);
+  console.log(`figH:${state.figH}, figX:${state.figX}, figY:${state.figY}`);
+  return { h: state.figH, x: state.figX, y: state.figY };
+};
+window.halo = (o = {}) => {
+  Object.assign(state, { r: o.r ?? state.r, coreY: o.cy ?? state.coreY });
+  send(state);
+  console.log(`r:${state.r}, coreY:${state.coreY}`);
+};
 
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };
