@@ -58,13 +58,13 @@ const LOOKS = [
 
   { id:'l3', name:'Adire', fig:'n08',
     pigment:'#243A7A', bg:'#D5D7DB', clothInk:'#6C7791',
-    rimW:0.035, rimStr:1.05, purity:0.70,
+    rimW:0.035, rimStr:1.05, purity:0.70, flip:true,
     figH:0.85, figX:0.055, figBleed:0.06,
     pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
     material:'Adire cotton, cast brass' },
 
   { id:'l4', name:'Raffia', fig:'n10',
-    pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
+    pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45, flip:true,
     figH:0.85, figX:0.055, figBleed:0.06,
     pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
     material:'Open-weave raffia' },
@@ -600,6 +600,8 @@ function frame(t) {
   view.set('uFigRectB', tb.rect);
   view.set('uFigPos',  [ta.aspect, pa.figH, pa.figX, pa.figBleed ?? 0]);
   view.set('uFigPosB', [tb.aspect, pb.figH, pb.figX, pb.figBleed ?? 0]);
+  view.set('uFlipA', pa.flip ? 1 : 0);
+  view.set('uFlipB', pb.flip ? 1 : 0);
   view.set('uFigMix', tween ? tween.mix : 1);
   view.set('uTear', state.tear ?? 1);
   view.set('uThread', state.thread ?? 0.7);

@@ -103,6 +103,8 @@ uniform float uThread;     // scale of the threads she comes apart along
 // field pulsing in place.
 uniform float uWave;
 uniform float uWaveAmt;
+uniform float uFlipA;
+uniform float uFlipB;
 uniform int   uFigMode;    // 0 stamp, 1 plate, 2 page, 3 weave
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
@@ -267,13 +269,19 @@ vec4 figSample(int which, vec2 tc) {
 }
 
 // One figure, sampled through its own rect and placement, bottom-anchored.
-vec4 figAt(int which, vec4 rect, vec4 pos, vec2 uv, vec2 res, float shift) {
+// `flip` mirrors horizontally. Generated figures face whichever way the model
+// decided, and a set where subjects look in different directions has no
+// collective gaze -- they stop being a series and become four unrelated photos.
+vec4 figAt(int which, vec4 rect, vec4 pos, vec2 uv, vec2 res, float shift, float flip) {
   float aspect = pos.x, fh = pos.y;
   float frameBottom = -0.5 * res.y / min(res.x, res.y);
   float cy = frameBottom + fh * 0.5 - pos.w;
   vec2  q  = (uv - vec2(pos.z + shift, cy)) / fh;
   vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
   if (lc.x < 0.0 || lc.x > 1.0 || lc.y < 0.0 || lc.y > 1.0) return vec4(0.0);
+  // mirror in the CONTENT rect, after the bounds test, so the flip cannot push
+  // the sample outside the cutout's own box
+  lc.x = mix(lc.x, 1.0 - lc.x, flip);
   vec4 t = figSample(which, rect.xy + lc * rect.zw);
   t.a = smoothstep(0.55, 0.88, t.a);
   return t;
@@ -496,14 +504,14 @@ void main() {
       // the outgoing figure is pushed ahead of the front, the incoming one is
       // still catching up -- they move in opposite directions through the edge
       vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv - push,       uRes, 0.0);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6, uRes, 0.0);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6, uRes, 0.0, uFlipB);
 
       // per-channel separation ONLY inside the band, scaled by how fast the edge
       // is moving. dispersion everywhere is an RGB-split filter; dispersion at a
       // moving boundary is refraction.
       float disp = edge * 0.026 * uTear;
       vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0);
-      vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0);
+      vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0, uFlipB);
       fb.r = fbR.r; fb.b = fbB.b;
 
       // the reveal itself is soft over a comparable distance, or the
@@ -525,10 +533,10 @@ void main() {
       float d   = (1.0 - set) * 0.035 * uTear;
       vec2  ax  = vec2(0.94, 0.34);
 
-      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv, uRes, 0.0);
+      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv, uRes, 0.0, uFlipA);
       vec4 r  = figAt(uFigB, uFigRectB, uFigPosB, uv + ax * d,        uRes, 0.0);
       vec4 g  = figAt(uFigB, uFigRectB, uFigPosB, uv,                 uRes, 0.0);
-      vec4 b  = figAt(uFigB, uFigRectB, uFigPosB, uv - ax * d * 1.15, uRes, 0.0);
+      vec4 b  = figAt(uFigB, uFigRectB, uFigPosB, uv - ax * d * 1.15, uRes, 0.0, uFlipB);
       vec4 fb = vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
       tex = mix(fa, fb, hit);
 
@@ -553,8 +561,8 @@ void main() {
       float keepA  = smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
       vec2  pull   = normalize(wf + 1e-5) * (1.0 - thread) * uTear * 0.05 * sin(3.14159 * m);
 
-      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + pull, uRes, 0.0);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0);
+      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv + pull, uRes, 0.0, uFlipA);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0, uFlipB);
       vec3 rgb = fa.rgb * fa.a * keepA + fb.rgb * fb.a * (1.0 - keepA);
       float al = fa.a * keepA + fb.a * (1.0 - keepA);
       tex = vec4(al > 0.001 ? rgb / al : vec3(0.0), al);
