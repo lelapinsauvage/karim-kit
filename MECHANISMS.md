@@ -267,3 +267,48 @@ function frame() {
 
 Keep the split honest: values a human sets go in setup, values an asset reports
 go in the loop.
+
+---
+
+## 10 · DISSOLVE ALONG THE PATTERN
+
+*(Built, working, and deliberately not used in the piece it was built for — see
+the note at the end. Kept because the technique is sound.)*
+
+Instead of cross-fading two images, use the **pattern already in the scene** as
+the dissolve mask. The subject comes apart along thread lines rather than
+scanlines, and the incoming one assembles the same way.
+
+**Say it:** "It's not a cross-fade — she comes apart along the weave and the next
+one assembles out of it."
+
+**Why it beats a band tear or a wipe:** a band tear would work identically on a
+car advert. Anything that reads as a *display* effect has no relationship to the
+brief. Using the scene's own geometry as the mask makes the transition a
+property of the material.
+
+**The two things that must be right:**
+
+1. **The two shares must be complementary, not independent.** One front, and
+   `keepB = 1 - keepA`, blended premultiplied. Two separate thresholds both go
+   high at the midpoint and the subject vanishes entirely.
+2. **The front must CLEAR the range, not merely start and end inside it.** Work
+   out the actual span of your mask term and make the sweep exceed it at both
+   ends. A front that stops short leaves a fraction of the outgoing image
+   present, which disappears in one frame when the tween clears.
+
+```glsl
+float thread = smoothstep(0.0, 0.34, patternSDF);      // 0 on a thread, 1 in open cloth
+float front  = mix * 2.1 - 0.35 + (dist - radius) * 0.22;
+float keepA  = smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
+float keepB  = 1.0 - keepA;
+
+vec3  rgb = a.rgb * a.a * keepA + b.rgb * b.a * keepB;   // premultiplied
+float al  = a.a * keepA + b.a * keepB;
+```
+
+**Why it was shelved:** the field already had a radial wave crossing it on the
+same beat. Both gestures were soft, organic and centred on the same point, so
+they rhymed and neutralised each other. **Two motions on one beat have to
+contrast — hard against soft, linear against radial — or you have one motion
+twice.** The technique was not the problem; the pairing was.
