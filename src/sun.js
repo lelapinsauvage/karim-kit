@@ -95,54 +95,110 @@ export function setWordmark(text, opts = {}) {
 
 document.fonts?.ready.then(() => { if (window.__wordmark) setWordmark(...window.__wordmark); });
 
-// A minimal placement panel for pages that have no full control panel. Press H
-// to hide it -- it is a tool, not part of the design, and you have to be able to
-// see the composition without it.
+// Full control panel, generated from the uniform tables rather than written in
+// HTML. Any control added to NUM or COL appears here automatically and stays in
+// sync -- a hand-written panel drifts the moment a uniform is renamed.
 if (!HAS_PANEL) {
-  const SPEC = [
-    ['figH', 'height',  0.4,  2.5, 0.005],
-    ['figX', 'x',      -0.8,  0.8, 0.005],
-    ['figY', 'y',      -1.4,  0.6, 0.005],
-    ['r',    'disc',    0.05, 0.9, 0.005],
-    ['coreY','core y', -1,    1,   0.005],
-    ['figDark','darken',0,    1,   0.01],
-    ['figTint','tint',  0,    1,   0.01],
+  const RANGE = {
+    r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
+    rimBand:[0,1,0.01], drift:[0,4,0.01], glow:[0,2,0.01], glowSize:[0.02,1.2,0.005],
+    grain:[0,0.6,0.005], grainSize:[0.2,3,0.01], grainMask:[0,1,0.01],
+    spread:[0,2,0.01], bgFall:[0.05,1.2,0.01], bgFloor:[0,1,0.01],
+    warmth:[0,1,0.01], purity:[0,1,0.01], wobble:[0,2,0.01],
+    cloth:[0,1,0.005], clothScale:[4,60,0.5], clothShape:[0,2.999,0.001],
+    clothMorph:[0,3,0.01], clothWeight:[0.02,0.3,0.005], clothWave:[0,20,0.05],
+    clothSpeed:[0,5,0.01], light:[0,4,0.01], rake:[0,1,0.01], sheen:[0,3,0.01],
+    cord:[0,4,0.01], figDark:[0,1,0.01], figTint:[0,1,0.01], figLift:[0,3,0.01],
+    charge:[0,2,0.01], chargeSpd:[0,3,0.01], chargeLen:[1,30,0.1],
+    figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005],
+    coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
+  };
+  const GROUPS = [
+    ['body',   ['r','edge','coreX','coreY','coreSize','rimBand','drift','wobble']],
+    ['light',  ['glow','glowSize','spread','warmth','purity']],
+    ['ground', ['bgFall','bgFloor']],
+    ['cloth',  ['cloth','clothScale','clothShape','clothMorph','clothWave','clothSpeed','clothWeight','charge','chargeSpd','chargeLen']],
+    ['surface',['light','rake','sheen','cord']],
+    ['figure', ['figH','figX','figY','figDark','figTint','figLift']],
+    ['grain',  ['grain','grainSize','grainMask']],
+    ['type',   ['typeInk']],
   ];
-  const el = document.createElement('div');
-  el.style.cssText = `position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-    z-index:40;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;
-    padding:12px 16px;background:#0a0708e8;backdrop-filter:blur(10px);
-    border:1px solid #ffffff1c;font:10px ui-monospace,monospace;color:#eee;
-    letter-spacing:.1em;text-transform:uppercase;width:min(940px,94vw)`;
-  el.innerHTML = SPEC.map(([k, label, lo, hi, st]) => `
-    <label style="display:grid;gap:5px">
-      <span style="opacity:.45;display:flex;justify-content:space-between">
-        ${label}<b id="v-${k}" style="font-weight:400;opacity:.7"></b></span>
+  const COLKEYS = ['pigment','bg','clothInk'];
+
+  const el = document.createElement('aside');
+  el.style.cssText = `position:fixed;top:0;right:0;bottom:0;z-index:40;width:236px;
+    padding:14px;overflow:auto;background:#0a0708ee;backdrop-filter:blur(10px);
+    border-left:1px solid #ffffff1c;font:10px ui-monospace,monospace;color:#eee;
+    letter-spacing:.08em`;
+
+  const row = (k) => {
+    const [lo, hi, st] = RANGE[k] ?? [0, 1, 0.01];
+    return `<label style="display:grid;gap:3px;margin-bottom:7px">
+      <span style="display:flex;justify-content:space-between;text-transform:uppercase;opacity:.5">
+        ${k}<b id="v-${k}" style="font-weight:400;opacity:.8"></b></span>
       <input id="p-${k}" type="range" min="${lo}" max="${hi}" step="${st}"
-             style="width:100%;accent-color:#ff3b1e;height:12px">
-    </label>`).join('');
+        style="width:100%;accent-color:#ff3b1e;height:12px"></label>`;
+  };
+  const head = (t) => `<div style="opacity:.35;text-transform:uppercase;
+    letter-spacing:.2em;margin:12px 0 6px">${t}</div>`;
+
+  el.innerHTML =
+    `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px">` +
+    ORDER.map((n) => `<button data-look="${n}" style="background:#ffffff10;
+      border:1px solid #ffffff1f;color:#eee;font:9px ui-monospace,monospace;
+      letter-spacing:.12em;text-transform:uppercase;padding:6px 2px;cursor:pointer">
+      ${n.slice(0,5)}</button>`).join('') + `</div>` +
+    GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
+    head('colour') +
+    COLKEYS.map((k) => `<label style="display:grid;grid-template-columns:52px 1fr;
+      gap:6px;align-items:center;margin-bottom:6px">
+      <span style="opacity:.5;text-transform:uppercase">${k}</span>
+      <input id="c-${k}" type="text" spellcheck="false" style="background:#ffffff10;
+        border:1px solid #ffffff1f;color:#eee;font:10px ui-monospace,monospace;
+        padding:3px 5px"></label>`).join('') +
+    `<button id="p-copy" style="width:100%;margin-top:10px;background:#ffffff12;
+      border:1px solid #ffffff26;color:#eee;font:10px ui-monospace,monospace;
+      letter-spacing:.14em;text-transform:uppercase;padding:7px;cursor:pointer">
+      copy settings</button>
+     <div style="opacity:.3;margin-top:8px;line-height:1.6">H hide · ←→ look</div>`;
   document.body.appendChild(el);
 
+  const ALLNUM = GROUPS.flatMap(([, k]) => k);
   const sync = () => {
-    for (const [k] of SPEC) {
-      document.getElementById('p-' + k).value = state[k];
-      document.getElementById('v-' + k).textContent = (+state[k]).toFixed(3);
+    for (const k of ALLNUM) {
+      const i = document.getElementById('p-' + k); if (!i) continue;
+      i.value = state[k] ?? 0;
+      document.getElementById('v-' + k).textContent = (+(state[k] ?? 0)).toFixed(3);
     }
+    for (const k of COLKEYS) document.getElementById('c-' + k).value = state[k] ?? '';
   };
-  for (const [k] of SPEC) {
-    document.getElementById('p-' + k).addEventListener('input', (e) => {
+  window.__syncPanel = sync;
+
+  for (const k of ALLNUM) {
+    const i = document.getElementById('p-' + k); if (!i) continue;
+    i.addEventListener('input', (e) => {
       state[k] = parseFloat(e.target.value);
       document.getElementById('v-' + k).textContent = state[k].toFixed(3);
       send(state);
     });
   }
+  for (const k of COLKEYS) {
+    document.getElementById('c-' + k).addEventListener('input', (e) => {
+      let v = e.target.value.trim(); if (v[0] !== '#') v = '#' + v;
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { state[k] = v; send(state); }
+    });
+  }
+  for (const b of el.querySelectorAll('[data-look]'))
+    b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.look); apply(b.dataset.look); };
+
+  document.getElementById('p-copy').onclick = () => {
+    navigator.clipboard.writeText(JSON.stringify(state, null, 2));
+    console.log(state);
+  };
+
   addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'h') el.style.display = el.style.display === 'none' ? 'grid' : 'none';
-    if (e.key.toLowerCase() === 'c') {
-      const out = Object.fromEntries(SPEC.map(([k]) => [k, +(+state[k]).toFixed(3)]));
-      navigator.clipboard.writeText(JSON.stringify(out));
-      console.log('copied', out);
-    }
+    if (e.key.toLowerCase() === 'h')
+      el.style.display = (el.style.display === 'none') ? 'block' : 'none';
   });
   queueMicrotask(sync);
 }
@@ -230,6 +286,7 @@ function apply(name) {
   state = { ...p };
   // the DOM type layer has to follow the ground, or it disappears on paper
   document.body.classList.toggle('paper', name === 'PAPER');
+  window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
     const el = $(k); if (!el) continue;
