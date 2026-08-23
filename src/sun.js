@@ -91,7 +91,38 @@ export function setWordmark(text, opts = {}) {
   else typeTex.upload();
 }
 
-document.fonts?.ready.then(() => { if (window.__wordmark) setWordmark(...window.__wordmark); });
+// The wordmark resolves rather than swapping. Each letter holds a run of random
+// glyphs, then locks -- staggered left to right, so the word arrives in order
+// like something being decoded. Letters lock at different times or it reads as
+// a single flicker.
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\|<>#*+=';
+let wm = { from: '', to: '', t0: -1, dur: 900, opts: {} };
+
+export function scrambleTo(text, opts) {
+  wm = { from: wm.to || text, to: text, t0: performance.now(), dur: 900,
+         opts: opts ?? wm.opts };
+}
+
+function stepWordmark(now) {
+  if (wm.t0 < 0) return;
+  const raw = Math.min((now - wm.t0) / wm.dur, 1);
+  const n = Math.max(wm.to.length, wm.from.length);
+  let out = '';
+  for (let i = 0; i < n; i++) {
+    // each letter gets its own window: starts later, finishes later
+    const start = (i / n) * 0.55;
+    const p = (raw - start) / 0.45;
+    if (p >= 1) out += wm.to[i] ?? '';
+    else if (p <= 0) out += wm.from[i] ?? GLYPHS[(i * 7) % GLYPHS.length];
+    else out += GLYPHS[(Math.floor(now / 45) + i * 13) % GLYPHS.length];
+  }
+  setWordmark(out, wm.opts);
+  if (raw >= 1) { wm.t0 = -1; setWordmark(wm.to, wm.opts); }
+}
+
+document.fonts?.ready.then(() => {
+  if (window.__wordmark) { wm.opts = window.__wordmark[1]; setWordmark(...window.__wordmark); wm.to = window.__wordmark[0]; }
+});
 
 // Declared here because the panel below builds its look switcher from it.
 // Arrows rather than number keys: the digits sit behind Shift on AZERTY, so a
@@ -297,26 +328,89 @@ for (const id of (HAS_PANEL ? Object.keys(COL) : [])) {
   });
 }
 
+// --- transition -------------------------------------------------------------
+// Every value tweens: numbers lerp, colours lerp in RGB, and the wordmark
+// scrambles through to the new word. Switching a look is one move, not four
+// things changing at once -- which is the difference between a slider and a
+// system.
+const EASE = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
+const NUMKEYS = () => Object.keys(PRESETS.BOGOLAN).filter(
+  (k) => typeof PRESETS.BOGOLAN[k] === 'number');
+const HEXKEYS = ['pigment', 'bg', 'clothInk'];
+
+const hex2 = (h) => { const n = parseInt(h.slice(1), 16);
+  return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const rgb2 = (a) => '#' + a.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+
+const DUR = 1150;
+let tween = null;
+
+function transitionTo(name) {
+  const from = { ...state }, to = PRESETS[name];
+  tween = { from, to, name, t0: performance.now() };
+  paintCopy(name);                       // the record changes with the move
+}
+
+function stepTween(now) {
+  if (!tween) return;
+  const raw = Math.min((now - tween.t0) / DUR, 1);
+  const t = EASE(raw);
+
+  for (const k of NUMKEYS()) {
+    const a = tween.from[k], b = tween.to[k];
+    if (typeof a === 'number' && typeof b === 'number') state[k] = a + (b - a) * t;
+  }
+  for (const k of HEXKEYS) {
+    const a = hex2(tween.from[k]), b = hex2(tween.to[k]);
+    state[k] = rgb2(a.map((v, i) => v + (b[i] - v) * t));
+  }
+
+  // the halo swells through the middle of the move -- the light reacts to the
+  // change rather than the palette simply sliding under it
+  state.r = state.r * (1 + 0.28 * Math.sin(Math.PI * raw));
+  state.rimStr = state.rimStr * (1 + 1.1 * Math.sin(Math.PI * raw));
+
+  send(state);
+  if (raw >= 1) {
+    state = { ...tween.to };            // land on exact values, never near them
+    tween = null;
+    send(state);
+    window.__syncPanel?.();
+  }
+}
+
 function apply(name) {
   const p = PRESETS[name];
   state = { ...p };
   // the DOM type layer has to follow the ground, or it disappears on paper
   document.body.classList.add('paper');
 
-  // the page copy follows the look, so switching changes the whole record and
-  // not just the colour
+  paintCopy(name);
+}
+
+// the page copy follows the look, so switching changes the whole record and not
+// just the colour
+function paintCopy(name) {
   const COPY = {
     BOGOLAN: ['Bogolan', 'Mud cloth · fermented river silt', 'Ségou, Mali',      'Strip-woven cotton, brass'],
     OTJIZE:  ['Otjize',  'Red ochre · butterfat',            'Kunene, Namibia',  'Bogolan, cast brass'],
     ADIRE:   ['Adire',   'Indigo · cassava resist',          'Abeokuta, Nigeria','Resist-dyed cotton'],
     BRASS:   ['Brass',   'Cast brass · lost wax',            'Kumasi, Ghana',    'Wool, gold thread'],
   };
-  const c = COPY[name]; if (c) {
-    const set = (sel, v) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
-    set('#r-pig', c[1]); set('#r-org', c[2]); set('#r-cloth', c[3]);
-    set('#r-lot', `Lot 0${ORDER.indexOf(name) + 1} / 04`);
-    if (window.__wordmark) setWordmark(c[0].toUpperCase(), window.__wordmark[1]);
-  }
+  const c = COPY[name]; if (!c) return;
+
+  // the rail restates itself row by row -- a stagger reads as a record being
+  // rewritten, where all four changing at once reads as a page reload
+  const rows = [['#r-pig', c[1]], ['#r-org', c[2]], ['#r-cloth', c[3]],
+                ['#r-lot', `Lot 0${ORDER.indexOf(name) + 1} / 04`]];
+  rows.forEach(([sel, v], i) => {
+    const el = document.querySelector(sel); if (!el) return;
+    el.style.transition = 'opacity .18s ease';
+    el.style.opacity = '0';
+    setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 140 + i * 85);
+  });
+
+  if (window.__wordmark) scrambleTo(c[0].toUpperCase(), window.__wordmark[1]);
   window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
@@ -336,8 +430,9 @@ addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   d = -1;
   if (!d) return;
   e.preventDefault();
+  if (tween) return;                    // ignore input mid-move
   lookIx = (lookIx + d + ORDER.length) % ORDER.length;
-  apply(ORDER[lookIx]);
+  transitionTo(ORDER[lookIx]);
 });
 
 // dump the whole state, so a look you like can be pasted into a character file
@@ -354,6 +449,9 @@ if (HAS_PANEL) $('copy').onclick = () => {
 apply('BOGOLAN');
 
 function frame(t) {
+  stepTween(t);
+  stepWordmark(t);
+
   // Anything that depends on an async load is set HERE, not in send().
   //
   // send() runs once on a page with no panel. The figure's aspect and alpha
