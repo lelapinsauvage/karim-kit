@@ -450,7 +450,11 @@ void main() {
 
     // open cloth lets go first, threads hold longest: she unravels along the
     // weave rather than fading, and the last of her to go is the thread itself
-    float keepA = 1.0 - smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
+    // NOT inverted. thread*0.8+0.30 spans 0.30..1.10 and front sweeps -0.25..1.45,
+    // so at mix 0 every sample sits ABOVE the front and smoothstep returns 1 --
+    // which is A fully present. The 1.0 - form had A invisible from the first
+    // frame, so only B was ever drawn and the move read as a hard cut.
+    float keepA = smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
     float keepB = 1.0 - keepA;
 
     // threads pull apart along their own direction as they let go
