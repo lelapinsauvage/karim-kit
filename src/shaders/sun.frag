@@ -247,6 +247,18 @@ vec3 edgeOf(vec3 pigment, float k, float w) {
 
 // sampler arrays need a constant index in GLSL ES, so this is a branch rather
 // than a lookup. Four figures is the whole set; more would want a texture array.
+// A circle whose perimeter is warped by harmonics of the polar angle. A plain
+// expanding disc reads as a wipe; three harmonics at different frequencies make
+// an edge that is organic without ever looking like noise.
+float warpedField(vec2 p, vec2 c, float time) {
+  vec2  d = p - c;
+  float a = atan(d.y, d.x);
+  float w = (cos(a * 3.0 + time) + 1.0) * 0.5
+          + (sin(a * 5.0 - time * 0.7) + 1.0) * 0.5
+          + (cos(a * 8.0 + time * 1.3) + 1.0) * 0.5;
+  return length(d) * (1.0 + (w / 3.0 - 0.5) * 0.34);
+}
+
 vec4 figSample(int which, vec2 tc) {
   if (which == 0) return texture(uFigTex0, tc);
   if (which == 1) return texture(uFigTex1, tc);
@@ -454,40 +466,49 @@ void main() {
     vec3 bloom = vec3(0.0);
 
     if (uFigMode == 0) {
-      // WAVEFRONT TEAR.
+      // FLOW REVEAL.
       //
-      // The ring leaving the body is what changes her. Each pixel turns over as
-      // the wave reaches it, so the two motions are not two gestures competing
-      // on one beat -- one causes the other. That is why this reads as a single
-      // event where the earlier pairing read as noise.
+      // The mask is a circle SDF with a harmonically warped perimeter, expanding
+      // from the body. The displacement is the GRADIENT of that mask -- so
+      // pixels move perpendicular to the boundary, along it, rather than sliding
+      // on an axis. Axis-aligned band shear is the cheapest glitch there is
+      // precisely because the grid it moves on has nothing to do with the image.
       //
-      // She does not move. Only the tear does. A figure that translates is a
-      // slide dressed up as a glitch.
-      float dist  = length(uv - uPos);
-      float ringR = uWave * 2.2;
+      // Everything is concentrated in a narrow gaussian around the edge, so the
+      // figure is untouched everywhere the front is not.
+      float field = warpedField(uv, uPos, uTime * 0.35);
+      float front = m * 2.4 - 0.30;
+      float sd    = field - front;                 // signed distance to the edge
 
-      // horizontal bands, each lagging the wavefront by its own amount, so the
-      // front arrives broken instead of as a clean radial wipe
-      float band = floor((uv.y + 0.5) * 30.0);
-      float lag  = (hash21(vec2(band, 3.1)) - 0.5) * 0.26;
+      // gradient of the field: the direction the boundary is facing
+      float e = 0.004;
+      vec2 grad = normalize(vec2(
+        warpedField(uv + vec2(e, 0.0), uPos, uTime * 0.35) - warpedField(uv - vec2(e, 0.0), uPos, uTime * 0.35),
+        warpedField(uv + vec2(0.0, e), uPos, uTime * 0.35) - warpedField(uv - vec2(0.0, e), uPos, uTime * 0.35)
+      ) + 1e-5);
 
-      float turn = smoothstep(dist + lag - 0.10, dist + lag + 0.10, ringR);
+      float edge = exp(-pow(sd / 0.16, 2.0));      // narrow band at the front
+      vec2  push = grad * edge * 0.085 * uTear;
 
-      // bands shear only while the front is inside them -- a narrow window, so
-      // the displacement is an event rather than a state
-      float atFront = exp(-pow((ringR - dist - lag) / 0.13, 2.0));
-      float jit = (hash21(vec2(band, floor(uTime * 24.0))) - 0.5);
-      float shear = jit * 0.10 * atFront * uTear;
+      // the outgoing figure is pushed ahead of the front, the incoming one is
+      // still catching up -- they move in opposite directions through the edge
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv - push,       uRes, 0.0);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6, uRes, 0.0);
 
-      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(shear, 0.0), uRes, 0.0);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(shear, 0.0), uRes, 0.0);
+      // per-channel separation ONLY inside the band, scaled by how fast the edge
+      // is moving. dispersion everywhere is an RGB-split filter; dispersion at a
+      // moving boundary is refraction.
+      float disp = edge * 0.010 * uTear;
+      vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0);
+      vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0);
+      fb.r = fbR.r; fb.b = fbB.b;
 
+      float turn = smoothstep(0.10, -0.10, sd);
       vec3 rgb = fa.rgb * fa.a * (1.0 - turn) + fb.rgb * fb.a * turn;
       float al = fa.a * (1.0 - turn) + fb.a * turn;
       tex = vec4(al > 0.001 ? rgb / al : vec3(0.0), al);
 
-      // the torn edge catches the light as the front crosses it
-      bloom = core(uPigment, uSpread * 2.2, 1.0) * atFront * abs(jit) * al * 1.3;
+      bloom = core(uPigment, uSpread * 2.4, 1.0) * edge * al * 0.55;
 
     } else if (uFigMode == 1) {
       // PLATE. Three impressions, one per channel, arriving out of register and
