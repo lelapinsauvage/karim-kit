@@ -111,7 +111,7 @@ export function setWordmark(text, opts = {}) {
 // like something being decoded. Letters lock at different times or it reads as
 // a single flicker.
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\|<>#*+=';
-let wm = { from: '', to: '', t0: -1, dur: 820, opts: {} };
+let wm = { from: '', to: '', t0: -1, dur: 1450, opts: {} };
 
 export function scrambleTo(text, opts) {
   wm = { from: wm.to || text, to: text, t0: performance.now(), dur: DUR,
@@ -378,7 +378,10 @@ for (const id of (HAS_PANEL ? Object.keys(COL) : [])) {
 // out-quint: most of the distance is covered early, so it feels immediate and
 // still settles. in-out spends its first third barely moving, which is the
 // easing that was reading as sluggish.
-const EASE = (t) => 1 - (1 - t) ** 5;
+// out-quart rather than out-quint. Over 2.1s a quintic spends its whole tail
+// almost stationary, which reads as the move having ended early and then
+// creeping. A gentler exponent keeps it moving all the way in.
+const EASE = (t) => 1 - (1 - t) ** 4;
 const NUMKEYS = () => Object.keys(BASE).filter((k) => typeof BASE[k] === 'number');
 const HEXKEYS = ['pigment', 'bg', 'clothInk'];
 
@@ -428,9 +431,11 @@ function mixPigment(A, B, t) {
 const DIP_PK = Math.pow(0.35 / 2.05, 0.35) * Math.pow(1 - 0.35 / 2.05, 1.7);
 const DIP = (t) => Math.pow(t, 0.35) * Math.pow(1 - t, 1.7) / DIP_PK;
 
-// a longer clock: the colour travels a long way round the hue circle, and 620ms
-// was not enough room for that to read as a move rather than a cut
-const DUR = 820;
+// A switch moves a pigment round the hue circle, sends a wave across the field
+// and replaces the figure -- three events that each need room to be watched.
+// 820ms blurred them into a cut; 2100ms left the tail crawling. This is the
+// window where the parts read separately and none of them outstays.
+const DUR = 1450;
 let tween = null;
 
 function transitionTo(name) {
@@ -519,9 +524,9 @@ function paintCopy(name) {
                 ['#r-lot', `Lot ${String(ORDER.indexOf(name) + 1).padStart(2, '0')} / ${ORDER.length}`]];
   rows.forEach(([sel, v], i) => {
     const el = document.querySelector(sel); if (!el) return;
-    el.style.transition = 'opacity .12s ease';
+    el.style.transition = 'opacity .20s ease';
     el.style.opacity = '0';
-    setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 70 + i * 45);
+    setTimeout(() => { el.textContent = v; el.style.opacity = '1'; }, 180 + i * 90);
   });
 
   if (window.__wordmark) scrambleTo(l.name.toUpperCase(), window.__wordmark[1]);

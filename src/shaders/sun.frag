@@ -477,7 +477,10 @@ void main() {
       // Everything is concentrated in a narrow gaussian around the edge, so the
       // figure is untouched everywhere the front is not.
       float field = warpedField(uv, uPos, uTime * 0.35);
-      float front = m * 2.4 - 0.30;
+      // The front travels 2.1 units. An edge band of 0.16 is 7.6% of that, so
+      // at any single pixel the whole effect lasted about 60ms and read as
+      // nothing happening. The band has to be a real fraction of the sweep.
+      float front = m * 2.4 - 0.45;
       float sd    = field - front;                 // signed distance to the edge
 
       // gradient of the field: the direction the boundary is facing
@@ -487,8 +490,8 @@ void main() {
         warpedField(uv + vec2(0.0, e), uPos, uTime * 0.35) - warpedField(uv - vec2(0.0, e), uPos, uTime * 0.35)
       ) + 1e-5);
 
-      float edge = exp(-pow(sd / 0.16, 2.0));      // narrow band at the front
-      vec2  push = grad * edge * 0.085 * uTear;
+      float edge = exp(-pow(sd / 0.42, 2.0));      // wide enough to be seen
+      vec2  push = grad * edge * 0.22 * uTear;
 
       // the outgoing figure is pushed ahead of the front, the incoming one is
       // still catching up -- they move in opposite directions through the edge
@@ -498,17 +501,19 @@ void main() {
       // per-channel separation ONLY inside the band, scaled by how fast the edge
       // is moving. dispersion everywhere is an RGB-split filter; dispersion at a
       // moving boundary is refraction.
-      float disp = edge * 0.010 * uTear;
+      float disp = edge * 0.026 * uTear;
       vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0);
       vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0);
       fb.r = fbR.r; fb.b = fbB.b;
 
-      float turn = smoothstep(0.10, -0.10, sd);
+      // the reveal itself is soft over a comparable distance, or the
+      // displacement band and the changeover happen at different moments
+      float turn = smoothstep(0.26, -0.26, sd);
       vec3 rgb = fa.rgb * fa.a * (1.0 - turn) + fb.rgb * fb.a * turn;
       float al = fa.a * (1.0 - turn) + fb.a * turn;
       tex = vec4(al > 0.001 ? rgb / al : vec3(0.0), al);
 
-      bloom = core(uPigment, uSpread * 2.4, 1.0) * edge * al * 0.55;
+      bloom = core(uPigment, uSpread * 2.4, 1.0) * edge * al * 0.7;
 
     } else if (uFigMode == 1) {
       // PLATE. Three impressions, one per channel, arriving out of register and
