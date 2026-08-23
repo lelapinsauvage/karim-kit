@@ -30,37 +30,34 @@ const BASE = {
   coreX:0.19, coreY:-0.110, typeInk:0.07,
 };
 
+// Four looks. Chosen for spread rather than preference: four pigments that sit
+// far apart on the wheel, and four different relationships to the lens -- chin
+// lifted, hand at the jaw, strict profile, looking off frame. Ten was a library;
+// four is an edit.
+//
+// To swap one out, change `fig` to any other generated figure. Everything else
+// -- pigment, ground, provenance -- travels with the entry.
 const LOOKS = [
-  { id:'n01', name:'Cowrie',   fig:'n01',
-    pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94',
-    pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria', material:'Cowrie, seed bead' },
-  { id:'n02', name:'Barkcloth', fig:'n02',
-    pigment:'#A8531F', bg:'#E2DBD1', clothInk:'#967154', warmth:0.58,
-    pig:'Beaten fig bark', origin:'Buganda, Uganda', material:'Barkcloth, cowrie, raffia' },
-  { id:'n03', name:'Brass',    fig:'n03',
-    pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52', glow:0.30, rimStr:1.25, warmth:0.62,
-    pig:'Cast brass · lost wax', origin:'Kumasi, Ghana', material:'Gold chain, brass' },
-  { id:'n04', name:'Otjize',   fig:'n04',
+  { id:'l1', name:'Cowrie',  fig:'n01',
+    pigment:'#1F3A93', bg:'#D6D8DC', clothInk:'#6E7A94', purity:0.70,
+    pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
+    material:'Cowrie, seed bead' },
+
+  { id:'l2', name:'Brass',   fig:'n03',
+    pigment:'#A07414', bg:'#E0DCD2', clothInk:'#8C7A52',
+    glow:0.30, rimStr:1.25, warmth:0.62,
+    pig:'Cast brass · lost wax', origin:'Kumasi, Ghana',
+    material:'Gold chain, brass' },
+
+  { id:'l3', name:'Otjize',  fig:'n04',
     pigment:'#B8321B', bg:'#DEDAD6', clothInk:'#9A6B5E', warmth:0.55,
-    pig:'Red ochre · butterfat', origin:'Kunene, Namibia', material:'Seed bead, cowrie' },
-  { id:'n05', name:'Adinkra',  fig:'n05',
-    pigment:'#8E2B12', bg:'#DFD8CF', clothInk:'#8E5D45', warmth:0.60,
-    pig:'Adinkra · stamped bark dye', origin:'Ntonso, Ghana', material:'Printed mesh' },
-  { id:'n06', name:'Efun',     fig:'n06',
-    pigment:'#5C6660', bg:'#DDDDD9', clothInk:'#7E857F', purity:0.50,
-    pig:'White clay · efun', origin:'Cross River, Nigeria', material:'Cotton veil, brass' },
-  { id:'n07', name:'Kente',    fig:'n07',
-    pigment:'#9C1B24', bg:'#DED9D2', clothInk:'#96625F', warmth:0.52,
-    pig:'Strip-weave · silk and cotton', origin:'Bonwire, Ghana', material:'Tile-print cotton' },
-  { id:'n08', name:'Adire',    fig:'n08',
-    pigment:'#243A7A', bg:'#D5D7DB', clothInk:'#6C7791', rimW:0.035, rimStr:1.05, purity:0.70,
-    pig:'Indigo · resist-dyed', origin:'Abeokuta, Nigeria', material:'Adire cotton, brass' },
-  { id:'n09', name:'Disc',     fig:'n09',
-    pigment:'#8A6A20', bg:'#E1DDD3', clothInk:'#8A7A56', glow:0.28, rimStr:1.15, warmth:0.58,
-    pig:'Hammered brass', origin:'Kumasi, Ghana', material:'Brass disc, cotton' },
-  { id:'n10', name:'Raffia',   fig:'n10',
+    pig:'Red ochre · butterfat', origin:'Kunene, Namibia',
+    material:'Seed bead, cowrie' },
+
+  { id:'l4', name:'Raffia',  fig:'n10',
     pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45,
-    pig:'Raffia palm · undyed', origin:'Kasai, DR Congo', material:'Open-weave raffia' },
+    pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
+    material:'Open-weave raffia' },
 ];
 
 const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id, { ...BASE, ...l }]));
