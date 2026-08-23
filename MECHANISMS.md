@@ -236,3 +236,34 @@ boundary for no reason.
 **Against a disc:** the head belongs *inside* the circle with the circle whole
 behind it. A crescent reads as an accident. If the subject eats the shape, grow
 the shape rather than shrinking the subject.
+
+---
+
+## 9 · ASYNC VALUES BELONG IN THE RENDER LOOP
+
+This cost two separate bugs in one build, so it is worth stating as a rule.
+
+A page with no control panel runs its setup **once**. Anything measured from an
+asset — a texture's aspect ratio, a cutout's alpha bounding box, a web font's
+metrics — is not known at that moment. Set it there and it is silently wrong
+forever.
+
+The tell is unmistakable once you know it: **the thing looks wrong until you
+touch any unrelated control, then snaps correct.** That is a second setup call
+running after the asset landed. If you see that, stop looking at the value and
+look at *when* it is set.
+
+```js
+// wrong -- runs once, before the image has decoded
+function setup(v) {
+  gl.uniform4f(uFigPos, tex.aspect, v.h, v.x, v.y);   // aspect is still 1
+}
+
+// right -- re-read every frame; two uniform writes cost nothing
+function frame() {
+  gl.uniform4f(uFigPos, tex.aspect, state.h, state.x, state.y);
+}
+```
+
+Keep the split honest: values a human sets go in setup, values an asset reports
+go in the loop.

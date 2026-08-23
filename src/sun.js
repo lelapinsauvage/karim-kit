@@ -157,10 +157,8 @@ function send(v) {
   for (const [id, u] of Object.entries(COL)) view.set(u, hexToRgb(v[id]));
   view.set('uCore', [v.coreX, v.coreY]);
   view.set('uPos', [0, 0]);
-  view.bind(figTex, 'uFigTex');
-  view.set('uFigRect', figTex.rect);
-  view.set('uFigPos', [figTex.aspect, v.figH, v.figX, v.figY]);
   view.set('uFigShow', v.figShow === false ? 0 : 1);
+  // NOTE: rect / aspect are deliberately NOT set here -- see frame()
 
 }
 
@@ -241,8 +239,17 @@ if (HAS_PANEL) $('copy').onclick = () => {
 apply('EMBER');
 
 function frame(t) {
-  // bound every frame, not inside send(): the font finishes loading long after
-  // the single send() that a panel-less page makes, so a one-shot bind misses it
+  // Anything that depends on an async load is set HERE, not in send().
+  //
+  // send() runs once on a page with no panel. The figure's aspect and alpha
+  // bounding box are only known after the image decodes, and the font only
+  // after it loads -- both land after that single call. Setting them once meant
+  // the figure rendered with aspect 1 and a full-canvas rect (squashed), and
+  // snapped correct the instant any slider forced a second send().
+  view.bind(figTex, 'uFigTex');
+  view.set('uFigRect', figTex.rect);
+  view.set('uFigPos', [figTex.aspect, state.figH, state.figX, state.figY]);
+
   if (typeTex) {
     gl0.activeTexture(gl0.TEXTURE0 + 3);
     gl0.bindTexture(gl0.TEXTURE_2D, typeTex.tex);

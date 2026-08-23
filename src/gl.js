@@ -65,6 +65,7 @@ export function quad(canvas, frag) {
       rec.rect   = alphaBounds(img);
       rec.aspect = (rec.rect[2] * img.width) / (rec.rect[3] * img.height);
       rec.ready  = true;
+      rec.onready?.(rec);
     };
     img.src = url;
     return rec;
