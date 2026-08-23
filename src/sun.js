@@ -582,17 +582,27 @@ function paintCopy(name) {
 }
 for (const b of document.querySelectorAll('.preset'))
   b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.k); apply(b.dataset.k); };
+// ONE navigation entry point. The logic used to live inline inside the keydown
+// listener, so the slider buttons had nothing to call -- every new control would
+// have had to reimplement the guard and the wrap.
+export function go(dir) {
+  if (tween || !dir) return;            // ignore input mid-move
+  lookIxPrev = lookIx;
+  lookIx = (lookIx + dir + ORDER.length) % ORDER.length;
+  transitionTo(ORDER[lookIx]);
+}
+
 addEventListener('keydown', (e) => {
   let d = 0;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') d = 1;
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   d = -1;
   if (!d) return;
   e.preventDefault();
-  if (tween) return;                    // ignore input mid-move
-  lookIxPrev = lookIx;
-  lookIx = (lookIx + d + ORDER.length) % ORDER.length;
-  transitionTo(ORDER[lookIx]);
+  go(d);
 });
+
+document.getElementById('s-prev')?.addEventListener('click', () => go(-1));
+document.getElementById('s-next')?.addEventListener('click', () => go(1));
 
 // dump the whole state, so a look you like can be pasted into a character file
 if (HAS_PANEL) $('copy').onclick = () => {

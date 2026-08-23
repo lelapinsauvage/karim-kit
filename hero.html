@@ -108,16 +108,17 @@
     width:3.4rem;height:3.4rem;border-radius:50%;
     border:1px solid rgba(20,20,20,.28);background:transparent;color:var(--ink);
     display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;
-    font-family:'Mono',monospace;font-size:1.05rem;line-height:1;
     transition:color .3s, border-color .3s;
   }
+  /* an SVG rather than a glyph: a text arrow sits on the font's baseline, which
+     is never the optical centre of a circle, so it always reads low */
+  .nb svg{width:1.15rem;height:1.15rem;display:block;position:relative}
   /* the fill sweeps in from the direction the button points */
   .nb::before{content:'';position:absolute;inset:0;background:var(--ink);
     transform:translateX(-101%);transition:transform .38s cubic-bezier(.2,.8,.2,1)}
   .nb.next::before{transform:translateX(101%)}
   .nb:hover{color:#F5F5F5;border-color:var(--ink)}
   .nb:hover::before{transform:translateX(0)}
-  .nb span{position:relative}
   .nb:disabled{opacity:.3;cursor:default}
 
   .ticker{display:flex;align-items:center;gap:.55rem;font-size:1rem;font-weight:600;
@@ -177,8 +178,8 @@
       <span class="bar"><i id="s-bar" style="width:25%"></i></span>
       <span class="of" id="s-all">04</span>
     </div>
-    <button class="nb prev" id="s-prev" aria-label="Previous"><span>←</span></button>
-    <button class="nb next" id="s-next" aria-label="Next"><span>→</span></button>
+    <button class="nb prev" id="s-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+    <button class="nb next" id="s-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
   </div>
 
 </div>
