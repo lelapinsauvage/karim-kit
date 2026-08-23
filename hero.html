@@ -106,7 +106,7 @@
   }
   .nb{
     width:3.4rem;height:3.4rem;border-radius:50%;
-    border:1px solid rgba(20,20,20,.28);background:transparent;color:var(--ink);
+    border:0;outline:0;background:transparent;color:var(--ink);
     display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;
     transition:color .3s, border-color .3s;
   }
@@ -114,10 +114,12 @@
      is never the optical centre of a circle, so it always reads low */
   .nb svg{width:1.15rem;height:1.15rem;display:block;position:relative}
   /* the fill sweeps in from the direction the button points */
-  .nb::before{content:'';position:absolute;inset:0;background:var(--ink);
+  /* no ring at rest -- the arrow alone is the control. the ink disc sweeps in
+     from the side the arrow points, which is the whole affordance. */
+  .nb::before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--ink);
     transform:translateX(-101%);transition:transform .38s cubic-bezier(.2,.8,.2,1)}
   .nb.next::before{transform:translateX(101%)}
-  .nb:hover{color:#F5F5F5;border-color:var(--ink)}
+  .nb:hover{color:#F5F5F5}
   .nb:hover::before{transform:translateX(0)}
   .nb:disabled{opacity:.3;cursor:default}
 
