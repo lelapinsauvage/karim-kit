@@ -95,6 +95,12 @@ export function setWordmark(text, opts = {}) {
 
 document.fonts?.ready.then(() => { if (window.__wordmark) setWordmark(...window.__wordmark); });
 
+// Declared here because the panel below builds its look switcher from it.
+// Arrows rather than number keys: the digits sit behind Shift on AZERTY, so a
+// plain keypress never reaches them.
+const ORDER = ['EMBER', 'ULTRA', 'PAPER'];
+let lookIx = 0;
+
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
 // sync -- a hand-written panel drifts the moment a uniform is renamed.
@@ -150,12 +156,14 @@ if (!HAS_PANEL) {
       ${n.slice(0,5)}</button>`).join('') + `</div>` +
     GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
     head('colour') +
-    COLKEYS.map((k) => `<label style="display:grid;grid-template-columns:52px 1fr;
-      gap:6px;align-items:center;margin-bottom:6px">
+    COLKEYS.map((k) => `<div style="display:grid;
+      grid-template-columns:48px 26px 1fr;gap:6px;align-items:center;margin-bottom:6px">
       <span style="opacity:.5;text-transform:uppercase">${k}</span>
+      <input id="s-${k}" type="color" style="width:100%;height:20px;padding:0;
+        border:1px solid #ffffff1f;background:none;cursor:pointer">
       <input id="c-${k}" type="text" spellcheck="false" style="background:#ffffff10;
         border:1px solid #ffffff1f;color:#eee;font:10px ui-monospace,monospace;
-        padding:3px 5px"></label>`).join('') +
+        padding:3px 5px;width:100%"></div>`).join('') +
     `<button id="p-copy" style="width:100%;margin-top:10px;background:#ffffff12;
       border:1px solid #ffffff26;color:#eee;font:10px ui-monospace,monospace;
       letter-spacing:.14em;text-transform:uppercase;padding:7px;cursor:pointer">
@@ -170,7 +178,10 @@ if (!HAS_PANEL) {
       i.value = state[k] ?? 0;
       document.getElementById('v-' + k).textContent = (+(state[k] ?? 0)).toFixed(3);
     }
-    for (const k of COLKEYS) document.getElementById('c-' + k).value = state[k] ?? '';
+    for (const k of COLKEYS) {
+      document.getElementById('c-' + k).value = state[k] ?? '';
+      document.getElementById('s-' + k).value = state[k] ?? '#000000';
+    }
   };
   window.__syncPanel = sync;
 
@@ -182,10 +193,16 @@ if (!HAS_PANEL) {
       send(state);
     });
   }
+  // swatch and hex field drive each other. the picker is for finding a colour,
+  // the field is for pasting one -- both are needed and neither replaces the other
   for (const k of COLKEYS) {
-    document.getElementById('c-' + k).addEventListener('input', (e) => {
-      let v = e.target.value.trim(); if (v[0] !== '#') v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { state[k] = v; send(state); }
+    const hex = document.getElementById('c-' + k);
+    const sw  = document.getElementById('s-' + k);
+    const set = (v) => { state[k] = v; hex.value = v; sw.value = v; send(state); };
+    sw.addEventListener('input', () => set(sw.value));
+    hex.addEventListener('input', () => {
+      let v = hex.value.trim(); if (v[0] !== '#') v = '#' + v;
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { state[k] = v; sw.value = v; send(state); }
     });
   }
   for (const b of el.querySelectorAll('[data-look]'))
@@ -299,10 +316,6 @@ function apply(name) {
 }
 for (const b of document.querySelectorAll('.preset'))
   b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.k); apply(b.dataset.k); };
-// Arrows, not number keys: the digits sit behind Shift on AZERTY, so a plain
-// keypress never reaches them.
-const ORDER = ['EMBER', 'ULTRA', 'PAPER'];
-let lookIx = 0;
 addEventListener('keydown', (e) => {
   let d = 0;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') d = 1;
