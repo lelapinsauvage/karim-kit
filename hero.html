@@ -16,6 +16,13 @@
     --faint:rgba(242,237,228,.22);
     --pad:clamp(20px,2.6vw,44px);
   }
+  /* light ground: the DOM layer inverts with the scene, or it vanishes */
+  body.paper{
+    --ink:#141414;
+    --dim:rgba(20,20,20,.55);
+    --faint:rgba(20,20,20,.22);
+  }
+  body.paper .rule{background:rgba(20,20,20,.14)}
   *{margin:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;background:#0a0708}
   body{font-family:'America',system-ui,sans-serif;color:var(--ink)}

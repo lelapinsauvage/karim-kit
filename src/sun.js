@@ -25,6 +25,7 @@ const PRESETS = {
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
     figH:1.125, figX:0.040, figY:-0.170, figDark:0.86, figTint:0.35, figLift:0,
     clothInk:'#ff0000', coreX:0.19, coreY:-0.110, pigment:'#990000', bg:'#333333',
+    typeInk:0.95,
   },
   ULTRA: {
     r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
@@ -35,6 +36,24 @@ const PRESETS = {
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
     figH:1.125, figX:0.040, figY:-0.170, figDark:0.86, figTint:0.35, figLift:0,
     clothInk:'#ff0000', coreX:0.19, coreY:-0.110, pigment:'#0805e1', bg:'#333333',
+    typeInk:0.95,
+  },
+
+  // A light ground changes three things structurally, not just the hex:
+  //   - the glow is ADDED, so on near-white it blows straight to paper. Cut it.
+  //   - bgFloor has to stay high or the radial fall drags the corners to grey.
+  //   - the cloth ink and the type ink have to invert -- dark on light.
+  // Everything else is the same machine.
+  PAPER: {
+    r:0.320, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.22,
+    glowSize:0.34, grain:0.10, grainSize:1.45, grainMask:0.75, spread:0.30,
+    bgFall:0.62, bgFloor:0.88, warmth:0.40, purity:0.62, wobble:1.42,
+    cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
+    clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
+    light:0.6, rake:0.82, sheen:0.4, cord:1.3,
+    figH:1.125, figX:0.040, figY:-0.170, figDark:0.94, figTint:0.18, figLift:0,
+    clothInk:'#141414', coreX:0.19, coreY:-0.110,
+    pigment:'#0A5C3B', bg:'#F5F5F5', typeInk:0.07,
   },
 };
 
@@ -209,6 +228,8 @@ for (const id of (HAS_PANEL ? Object.keys(COL) : [])) {
 function apply(name) {
   const p = PRESETS[name];
   state = { ...p };
+  // the DOM type layer has to follow the ground, or it disappears on paper
+  document.body.classList.toggle('paper', name === 'PAPER');
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
     const el = $(k); if (!el) continue;
@@ -219,10 +240,20 @@ function apply(name) {
     b.setAttribute('aria-current', String(b.dataset.k === name));
   push();
 }
-for (const b of document.querySelectorAll('.preset')) b.onclick = () => apply(b.dataset.k);
+for (const b of document.querySelectorAll('.preset'))
+  b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.k); apply(b.dataset.k); };
+// Arrows, not number keys: the digits sit behind Shift on AZERTY, so a plain
+// keypress never reaches them.
+const ORDER = ['EMBER', 'ULTRA', 'PAPER'];
+let lookIx = 0;
 addEventListener('keydown', (e) => {
-  if (e.key === '1') apply('EMBER');
-  if (e.key === '2') apply('ULTRA');
+  let d = 0;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') d = 1;
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   d = -1;
+  if (!d) return;
+  e.preventDefault();
+  lookIx = (lookIx + d + ORDER.length) % ORDER.length;
+  apply(ORDER[lookIx]);
 });
 
 // dump the whole state, so a look you like can be pasted into a character file
