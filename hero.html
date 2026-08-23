@@ -13,6 +13,7 @@
   @font-face{font-family:'Disp';src:url('/public/fonts/bayard.woff2') format('woff2');font-display:swap}
   @font-face{font-family:'Mono';src:url('/public/fonts/plex-mono-regular.woff2') format('woff2');font-weight:400;font-display:swap}
   @font-face{font-family:'Mono';src:url('/public/fonts/plex-mono-semibold.woff2') format('woff2');font-weight:600;font-display:swap}
+  @font-face{font-family:'Grot';src:url('/public/fonts/america-bold.woff2') format('woff2');font-display:swap}
   
 
   :root{
@@ -42,12 +43,16 @@
   .rule{position:absolute;left:0;right:0;top:calc(var(--pad) + 3.5rem);height:1px;background:var(--hair)}
 
   .mark{
-    position:absolute;top:var(--pad);left:50%;transform:translateX(-50%);
-    font-family:'Disp',Impact,sans-serif;font-size:3.125rem;letter-spacing:0;
-    text-transform:uppercase;
+    /* centred on the top row, not merely placed at the top: the corners are set
+       at 1rem and the mark at 3.125rem, so aligning their boxes leaves it
+       sitting low. Centre it on the row instead. */
+    position:absolute;top:var(--pad);left:50%;
+    transform:translate(-50%,-38%);
+    font-family:'Disp',Impact,sans-serif;font-size:3.125rem;letter-spacing:.01em;
+    text-transform:uppercase;line-height:1;
   }
 
-  .meta{position:absolute;font-size:1rem;font-weight:600;letter-spacing:-.04em;color:var(--dim);
+  .meta{position:absolute;font-size:1rem;font-weight:600;letter-spacing:.06em;color:var(--dim);
     text-transform:uppercase;font-variant-numeric:tabular-nums;line-height:1.8}
   .tl{top:var(--pad);left:var(--pad)}
   .tr{top:var(--pad);right:var(--pad);text-align:right}
@@ -56,25 +61,31 @@
   /* THE LOCKUP, split across her on a shared baseline. She interrupts a line
      the eye wants to finish, which is what makes her the subject rather than a
      picture the type sits beside. */
+  /* Broken off a shared baseline on purpose. Two blocks levelled with each
+     other read as a caption split in half; offsetting them makes the figure sit
+     in a diagonal rather than a corridor, and gives the eye a reason to travel
+     down the frame instead of straight across it. */
   .lock{
-    position:absolute;left:0;right:0;top:46%;transform:translateY(-50%);
-    display:flex;justify-content:space-between;align-items:baseline;
-    padding:0 var(--pad);
+    position:absolute;left:0;right:0;top:0;bottom:0;
     font-family:'Disp',Impact,sans-serif;
-    font-size:10.5625rem;line-height:.86;letter-spacing:-.04em;
+    font-size:16.40625rem;                    /* 262.5px on the 1920 board */
+    line-height:.84;letter-spacing:-.005em;   /* Bayard is already tight; it
+                                                 needs air, not compression */
     text-transform:uppercase;
   }
-  .lock sup{font-size:4rem;font-weight:400;letter-spacing:-.04em;vertical-align:super;margin-left:.12rem}
+  .lock .a{position:absolute;left:var(--pad);top:29%}
+  .lock .b{position:absolute;right:var(--pad);top:52%;display:flex;align-items:flex-start}
+  .lock sup{font-size:.30em;font-weight:400;letter-spacing:0;margin-left:.06em;margin-top:.1em}
 
   /* the record. bold labels, regular values, one column each. */
   .rail{position:absolute;left:var(--pad);bottom:calc(var(--pad) + 3rem);
-    display:grid;gap:.5rem;font-size:1rem;letter-spacing:-.04em}
+    display:grid;gap:.5rem;font-size:1rem;letter-spacing:.06em}
   .rail div{display:grid;grid-template-columns:8ch 1fr;gap:1.5rem}
-  .rail dt{font-weight:600;text-transform:uppercase}
+  .rail dt{font-family:'Grot',sans-serif;font-weight:400;letter-spacing:.02em;text-transform:uppercase}
   .rail dd{color:var(--dim);text-transform:uppercase}
 
   nav{position:absolute;top:var(--pad);right:var(--pad);display:flex;gap:2rem}
-  nav a{font-size:1rem;font-weight:600;letter-spacing:-.04em;text-transform:uppercase;color:var(--dim);
+  nav a{font-size:1rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
     text-decoration:none;transition:color .2s}
   nav a:hover{color:var(--ink)}
 
@@ -92,11 +103,6 @@
   <div class="mark">Maison Noir</div>
   <div class="meta tl"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
   <nav><a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a></nav>
-
-  <h1 class="lock">
-    <span id="r-name">Edition</span>
-    <span>N<sup id="r-num">°01</sup></span>
-  </h1>
 
   <div class="rail">
     <div><dt>Pigment</dt><dd id="r-pig">—</dd></div>

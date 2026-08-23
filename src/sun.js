@@ -93,20 +93,44 @@ const typeCv = document.createElement('canvas');
 const typeCtx = typeCv.getContext('2d');
 let typeTex = null;
 
-export function setWordmark(text, opts = {}) {
+// The lockup is drawn to a 2D canvas and sampled in the shader BEFORE the figure
+// is composited, which is the only way she can pass in front of it. DOM type can
+// never sit behind the canvas -- the canvas is opaque.
+//
+// Geometry is kept in the same units the CSS uses (a rem derived from viewport
+// width) so the canvas copy and the layout cannot drift apart.
+export function setLockup(name, num) {
   const dpr = Math.min(devicePixelRatio, 2);
   const w = Math.round(innerWidth * dpr), h = Math.round(innerHeight * dpr);
   if (typeCv.width !== w || typeCv.height !== h) { typeCv.width = w; typeCv.height = h; }
+
+  const rem = Math.min(19, Math.max(10.5, innerWidth / 120)) * dpr;
+  const pad = 3 * rem;
+  const size = 14.375 * rem;                 // 230px on the 1920 board
+
   typeCtx.setTransform(1, 0, 0, 1, 0, 0);
   typeCtx.clearRect(0, 0, w, h);
+  typeCtx.fillStyle = '#fff';                // only the alpha is read
+  typeCtx.textBaseline = 'alphabetic';
 
-  const size = (opts.size ?? 0.15) * w;          // fraction of viewport width
-  typeCtx.font = `${size}px Bayard, Impact, sans-serif`;
-  typeCtx.textAlign = opts.align ?? 'center';
-  typeCtx.textBaseline = 'middle';
-  typeCtx.fillStyle = '#fff';                     // alpha is what matters
-  typeCtx.letterSpacing = opts.tracking ?? '-0.02em';
-  typeCtx.fillText(text, (opts.x ?? 0.5) * w, (opts.y ?? 0.5) * h);
+  // -4% throughout, straight off the board -- name and number alike
+  typeCtx.letterSpacing = '-0.04em';
+  typeCtx.font = `${size}px Disp, Impact, sans-serif`;
+  typeCtx.textAlign = 'left';
+  typeCtx.fillText(name.toUpperCase(), pad, h * 0.29 + size * 0.78);
+
+  // right block, low -- deliberately off the left block's baseline
+  const numTxt = 'NUM';
+  const supTxt = num;
+  typeCtx.letterSpacing = '-0.04em';
+  typeCtx.textAlign = 'right';
+  const supSize = size * 0.30;
+  typeCtx.font = `${supSize}px Disp, Impact, sans-serif`;
+  const supW = typeCtx.measureText(supTxt).width;
+  typeCtx.fillText(supTxt, w - pad, h * 0.52 + supSize * 0.9);
+
+  typeCtx.font = `${size}px Disp, Impact, sans-serif`;
+  typeCtx.fillText(numTxt, w - pad - supW - size * 0.05, h * 0.52 + size * 0.78);
 
   if (!typeTex) typeTex = view.canvasTexture(typeCv, 3);
   else typeTex.upload();
@@ -119,9 +143,8 @@ export function setWordmark(text, opts = {}) {
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\|<>#*+=';
 let wm = { from: '', to: '', t0: -1, dur: 1450, opts: {} };
 
-export function scrambleTo(text, opts) {
-  wm = { from: wm.to || text, to: text, t0: performance.now(), dur: DUR,
-         opts: opts ?? wm.opts };
+export function scrambleTo(text, num) {
+  wm = { from: wm.to || text, to: text, t0: performance.now(), dur: DUR, num };
 }
 
 function stepWordmark(now) {
@@ -137,19 +160,17 @@ function stepWordmark(now) {
     else if (p <= 0) out += wm.from[i] ?? GLYPHS[(i * 7) % GLYPHS.length];
     else out += GLYPHS[(Math.floor(now / 45) + i * 13) % GLYPHS.length];
   }
-  setWordmark(out, wm.opts);
-  if (raw >= 1) { wm.t0 = -1; setWordmark(wm.to, wm.opts); }
+  setLockup(out, wm.num ?? '°01');
+  if (raw >= 1) { wm.t0 = -1; setLockup(wm.to, wm.num ?? '°01'); }
 }
 
 document.fonts?.ready.then(() => {
-  if (!window.__wordmark) return;
-  wm.opts = window.__wordmark[1];
-  // start on the look that is actually showing -- hero.html's literal is only a
-  // placeholder for the font-loading window
-  const first = PRESETS[ORDER[lookIx]]?.name?.toUpperCase() ?? window.__wordmark[0];
-  wm.to = first;
-  setWordmark(first, wm.opts);
+  const l = PRESETS[ORDER[lookIx]];
+  wm.to = l.name.toUpperCase();
+  wm.num = '°01';
+  setLockup(wm.to, wm.num);
 });
+addEventListener('resize', () => { if (wm.to) setLockup(wm.to, wm.num ?? '°01'); });
 
 // Declared here because the panel below builds its look switcher from it.
 // Arrows rather than number keys: the digits sit behind Shift on AZERTY, so a
@@ -542,9 +563,8 @@ function paintCopy(name) {
   // baseline, which is a layout problem, not a texture one
   const n = ORDER.indexOf(name) + 1;
   const set = (sel, v) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
-  set('#r-name', l.name);
-  set('#r-num', '°' + String(n).padStart(2, '0'));
   set('#r-lot', 'Lot ' + String(n).padStart(2, '0'));
+  scrambleTo(l.name.toUpperCase(), '°' + String(n).padStart(2, '0'));
   window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
