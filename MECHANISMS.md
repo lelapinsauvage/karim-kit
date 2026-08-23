@@ -165,3 +165,74 @@ Say no to these fast, live:
   logic. Verify the served file, not the file on disk.
 - When something looks wrong for a fraction of a second, dump the numbers on
   both sides of that moment.
+
+---
+
+## 7 · TYPE OCCLUDED BY THE SUBJECT
+
+Type set beside an image is a caption. Type the subject *interrupts* is part of
+the same space — and it is the single cheapest way to make a flat composition
+read as depth.
+
+**Say it:** "The wordmark is behind her, so she cuts it. It's in the canvas, not
+on top of it."
+
+**Ask for:**
+> Rasterise the wordmark to a 2D canvas, upload it as a texture, and sample it in
+> the fragment shader BEFORE the figure is composited. Expose size, x, y and
+> tracking as numbers I can change.
+
+**Why a canvas and not DOM:** the canvas element is opaque, so DOM type can only
+ever sit on top of it. Drawing the text with the browser's own rasteriser and
+handing it over as a texture is what lets it live *inside* the scene.
+
+**The trap that will cost you a live minute:** bind the texture **every frame**,
+not inside a setup function. A page with no control panel runs its setup once,
+and a web font finishes loading long after that — so a one-shot bind silently
+misses and nothing renders. Anything depending on an async load belongs in the
+render loop.
+
+```js
+const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
+export function setWordmark(text, o = {}) {
+  const dpr = Math.min(devicePixelRatio, 2);
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.font = `${(o.size ?? 0.15) * cv.width}px YourFace, sans-serif`;
+  ctx.textAlign = o.align ?? 'center';
+  ctx.textBaseline = 'middle';
+  ctx.letterSpacing = o.tracking ?? '-0.02em';
+  ctx.fillStyle = '#fff';                       // only the alpha is used
+  ctx.fillText(text, (o.x ?? 0.5) * cv.width, (o.y ?? 0.5) * cv.height);
+  upload();                                     // then bind it in the loop
+}
+document.fonts?.ready.then(() => setWordmark(...));
+```
+
+```glsl
+// in main(), BEFORE the figure composite
+vec2 tuv = vec2(gl_FragCoord.x / uRes.x, 1.0 - gl_FragCoord.y / uRes.y);
+col = mix(col, vec3(uTypeInk), texture(uType, tuv).a);
+```
+
+**Composition rule:** the subject should interrupt the word near its *end*, not
+its middle. `OTJI—` reads as one word partly hidden; `OT` reads as a headline
+someone covered up.
+
+---
+
+## 8 · PLACING A CUTOUT
+
+**Frame to the alpha bounding box, not the canvas.** Cutouts come back with
+wildly different amounts of transparent padding, so sizing by image height makes
+two identical figures render at different scales. Measure the opaque extent once
+at load (one downsampled readback) and frame to that.
+
+**Bleed, don't crop.** A figure that stops inside the frame reads as a sticker.
+Either run it decisively off an edge or leave real air around it — the failure
+mode is the accidental middle, where a shoulder ends a few pixels from the
+boundary for no reason.
+
+**Against a disc:** the head belongs *inside* the circle with the circle whole
+behind it. A crescent reads as an accident. If the subject eats the shape, grow
+the shape rather than shrinking the subject.
