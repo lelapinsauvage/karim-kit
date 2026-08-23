@@ -564,6 +564,10 @@ function paintCopy(name) {
   const n = ORDER.indexOf(name) + 1;
   const set = (sel, v) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
   set('#r-lot', 'Lot ' + String(n).padStart(2, '0'));
+  set('#s-now', String(n).padStart(2, '0'));
+  set('#s-all', String(ORDER.length).padStart(2, '0'));
+  const bar = document.querySelector('#s-bar');
+  if (bar) bar.style.width = (n / ORDER.length * 100) + '%';
   scrambleTo(l.name.toUpperCase(), '°' + String(n).padStart(2, '0'));
   window.__syncPanel?.();
   if (!HAS_PANEL) { push(); return; }

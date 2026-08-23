@@ -40,54 +40,99 @@
   .frame *{pointer-events:auto}
 
   /* the one hard edge on the page */
+  /* THE TOP ROW.
+     Previously each corner was positioned independently against the same top
+     edge, so items of different sizes sat at different heights -- 1rem nav
+     against a 3.125rem mark aligns their boxes, not their centres. One flex row
+     of fixed height with align-items:center puts every item on the same optical
+     line whatever its size. */
+  /* Full-bleed with its own padding. Insetting the container instead meant the
+     mark's 50% was the container's centre, not the frame's -- so it sat left of
+     true centre by half the padding. */
+  .top{
+    position:absolute;top:var(--pad);left:0;right:0;
+    height:3.5rem;padding:0 var(--pad);
+    display:flex;align-items:center;justify-content:space-between;
+  }
   .rule{position:absolute;left:0;right:0;top:calc(var(--pad) + 3.5rem);height:1px;background:var(--hair)}
 
   .mark{
-    /* centred on the top row, not merely placed at the top: the corners are set
-       at 1rem and the mark at 3.125rem, so aligning their boxes leaves it
-       sitting low. Centre it on the row instead. */
-    position:absolute;top:var(--pad);left:50%;
-    transform:translate(-50%,-38%);
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     font-family:'Disp',Impact,sans-serif;font-size:3.125rem;letter-spacing:.01em;
-    text-transform:uppercase;line-height:1;
+    text-transform:uppercase;line-height:1;white-space:nowrap;
   }
 
-  .meta{position:absolute;font-size:1rem;font-weight:600;letter-spacing:.06em;color:var(--dim);
-    text-transform:uppercase;font-variant-numeric:tabular-nums;line-height:1.8}
-  .tl{top:var(--pad);left:var(--pad)}
-  .tr{top:var(--pad);right:var(--pad);text-align:right}
-  .bl{bottom:var(--pad);left:var(--pad)}
+  .meta{font-size:1rem;font-weight:600;letter-spacing:.06em;color:var(--dim);
+    text-transform:uppercase;font-variant-numeric:tabular-nums;line-height:1}
 
-  /* THE LOCKUP, split across her on a shared baseline. She interrupts a line
-     the eye wants to finish, which is what makes her the subject rather than a
-     picture the type sits beside. */
-  /* Broken off a shared baseline on purpose. Two blocks levelled with each
-     other read as a caption split in half; offsetting them makes the figure sit
-     in a diagonal rather than a corridor, and gives the eye a reason to travel
-     down the frame instead of straight across it. */
-  .lock{
-    position:absolute;left:0;right:0;top:0;bottom:0;
-    font-family:'Disp',Impact,sans-serif;
-    font-size:16.40625rem;                    /* 262.5px on the 1920 board */
-    line-height:.84;letter-spacing:-.005em;   /* Bayard is already tight; it
-                                                 needs air, not compression */
-    text-transform:uppercase;
+  .right{display:flex;align-items:center;gap:2rem}
+  nav{display:flex;align-items:center;gap:2rem}
+  nav a{font-size:1rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink);text-decoration:none;position:relative;line-height:1}
+  /* the underline grows from the left rather than appearing: a state that
+     arrives has direction, a state that switches does not */
+  nav a::after{content:'';position:absolute;left:0;right:100%;bottom:-.4rem;height:1px;
+    background:var(--ink);transition:right .32s cubic-bezier(.2,.8,.2,1)}
+  nav a:hover::after{right:0}
+
+  .cart{display:flex;align-items:center;gap:.5rem;color:var(--ink);
+    font-size:1rem;font-weight:600;letter-spacing:.08em;line-height:1;cursor:pointer}
+  .cart svg{width:1.15rem;height:1.15rem;display:block}
+  .cart sup{font-size:.72em;vertical-align:super;opacity:.55}
+
+  /* THE PRODUCT BUTTON. A pill in the one place nothing else occupies -- bottom
+     centre, on her. White on a warm ground is the only pure value in the frame,
+     which is what makes it read as the single actionable thing. */
+  .cta{
+    position:absolute;left:50%;bottom:calc(var(--pad) + .5rem);transform:translateX(-50%);
+    display:inline-flex;align-items:center;gap:.9rem;
+    background:#fff;color:#141414;border:0;border-radius:99rem;
+    padding:1.05rem 2rem;cursor:pointer;
+    font-family:'Mono',monospace;font-size:1rem;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;line-height:1;
+    box-shadow:0 .1rem 1.6rem rgba(0,0,0,.10);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
   }
-  .lock .a{position:absolute;left:var(--pad);top:29%}
-  .lock .b{position:absolute;right:var(--pad);top:52%;display:flex;align-items:flex-start}
-  .lock sup{font-size:.30em;font-weight:400;letter-spacing:0;margin-left:.06em;margin-top:.1em}
+  .cta:hover{transform:translateX(-50%) translateY(-.15rem);box-shadow:0 .4rem 2.2rem rgba(0,0,0,.16)}
+  .cta .dot{width:.42rem;height:.42rem;border-radius:50%;background:#141414;
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
-  /* the record. bold labels, regular values, one column each. */
+  /* SLIDER CONTROLS. A ring, a hairline, and a readout -- the futurism is in the
+     restraint and the tabular numbers, not in glow. */
+  .slider{
+    position:absolute;right:var(--pad);bottom:calc(var(--pad) + .5rem);
+    display:flex;align-items:center;gap:1rem;
+  }
+  .nb{
+    width:3.4rem;height:3.4rem;border-radius:50%;
+    border:1px solid rgba(20,20,20,.28);background:transparent;color:var(--ink);
+    display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;
+    font-family:'Mono',monospace;font-size:1.05rem;line-height:1;
+    transition:color .3s, border-color .3s;
+  }
+  /* the fill sweeps in from the direction the button points */
+  .nb::before{content:'';position:absolute;inset:0;background:var(--ink);
+    transform:translateX(-101%);transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+  .nb.next::before{transform:translateX(101%)}
+  .nb:hover{color:#F5F5F5;border-color:var(--ink)}
+  .nb:hover::before{transform:translateX(0)}
+  .nb span{position:relative}
+  .nb:disabled{opacity:.3;cursor:default}
+
+  .ticker{display:flex;align-items:center;gap:.55rem;font-size:1rem;font-weight:600;
+    letter-spacing:.06em;font-variant-numeric:tabular-nums;line-height:1}
+  .ticker .bar{width:3.2rem;height:1px;background:rgba(20,20,20,.22);position:relative}
+  .ticker .bar i{position:absolute;inset:0 auto 0 0;background:var(--ink);
+    transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .ticker .of{color:var(--dim)}
+
   .rail{position:absolute;left:var(--pad);bottom:calc(var(--pad) + 3rem);
     display:grid;gap:.5rem;font-size:1rem;letter-spacing:.06em}
   .rail div{display:grid;grid-template-columns:8ch 1fr;gap:1.5rem}
   .rail dt{font-family:'Grot',sans-serif;font-weight:400;letter-spacing:.02em;text-transform:uppercase}
   .rail dd{color:var(--dim);text-transform:uppercase}
 
-  nav{position:absolute;top:var(--pad);right:var(--pad);display:flex;gap:2rem}
-  nav a{font-size:1rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
-    text-decoration:none;transition:color .2s}
-  nav a:hover{color:var(--ink)}
 
   .count{position:fixed;left:var(--pad);bottom:var(--pad);z-index:30;
     font-family:'Disp',Impact,sans-serif;font-size:6rem;line-height:.8;
@@ -100,9 +145,22 @@
 
 <div class="frame" id="shell" style="opacity:0">
   <div class="rule"></div>
-  <div class="mark">Maison Noir</div>
-  <div class="meta tl"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
-  <nav><a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a></nav>
+
+  <div class="top">
+    <div class="meta"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
+    <div class="mark">Maison Noir</div>
+    <div class="right">
+      <nav><a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a></nav>
+      <div class="cart" role="button" tabindex="0">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M3 5h2l1.6 8.2A1.6 1.6 0 0 0 8.2 14.5h6.1a1.6 1.6 0 0 0 1.55-1.2L17.4 7H5.6"/>
+          <circle cx="8.6" cy="17" r="1.05" fill="currentColor" stroke="none"/>
+          <circle cx="14.6" cy="17" r="1.05" fill="currentColor" stroke="none"/>
+        </svg>
+        Cart<sup>0</sup>
+      </div>
+    </div>
+  </div>
 
   <div class="rail">
     <div><dt>Pigment</dt><dd id="r-pig">—</dd></div>
@@ -111,7 +169,18 @@
     <div><dt>Edition</dt><dd id="r-ed">Twenty seven of one hundred</dd></div>
   </div>
 
-  <div class="meta bl">← → to change lot</div>
+  <button class="cta"><span class="dot"></span>See the product</button>
+
+  <div class="slider">
+    <div class="ticker">
+      <span id="s-now">01</span>
+      <span class="bar"><i id="s-bar" style="width:25%"></i></span>
+      <span class="of" id="s-all">04</span>
+    </div>
+    <button class="nb prev" id="s-prev" aria-label="Previous"><span>←</span></button>
+    <button class="nb next" id="s-next" aria-label="Next"><span>→</span></button>
+  </div>
+
 </div>
 
 <div class="count" id="pct">000</div>
