@@ -577,7 +577,70 @@ if (HAS_PANEL) $('copy').onclick = () => {
 
 apply(LOOKS[0].id);
 
+// --- loader -----------------------------------------------------------------
+// Progress is REAL: every figure has to decode before the eclipse can break. A
+// loader that runs on a timer is a lie, and it always looks like one -- it
+// finishes while the page is still blank, or it sits at 99% with nothing left
+// to wait for.
+const ASSETS = LOOKS.map((l) => l.fig);
+let decoded = 0;
+for (const f of ASSETS) {
+  const img = new Image();
+  img.onload = img.onerror = () => { decoded++; };
+  img.src = `/src/figures/${f}.png`;
+}
+
+const LOAD_MIN = 2600;              // the opening is a shot, not a wait
+const bootAt = performance.now();
+let load = 0, loadDone = false;
+
+const easeIO = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
+
+// GLSL has smoothstep built in; JavaScript does not. Writing shader code and
+// page code in the same file makes this an easy thing to assume.
+const smoothstep = (e0, e1, x) => {
+  const t = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1);
+  return t * t * (3 - 2 * t);
+};
+const smoothstep01 = smoothstep;
+
+function stepLoader(now) {
+  const real = ASSETS.length ? decoded / ASSETS.length : 1;
+  const clock = Math.min((now - bootAt) / LOAD_MIN, 1);
+  const target = Math.min(real, clock);
+  load += (target - load) * 0.06;                 // damped, so it never snaps
+  if (load > 0.995) { load = 1; loadDone = true; }
+
+  const p = easeIO(load);
+
+  // ARRIVE: the two bodies come in from opposite sides and grow
+  // ECLIPSE:  they cross, the crescent closes, the last edge burns
+  // BREAK:    the occluder withdraws and the sun is left
+  const arrive  = smoothstep(0.00, 0.55, p);
+  const cross   = smoothstep(0.40, 0.86, p);
+  const breakUp = smoothstep(0.80, 1.00, p);
+
+  const spread = (1 - cross) * 0.62;
+  view.set('uEclA', [-spread * 0.55 + 0.02, 0.02]);
+  view.set('uEclB', [ spread * 1.45 + 0.02 + breakUp * 1.6, 0.02]);
+  view.set('uEclR', 0.06 + arrive * 0.30);
+  view.set('uPaper', hexToRgb('#F5F5F5'));
+
+  // the loader hands the frame over only once the sun is clear of the occluder
+  view.set('uLoad', p);
+  view.set('uLoadCover', 1 - smoothstep(0.90, 1.0, p));
+
+  const el = document.getElementById('pct');
+  if (el) {
+    el.textContent = String(Math.round(load * 100)).padStart(3, '0');
+    el.style.opacity = String(1 - smoothstep01(0.86, 0.97, p));
+  }
+  const sh = document.getElementById('shell');
+  if (sh) sh.style.opacity = String(smoothstep01(0.88, 1.0, p));
+}
 function frame(t) {
+  stepLoader(performance.now());
+
   stepTween(t);
   stepWordmark(t);
 

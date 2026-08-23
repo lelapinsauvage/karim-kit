@@ -62,13 +62,20 @@
   }
   .drop b{display:block;font-family:'Bayard',Impact,sans-serif;font-size:26px;letter-spacing:0;font-weight:400;margin-top:6px}
 
+  /* the counter lives on the loader's paper, so it is near-black */
+  .count{
+    position:fixed;left:var(--pad);bottom:var(--pad);z-index:30;
+    font-family:'Bayard',Impact,sans-serif;font-size:clamp(40px,7vw,110px);
+    line-height:.8;color:#141414;font-variant-numeric:tabular-nums;
+    mix-blend-mode:multiply;pointer-events:none;
+  }
   .rule{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--pad) + 34px);height:1px;background:rgba(242,237,228,.10)}
 </style>
 </head>
 <body class="paper">
 <canvas id="c"></canvas>
 
-<div class="frame">
+<div class="frame" id="shell" style="opacity:0">
   <div class="meta tl"><span id="r-lot">Lot 01 / 04</span><br>SS 26</div>
   <nav>
     <a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a>
@@ -94,5 +101,6 @@
   window.__wordmark = ['OTJIZE', { size: 0.175, x: 0.035, y: 0.42, align: 'left', tracking: '-0.035em' }];
 </script>
 <script type="module" src="/src/sun.js"></script>
+  <div class="count" id="pct">000</div>
 </body>
 </html>

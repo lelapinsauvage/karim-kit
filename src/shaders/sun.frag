@@ -105,6 +105,18 @@ uniform float uWave;
 uniform float uWaveAmt;
 uniform float uFlipA;
 uniform float uFlipB;
+// --- loader -----------------------------------------------------------------
+// uLoad runs 0..1 across the whole opening. Two bodies arrive from opposite
+// sides, cross into eclipse, and the occluder withdraws to leave the sun. The
+// ground stays paper until the eclipse breaks, then floods to the look's own
+// colour -- so the page arrives WITH the first character rather than before it.
+uniform float uLoad;
+uniform float uLoadCover;  // how much the loader owns the frame, 1 -> 0
+uniform vec2  uEclA;
+uniform vec2  uEclB;
+uniform float uEclR;
+uniform vec3  uPaper;
+
 uniform int   uFigMode;    // 0 stamp, 1 plate, 2 page, 3 weave
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
@@ -605,6 +617,45 @@ void main() {
   // body. Without it an 8-bit radial ramp quantises into visible contour rings
   // -- the curved banding across the background.
   col += (white(gl_FragCoord.xy, t12 * 2.3) - 0.5) * 0.010;
+
+  // --- loader ---------------------------------------------------------------
+  if (uLoadCover > 0.001) {
+    vec3 paper = uPaper;
+
+    // the emitting body
+    float dA = length(uv - uEclA) / max(uEclR, 1e-4);
+    float aaA = fwidth(dA) * 1.5;
+
+    vec3 lit = core(uPigment, uSpread * 1.4, 1.0);
+    vec3 body = mix(lit, uPigment, smoothstep(0.0, 1.0, dA * 0.9));
+
+    // rim: brightest where a body of light meets its own edge
+    float rimA = exp(-pow(abs(dA - 1.0) / 0.10, 1.6));
+
+    vec3 lc = paper;
+    lc = mix(lc, lit, rimA * 0.55);                          // corona on paper
+    lc = mix(lc, body, 1.0 - smoothstep(1.0 - aaA, 1.0 + aaA, dA));
+
+    // the occluder. same size, no light of its own -- it takes the ground's
+    // colour, so what you see is the sun being covered rather than a second
+    // object arriving.
+    float dB = length(uv - uEclB) / max(uEclR, 1e-4);
+    float aaB = fwidth(dB) * 1.5;
+    float mB = 1.0 - smoothstep(1.0 - aaB, 1.0 + aaB, dB);
+
+    // light squeezes out along the closing gap: the thinner the crescent, the
+    // harder the remaining edge burns. that is the whole drama of an eclipse.
+    float gap = abs(length(uEclA - uEclB) / max(uEclR, 1e-4));
+    float tight = 1.0 - smoothstep(0.0, 1.4, gap);
+    float bead = exp(-pow(abs(dA - 1.0) / 0.055, 1.4)) * tight;
+
+    lc = mix(lc, paper, mB * 0.97);
+    lc += lit * bead * 1.9;
+
+    lc += (white(gl_FragCoord.xy * uGrainSize, floor(uTime * 12.0)) - 0.5) * 0.045;
+
+    col = mix(col, lc, uLoadCover);
+  }
 
   fragColor = vec4(col, 1.0);
 }
