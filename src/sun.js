@@ -3,6 +3,9 @@ import frag from './shaders/sun.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
 const $ = (id) => document.getElementById(id);
+// hero.html renders the same scene with no control panel, so every lookup has
+// to tolerate a missing element and fall back to the preset value
+const HAS_PANEL = !!document.getElementById('r');
 
 // Two locked looks. Switch with the buttons or 1 / 2 -- so a direction can be
 // compared instantly instead of re-dialled, which is the only way to judge two
@@ -13,14 +16,14 @@ const PRESETS = {
   // luminance than blue at the same value, so it takes slightly more spread and
   // glow to sit at the same weight in the frame.
   EMBER: {
-    r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
+    r:0.40, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.92,
     glowSize:0.58, grain:0.235, grainSize:1.45, grainMask:0.55, spread:2.0,
     bgFall:0.70, bgFloor:0, warmth:0.60, purity:0.37, wobble:1.42,
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:0.82, figX:-0.03, figY:-0.34, figDark:0.96, figTint:0.61, figLift:0,
-    clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#990000', bg:'#333333',
+    figH:1.23, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
+    clothInk:'#ff0000', coreX:0.19, coreY:0.10, pigment:'#990000', bg:'#333333',
   },
   ULTRA: {
     r:0.30, edge:0.400, coreSize:0.99, rimBand:0.75, drift:1.18, glow:0.82,
@@ -29,8 +32,8 @@ const PRESETS = {
     cloth:0.14, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
     clothWave:7.5, clothSpeed:1.9, charge:0.33, chargeSpd:0.55, chargeLen:9,
     light:1.4, rake:0.82, sheen:0.9, cord:1.3,
-    figH:0.82, figX:-0.03, figY:-0.34, figDark:0.96, figTint:0.61, figLift:0,
-    clothInk:'#8c8c8c', coreX:0.19, coreY:0.26, pigment:'#0805e1', bg:'#333333',
+    figH:1.23, figX:0.055, figY:-0.215, figDark:0.96, figTint:0.61, figLift:0,
+    clothInk:'#ff0000', coreX:0.19, coreY:0.10, pigment:'#0805e1', bg:'#333333',
   },
 };
 
@@ -46,38 +49,54 @@ const figTex = view.texture('/src/figures/m3.png', 0);
 
 // two colours. core and rim are derived in the shader.
 const COL = { pigment:'uPigment', bg:'uBg', clothInk:'uClothInk' };
-function push(){
-  for (const id of ['figH','figX','figY']) {
-    const o=$('o-'+id); if(o)o.textContent=parseFloat($(id).value).toFixed(3);
+// One place that pushes a settings object at the shader. The panel writes into
+// it when there is a panel; hero.html has none and just sends the preset.
+function send(v) {
+  for (const [id, u] of Object.entries(NUM)) view.set(u, v[id]);
+  for (const [id, u] of Object.entries(COL)) view.set(u, hexToRgb(v[id]));
+  view.set('uCore', [v.coreX, v.coreY]);
+  view.set('uPos', [0, 0]);
+  view.bind(figTex, 'uFigTex');
+  view.set('uFigRect', figTex.rect);
+  view.set('uFigPos', [figTex.aspect, v.figH, v.figX, v.figY]);
+  view.set('uFigShow', v.figShow === false ? 0 : 1);
+}
+
+let state = { ...PRESETS.EMBER };
+
+function push() {
+  if (!HAS_PANEL) { send(state); return; }
+
+  for (const id of Object.keys(NUM)) {
+    state[id] = parseFloat($(id).value);
+    const o = $('o-' + id); if (o) o.textContent = state[id].toFixed(3);
   }
-  for(const [id,u] of Object.entries(NUM)){const v=parseFloat($(id).value);view.set(u,v);
-    const o=$('o-'+id); if(o)o.textContent=v.toFixed(3);}
+  for (const id of ['figH','figX','figY','coreX','coreY']) {
+    state[id] = parseFloat($(id).value);
+    const o = $('o-' + id); if (o) o.textContent = state[id].toFixed(3);
+  }
+
   // The ground is the pigment by default. One colour to change, and the frame
-  // is automatically in the same family as the light -- which is what a lit
-  // room actually looks like. Untick to drive it separately.
+  // is in the same family as the light -- which is what a lit room looks like.
   const linked = $('linkBg').checked;
   $('bg').disabled = linked;
   $('bg-hex').disabled = linked;
   if (linked) { $('bg').value = $('pigment').value; $('bg-hex').value = $('pigment').value; }
-  for(const [id,u] of Object.entries(COL)) view.set(u,hexToRgb($(id).value));
+  for (const id of Object.keys(COL)) state[id] = $(id).value;
 
-  const cx=parseFloat($('coreX').value), cy=parseFloat($('coreY').value);
-  view.set('uCore',[cx,cy]); $('o-coreX').textContent=cx.toFixed(2); $('o-coreY').textContent=cy.toFixed(2);
-  view.set('uPos',[0,0]);
-
-  // the rect is the cutout's alpha bounding box, measured at load, so padding
-  // differences cannot change how big she renders
-  view.bind(figTex, 'uFigTex');
-  view.set('uFigRect', figTex.rect);
-  view.set('uFigPos', [figTex.aspect, parseFloat($('figH').value),
-                       parseFloat($('figX').value), parseFloat($('figY').value)]);
-  view.set('uFigShow', $('figShow').checked ? 1 : 0);
+  state.figShow = $('figShow').checked;
+  send(state);
 }
-for(const id of [...Object.keys(NUM),...Object.keys(COL),'coreX','coreY','linkBg','figShow','figH','figX','figY']) $(id).addEventListener('input',push);
+
+if (HAS_PANEL) {
+  for (const id of [...Object.keys(NUM), ...Object.keys(COL),
+                    'coreX','coreY','linkBg','figShow','figH','figX','figY'])
+    $(id).addEventListener('input', push);
+}
 
 // hex field <-> swatch, both directions. colours arrive as hex, from a
 // reference or from Figma, and typing one is faster than the native picker.
-for (const id of Object.keys(COL)) {
+for (const id of (HAS_PANEL ? Object.keys(COL) : [])) {
   const sw = $(id), hx = $(id + '-hex');
   sw.addEventListener('input', () => { hx.value = sw.value; });
   hx.addEventListener('input', () => {
@@ -89,6 +108,8 @@ for (const id of Object.keys(COL)) {
 
 function apply(name) {
   const p = PRESETS[name];
+  state = { ...p };
+  if (!HAS_PANEL) { push(); return; }
   for (const [k, v] of Object.entries(p)) {
     const el = $(k); if (!el) continue;
     el.value = v;
@@ -105,7 +126,7 @@ addEventListener('keydown', (e) => {
 });
 
 // dump the whole state, so a look you like can be pasted into a character file
-$('copy').onclick = () => {
+if (HAS_PANEL) $('copy').onclick = () => {
   const o = {};
   for (const id of Object.keys(NUM)) o[id] = parseFloat($(id).value);
   o.core = [parseFloat($('coreX').value), parseFloat($('coreY').value)];
