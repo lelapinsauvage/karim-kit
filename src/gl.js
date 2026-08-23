@@ -159,11 +159,13 @@ export function quad(canvas, frag) {
     program: prog,
     texture,
     canvasTexture,
-    bind: (rec, uniformName) => {
-      gl.activeTexture(gl.TEXTURE0 + rec.unit);
+    bind: (rec, uniformName, unit) => {
+      const slot = unit ?? rec.unit;
+      gl.useProgram(prog);
+      gl.activeTexture(gl.TEXTURE0 + slot);
       gl.bindTexture(gl.TEXTURE_2D, rec.tex);
       const l = u(uniformName);
-      if (l !== null) gl.uniform1i(l, rec.unit);
+      if (l !== null) gl.uniform1i(l, slot);
     },
     set: (name, v) => {
       // explicit: once a second program exists (a feedback pass), uniform
@@ -171,7 +173,11 @@ export function quad(canvas, frag) {
       gl.useProgram(prog);
       const l = u(name);
       if (l === null) return;
-      if (name === 'uType') gl.uniform1i(l, v);
+      // samplers and int uniforms need uniform1i -- uniform1f on an int is a
+      // silent no-op in some drivers and an error in others, and either way the
+      // value never lands
+      if (name === 'uType' || name.startsWith('uFigTex')
+          || name === 'uFigA' || name === 'uFigB') gl.uniform1i(l, v);
       else if (typeof v === 'number') gl.uniform1f(l, v);
       else if (v.length === 2) gl.uniform2f(l, v[0], v[1]);
       else if (v.length === 3) gl.uniform3f(l, v[0], v[1], v[2]);

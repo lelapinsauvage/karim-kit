@@ -26,7 +26,7 @@ const BASE = {
   cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
   clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
   light:0.85, rake:0.82, sheen:0.4, cord:1.3,
-  figH:1.05, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
+  tear:1.0, figH:1.05, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
   coreX:0.19, coreY:-0.110, typeInk:0.07,
 };
 
@@ -149,7 +149,7 @@ document.fonts?.ready.then(() => {
 // Arrows rather than number keys: the digits sit behind Shift on AZERTY, so a
 // plain keypress never reaches them.
 const ORDER = LOOKS.map((l) => l.id);
-let lookIx = 0;
+let lookIx = 0, lookIxPrev = 0;
 
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
@@ -167,7 +167,7 @@ if (!HAS_PANEL) {
     clothSpeed:[0,5,0.01], light:[0,4,0.01], rake:[0,1,0.01], sheen:[0,3,0.01],
     cord:[0,4,0.01], figDark:[0,1,0.01], figTint:[0,1,0.01], figLift:[0,3,0.01],
     charge:[0,2,0.01], chargeSpd:[0,3,0.01], chargeLen:[1,30,0.1],
-    figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005],
+    tear:[0,3,0.01], figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005],
     coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
   };
   const GROUPS = [
@@ -176,7 +176,7 @@ if (!HAS_PANEL) {
     ['ground', ['bgFall','bgFloor']],
     ['cloth',  ['cloth','clothScale','clothShape','clothMorph','clothWave','clothSpeed','clothWeight','charge','chargeSpd','chargeLen']],
     ['surface',['light','rake','sheen','cord']],
-    ['figure', ['figH','figX','figBleed','figDark','figTint','figLift']],
+    ['figure', ['figH','figX','figBleed','figDark','figTint','figLift','tear']],
     ['grain',  ['grain','grainSize','grainMask']],
     ['type',   ['typeInk']],
   ];
@@ -394,7 +394,8 @@ let tween = null;
 
 function transitionTo(name) {
   const from = { ...state }, to = PRESETS[name];
-  tween = { from, to, name, t0: performance.now() };
+  tween = { from, to, name, t0: performance.now(),
+            fromIx: ORDER.indexOf(ORDER[lookIxPrev]), toIx: ORDER.indexOf(name), mix: 0 };
   paintCopy(name);                       // the record changes with the move
 }
 
@@ -402,6 +403,7 @@ function stepTween(now) {
   if (!tween) return;
   const raw = Math.min((now - tween.t0) / DUR, 1);
   const t = EASE(raw);
+  tween.mix = t;
 
   for (const k of NUMKEYS()) {
     const a = tween.from[k], b = tween.to[k];
@@ -474,6 +476,7 @@ addEventListener('keydown', (e) => {
   if (!d) return;
   e.preventDefault();
   if (tween) return;                    // ignore input mid-move
+  lookIxPrev = lookIx;
   lookIx = (lookIx + d + ORDER.length) % ORDER.length;
   transitionTo(ORDER[lookIx]);
 });
@@ -502,9 +505,23 @@ function frame(t) {
   // after it loads -- both land after that single call. Setting them once meant
   // the figure rendered with aspect 1 and a full-canvas rect (squashed), and
   // snapped correct the instant any slider forced a second send().
-  view.bind(figTex, 'uFigTex');
-  view.set('uFigRect', figTex.rect);
-  view.set('uFigPos', [figTex.aspect, state.figH, state.figX, state.figBleed ?? 0]);
+  // every figure stays bound to its own unit; the shader picks by index
+  for (const l of LOOKS) view.bind(FIGTEX[l.id], `uFigTex${LOOKS.indexOf(l)}`, 4 + LOOKS.indexOf(l));
+  for (let i = 0; i < LOOKS.length; i++) view.set(`uFigTex${i}`, 4 + i);
+
+  const A = tween ? tween.fromIx : lookIx;
+  const B = tween ? tween.toIx   : lookIx;
+  const ta = FIGTEX[ORDER[A]], tb = FIGTEX[ORDER[B]];
+  const pa = PRESETS[ORDER[A]], pb = PRESETS[ORDER[B]];
+
+  view.set('uFigA', A);
+  view.set('uFigB', B);
+  view.set('uFigRect',  ta.rect);
+  view.set('uFigRectB', tb.rect);
+  view.set('uFigPos',  [ta.aspect, pa.figH, pa.figX, pa.figBleed ?? 0]);
+  view.set('uFigPosB', [tb.aspect, pb.figH, pb.figX, pb.figBleed ?? 0]);
+  view.set('uFigMix', tween ? tween.mix : 1);
+  view.set('uTear', state.tear ?? 1);
 
   if (typeTex) {
     gl0.activeTexture(gl0.TEXTURE0 + 3);

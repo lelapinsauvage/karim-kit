@@ -86,7 +86,16 @@ uniform float uCord;       // how much each stroke bulges
 // --- the figure -------------------------------------------------------------
 // Composited in the shader, not stacked as a DOM image: it sits in the same
 // exposure as the light, gets the same grain, and is occluded by nothing.
-uniform sampler2D uFigTex;
+uniform sampler2D uFigTex0;
+uniform sampler2D uFigTex1;
+uniform sampler2D uFigTex2;
+uniform sampler2D uFigTex3;
+uniform int   uFigA;       // which unit the outgoing figure is on
+uniform int   uFigB;       // and the incoming one
+uniform vec4  uFigRectB;
+uniform vec4  uFigPosB;
+uniform float uFigMix;     // 0 outgoing, 1 incoming
+uniform float uTear;       // how hard she comes apart in the middle of the move
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
 uniform float uFigShow;
@@ -227,6 +236,30 @@ vec3 edgeOf(vec3 pigment, float k, float w) {
   h.z = clamp(h.z * (1.0 - 0.34 * k), 0.0, 1.0);
   return hsv2rgb(h);
 }
+
+// sampler arrays need a constant index in GLSL ES, so this is a branch rather
+// than a lookup. Four figures is the whole set; more would want a texture array.
+vec4 figSample(int which, vec2 tc) {
+  if (which == 0) return texture(uFigTex0, tc);
+  if (which == 1) return texture(uFigTex1, tc);
+  if (which == 2) return texture(uFigTex2, tc);
+  return texture(uFigTex3, tc);
+}
+
+// One figure, sampled through its own rect and placement, bottom-anchored.
+vec4 figAt(int which, vec4 rect, vec4 pos, vec2 uv, vec2 res, float shift) {
+  float aspect = pos.x, fh = pos.y;
+  float frameBottom = -0.5 * res.y / min(res.x, res.y);
+  float cy = frameBottom + fh * 0.5 - pos.w;
+  vec2  q  = (uv - vec2(pos.z + shift, cy)) / fh;
+  vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
+  if (lc.x < 0.0 || lc.x > 1.0 || lc.y < 0.0 || lc.y > 1.0) return vec4(0.0);
+  vec4 t = figSample(which, rect.xy + lc * rect.zw);
+  t.a = smoothstep(0.55, 0.88, t.a);
+  return t;
+}
+
+
 
 void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
@@ -394,43 +427,41 @@ void main() {
 
   // --- figure ---------------------------------------------------------------
   if (uFigShow > 0.5) {
-    // Bottom-anchored. The figure's content bottom is pinned to the frame's
-    // bottom edge (minus a bleed), so height and x are the only things worth
-    // tuning and no figure can ever float. Cutouts crop differently every time
-    // they are generated -- tuning y per model is fighting that instead of
-    // removing it.
-    float aspect = uFigPos.x, fh = uFigPos.y;
-    float frameBottom = -0.5 * uRes.y / min(uRes.x, uRes.y);
-    float cy = frameBottom + fh * 0.5 - uFigPos.w;   // w is now BLEED, not y
-    vec2  q  = (uv - vec2(uFigPos.z, cy)) / fh;
-    vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
+    // She tears into horizontal bands and reassembles as the next figure. The
+    // bands belong to HER -- they are masked by her own silhouette and never
+    // touch the frame -- which is the difference between a subject coming apart
+    // and a screen glitching. The second is always cheap.
+    float band = floor((uv.y + 0.5) * 26.0);
+    float jit  = hash21(vec2(band, floor(uTime * 18.0))) - 0.5;
 
-    if (lc.x > 0.0 && lc.x < 1.0 && lc.y > 0.0 && lc.y < 1.0) {
-      vec4 tex = texture(uFigTex, uFigRect.xy + lc * uFigRect.zw);
+    // strongest at the midpoint of the move, nothing at either end
+    float tear = sin(3.14159 * clamp(uFigMix, 0.0, 1.0)) * uTear;
+    float shift = jit * 0.13 * tear;
 
-      // Cut the matte's soft skirt. Background removal leaves a band of low
-      // alpha carrying dark colour from the original backdrop -- keep it and it
-      // reads as a dark outline traced around the whole figure.
-      // the matte's skirt carries backdrop colour; cut it hard or it traces a
-      // dark rectangle where the original image ended
-      tex.a = smoothstep(0.55, 0.88, tex.a);
+    // each band decides for itself which figure it is showing, and they do not
+    // all decide at once -- a single threshold would just be a wipe
+    float turn = hash21(vec2(band, 7.7));
+    float k = smoothstep(turn * 0.55, turn * 0.55 + 0.45, uFigMix);
 
-      if (tex.a > 0.01) {
-        // The photograph is left alone. darken / tint / spill all default to 0,
-        // so what lands on screen is exactly the pixels that were generated --
-        // grading it is a decision, not something the compositor does for you.
-        vec3 fig = tex.rgb * (1.0 - uFigDark);
-        if (uFigTint > 0.0) {
-          float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-          fig = mix(fig, uPigment * lum * 0.8, uFigTint);
-        }
-        if (uFigLift > 0.0) {
-          float sp = exp(-max(length(uv - uPos) - uR, 0.0) / max(uGlowSize * 0.7, 1e-4));
-          fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
-        }
+    vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv, uRes,  shift);
+    vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv, uRes, -shift);
+    vec4 tex = mix(fa, fb, k);
 
-        col = mix(col, fig, tex.a);
+    if (tex.a > 0.01) {
+      vec3 fig = tex.rgb * (1.0 - uFigDark);
+      if (uFigTint > 0.0) {
+        float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+        fig = mix(fig, uPigment * lum * 0.8, uFigTint);
       }
+      if (uFigLift > 0.0) {
+        float sp = exp(-max(length(uv - uPos) - uR, 0.0) / max(uGlowSize * 0.7, 1e-4));
+        fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
+      }
+
+      // a torn band lifts toward the light, so the break reads as energy
+      fig += core(uPigment, uSpread * 2.0, 1.0) * abs(jit) * tear * 0.5;
+
+      col = mix(col, fig, tex.a);
     }
   }
 
