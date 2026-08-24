@@ -665,7 +665,7 @@ const smoothstep01 = smoothstep;
 // Keeping them separate is what lets the counter mean something. A loader whose
 // reveal overlaps its own progress is decoration.
 let revealT = -1;
-const REVEAL_MS = 2800;     // room to watch each part arrive
+const REVEAL_MS = 1750;     // momentum: long enough to read, short enough to drive
 
 function stepLoader(now) {
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
@@ -686,11 +686,11 @@ function stepLoader(now) {
   // reveal arrives is a bright circle getting bigger -- which is why it read as
   // cheap. Black mass, then ignition, in that order.
   const SEED = 0.085;
-  // They approach slowly and only meet at the very end of the count. Merging at
-  // 70% leaves a third of the load with one static blob on screen, which is dead
-  // time -- the join has to land ON the number.
-  const close = smoothstep(0.05, 0.965, p) ** 1.6;
-  const seam  = Math.exp(-(((p - 0.965) / 0.035) ** 2));
+  // They close for the entire count and touch on the last frame of it. The
+  // contact IS the trigger -- there is no moment where a merged body sits
+  // waiting for something else to start, which was the dead spot.
+  const close = p ** 1.35;
+  const seam  = Math.exp(-(((p - 0.985) / 0.02) ** 2));
 
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
@@ -731,14 +731,14 @@ function stepLoader(now) {
   const sineOut = (x) => Math.sin((x * Math.PI) / 2);        // gentlest of the three
 
   // the sun opens on expo -- it should feel released, not driven
-  const e = expoOut(seg(0.00, 0.62));
+  const e = expoOut(seg(0.00, 0.52));
 
   // THE IGNITION, then the expansion. The mass goes white, catches, and opens.
   // Holding the ignition back until here means the reveal has a moment of its
   // own rather than continuing something the load already did.
   const look = PRESETS[ORDER[lookIx]];
-  view.set('uEclWhite', seg(0.00, 0.05));
-  view.set('uEclFill',  quartIO(seg(0.03, 0.22)));
+  view.set('uEclWhite', seg(0.00, 0.035));
+  view.set('uEclFill',  quartIO(seg(0.02, 0.17)));
 
   state.r = SEED + (look.r - SEED) * e;
   view.set('uEclR', state.r);
@@ -755,7 +755,7 @@ function stepLoader(now) {
   // rest of the session rather than a value the slider has to keep clearing
   // the wave leaves just after the flash, so the ignition reads as its cause,
   // and travels on a slower curve than the sun so the two separate as they go
-  const wv = quartIO(seg(0.05, 0.78));
+  const wv = expoOut(seg(0.03, 0.70));
   view.set('uClothFront', rt >= 1 ? 99.0 : SEED + wv * 2.9);
   view.set('uWave', wv);
   view.set('uWaveAmt', Math.sin(Math.PI * wv) ** 0.55);
@@ -764,13 +764,15 @@ function stepLoader(now) {
   // across nearly the whole reveal on a sine, which has no acceleration to
   // notice. Everything else can be seen arriving; she should only be seen to
   // have arrived.
-  view.set('uFigFade', sineOut(seg(0.16, 0.92)));
+  // she arrives quickly and then settles: the old sine over three quarters of
+  // the reveal had no attack at all, which reads as slow rather than smooth
+  view.set('uFigFade', expoOut(seg(0.08, 0.58)));
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   view.set('uLoadCover', 1 - smoothstep(0.0, 0.20, rt));
 
-  state.bg = mixPigment('#F5F5F5', look.bg, quartIO(seg(0.02, 0.40)));
-  state.figTint = look.figTint * sineOut(seg(0.20, 0.85));
+  state.bg = mixPigment('#F5F5F5', look.bg, quartIO(seg(0.00, 0.28)));
+  state.figTint = look.figTint * sineOut(seg(0.10, 0.62));
   send(state);
 }
 
