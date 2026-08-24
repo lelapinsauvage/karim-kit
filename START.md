@@ -7,10 +7,33 @@ it covers, not before.
 
 | import | what it does |
 |---|---|
-| `quad(canvas, frag)` from `@karimsaab/kit` | WebGL2 fullscreen-quad harness. Returns `{set, draw, texture, canvasTexture, bind}`. Sizing is handled. |
+| `quad(canvas, frag)` | WebGL2 fullscreen-quad harness. Returns `{set, draw, texture, canvasTexture, bind}`. Sizing handled. |
 | `hexToRgb(hex)` | hex string → `[r,g,b]` 0..1 |
-| `src/shaders/sun.frag` | Everything visual: light body, pattern field, figure compositing, wordmark layer, eclipse loader. One shader. |
-| `src/sun.js` | Wires all of it. Presets, transitions, the control panel. |
+| `panel({...})` | **The control panel.** Generated from a table — do not write sliders by hand. |
+| `SUN_RANGE` | min/max/step for every uniform. Already decided; do not re-pick them. |
+| `SUN_GROUPS` | how the controls are grouped in the panel |
+| `SUN_UNIFORM` | state key → uniform name (`r` → `uR`). Guessing this wrong fails **silently**: setting an unknown uniform is a no-op, so the control just does nothing. |
+| `src/shaders/sun.frag` | Everything visual: light body, pattern field, figure compositing, wordmark layer, eclipse loader. One shader. Import with `?raw`. |
+
+`src/sun.js` is **a reference implementation to read, not a module to import.** It
+is the finished brand piece — it owns a preset table, specific figures and one
+particular wordmark geometry. Read it to see how something is wired; import
+`quad` and `panel`.
+
+## The shader is gated
+
+`sun.frag` holds four subsystems and each sits behind a single scalar. Set the
+gate and the whole block is skipped — you do not need to neutralise its interior:
+
+| gate | set to | switches off |
+|---|---|---|
+| `uLoadCover` | `0` | the eclipse loader |
+| `uFigShow` | `0` | the figure and its transition |
+| `uCloth` | `0` | the pattern field |
+| `uTypeShow` | `0` | the wordmark layer |
+
+Two values are **not** safe at zero, because they are divisors or have a
+non-zero "off" state: `uThread` must be `1`, and `uClothFront` hidden is `-1`.
 | `scripts/generate.mjs` | `node scripts/generate.mjs <name> "<prompt>"` → generates an image, cuts out the background, writes `src/figures/<name>.png` |
 | `scripts/batch.mjs` | Same, for a list in `scripts/models.mjs` |
 

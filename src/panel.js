@@ -8,6 +8,20 @@
 
 // Ranges for sun.frag. These describe the SHADER, not any piece made with it,
 // so they live in the kit.
+// state key -> uniform name. Every consumer was retyping this because it lived
+// inside a page rather than beside the ranges it belongs with. `r` is `uR`,
+// `rimW` is `uRimW`, and guessing the convention wrong fails silently: setting
+// an unknown uniform is a no-op, so the control simply does nothing.
+export const SUN_UNIFORM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
+  glow:'uGlow', glowSize:'uGlowSize', glowMode:'uGlowMode',
+  rimW:'uRimW', rimStr:'uRimStr', rimIn:'uRimIn', grain:'uGrain', grainSize:'uGrainSize',
+  grainMask:'uGrainMask', spread:'uSpread', bgFall:'uBgFall', bgFloor:'uBgFloor', warmth:'uWarmth', purity:'uPurity',
+  wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
+  clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
+  light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
+  figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift',
+  charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
+
 export const SUN_RANGE = {
   r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
   rimBand:[0,1,0.01], drift:[0,4,0.01], glow:[0,2,0.01], glowSize:[0.02,1.2,0.005],
