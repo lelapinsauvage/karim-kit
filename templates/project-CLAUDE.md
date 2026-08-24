@@ -56,4 +56,14 @@ module to import.
 
 ## Verify before you report
 
-Start the dev server, screenshot it, look. "It should work" is not a report.
+Say in one line what you built and whether it renders. Then stop.
+
+**I look, not you.** The browser is open on my other screen. Do not screenshot,
+do not open Puppeteer, do not drive a headless browser, do not navigate anywhere
+to "check your work." It costs a minute every time and it tells me something I
+am already looking at.
+
+The one exception is **measuring**. If I ask how far off something is, or what
+colour a pixel actually is, or what the real canvas size is — screenshot it and
+measure. That is a number I cannot get by looking. Everything else is a look, and
+looking is my job.
