@@ -35,12 +35,59 @@ export const SUN_RANGE = {
   cord:[0,4,0.01], figDark:[0,1,0.01], figTint:[0,1,0.01], figLift:[0,3,0.01],
   charge:[0,2,0.01], chargeSpd:[0,3,0.01], chargeLen:[1,30,0.1],
   tear:[0,3,0.01], thread:[0.2,3,0.01], figMode:[0,3,1],
-  figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005], figBleed:[-0.4,0.6,0.005],
+  figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figBleed:[-0.4,0.6,0.005],
   coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
 };
 
 // The scene's own anatomy, in the order you actually dial it: shape, then
 // light, then ground, then cloth, then the figure, then finish.
+// A deliberately UNRESOLVED starting state.
+//
+// Defaults must not contain anybody's answer. Mid-grey and pure red are obvious
+// placeholders -- nobody ships them, so the first thing you do is replace them,
+// on camera, which is the work. A default that already looks good removes the
+// only visible evidence that a decision was made at all.
+//
+// Every gate is off, so this renders a flat ground with one light body and
+// nothing else. Bring subsystems up one at a time.
+export const SUN_NEUTRAL = {
+  // colour — placeholders, not choices
+  pigment: '#FF0000',
+  bg:      '#808080',
+  clothInk:'#000000',
+
+  // body — mid-range
+  r: 0.30, edge: 0.20, coreX: 0, coreY: 0, coreSize: 1.0, rimBand: 0.5,
+  spread: 0.5, warmth: 0.5, purity: 0.5, wobble: 0,  drift: 0,
+
+  // light
+  glow: 0.5, glowSize: 0.3, glowMode: 0,
+  rimW: 0.05, rimStr: 0.5, rimIn: 0.05,
+
+  // ground — flat: any bgFloor below 1 darkens it radially
+  bgFall: 0.5, bgFloor: 1.0,
+
+  // grain
+  grain: 0, grainSize: 1.0, grainMask: 1.0,
+
+  // gates OFF. see START.md
+  cloth: 0, typeInk: 0,
+  clothScale: 12, clothShape: 0, clothMorph: 0, clothWave: 0, clothSpeed: 0,
+  clothWeight: 0.1, charge: 0, chargeSpd: 0, chargeLen: 10,
+  light: 0, rake: 0, sheen: 0, cord: 0,
+  figH: 1, figX: 0, figBleed: 0, figDark: 0, figTint: 0, figLift: 0,
+  figMode: 0, tear: 0, thread: 1,        // thread is a divisor: never 0
+};
+
+// uniforms with no slider that still have to be set, and their safe "off" value
+export const SUN_OFF = {
+  uLoadCover: 0, uLoad: 0, uEclR: 0, uEclWhite: 0, uEclFill: 0, uEclSeam: 0,
+  uFigShow: 0, uFigFade: 0, uFigMix: 0, uFigA: 0, uFigB: 0,
+  uFlipA: 0, uFlipB: 0, uTypeShow: 0,
+  uWave: 0, uWaveAmt: 0,
+  uClothFront: -1,                       // hidden is -1, NOT 0
+};
+
 export const SUN_GROUPS = [
   ['body',    ['r','edge','coreX','coreY','coreSize','rimBand','drift','wobble']],
   ['light',   ['glow','glowSize','glowMode','rimW','rimStr','rimIn','spread','warmth','purity']],

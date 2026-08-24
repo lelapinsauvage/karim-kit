@@ -12,6 +12,8 @@ it covers, not before.
 | `panel({...})` | **The control panel.** Generated from a table — do not write sliders by hand. |
 | `SUN_RANGE` | min/max/step for every uniform. Already decided; do not re-pick them. |
 | `SUN_GROUPS` | how the controls are grouped in the panel |
+| `SUN_NEUTRAL` | **the starting state.** Grey ground, red pigment, everything mid-range, every gate off. Obvious placeholders on purpose. |
+| `SUN_OFF` | the uniforms with no slider that still have to be set, at their safe off values |
 | `SUN_UNIFORM` | state key → uniform name (`r` → `uR`). Guessing this wrong fails **silently**: setting an unknown uniform is a no-op, so the control just does nothing. |
 | `src/shaders/sun.frag` | Everything visual: light body, pattern field, figure compositing, wordmark layer, eclipse loader. One shader. Import with `?raw`. |
 
@@ -39,6 +41,16 @@ non-zero "off" state: `uThread` must be `1`, and `uClothFront` hidden is `-1`.
 
 **Do not write:** a WebGL harness, a Truchet tiling, a radial light body, a
 loader, an image generator. They exist. Import or copy them.
+
+## Start neutral
+
+Spread `SUN_NEUTRAL` into your state and `SUN_OFF` onto the shader and you have a
+flat ground with one light body and nothing else. Bring subsystems up one gate at
+a time.
+
+**Do not pre-tune it.** Grey and pure red are placeholders nobody ships, which is
+the point: replacing them is the work, and it happens on camera. A default that
+already looks good removes the only visible evidence that a decision was made.
 
 ## The four rules
 
