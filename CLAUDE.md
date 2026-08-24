@@ -1,5 +1,7 @@
 # karim-kit
 
+**Read `START.md` first.** This file is background; `START.md` is the contract.
+
 Reusable creative-dev modules. Generic by design: nothing here is tied to a
 brief. Import it, then art-direct on top.
 
@@ -10,16 +12,17 @@ brief. Import it, then art-direct on top.
 - **Every visual decision is a uniform**, exposed on the panel. Tuning happens
   live, by dragging, not by editing constants.
 - **`src/gl.js` is the harness for every shader.** `quad(canvas, frag)` returns
-  `{set, draw}`. Don't reimplement it.
+  `{set, draw, texture, canvasTexture, bind}`. Don't reimplement it. The control
+  panel is `panel()` from `src/panel.js` — also don't reimplement that.
 - Canvas sizing is checked **every frame** inside `draw()`, never driven by
   `resize` events or `ResizeObserver` — both have silently failed here, leaving
   the canvas stuck at its load-time size.
 
 ## Modules
 
-### truchet (`src/shaders/truchet.frag`)
+### truchet (inside `src/shaders/sun.frag`)
 
-Procedural Truchet pattern. Four tile families with a **continuous** morph
+Procedural Truchet pattern, gated by `uCloth`. Four tile families with a **continuous** morph
 between them.
 
 | `uShape` | family | reads as |
@@ -69,10 +72,16 @@ read as cheap and they're the wrong object — the display is not the subject.
 
 ## Type
 
-Monument Extended for display, three or four moments maximum, huge.
-New Montreal for everything else including tabular data, with
-`font-variant-numeric: tabular-nums`. No monospace — it signals "technical" and
-reads cheap.
+Display: **Bayard** (Vocal Type Co.). Three or four moments maximum, huge. It is
+not interchangeable with a grotesque — it is the only element carrying meaning in
+the letterforms, so sizes bend to the face, never the reverse.
+
+Data: **IBM Plex Mono**, semibold labels and regular values, with
+`font-variant-numeric: tabular-nums`. Mono is right for a record; it says
+catalogue without decoration.
+
+One loud face, one quiet one, never two loud ones. The scale jump is where the
+weight lives — 230px against 16px — not in the letterforms.
 
 ## Motion defaults
 
