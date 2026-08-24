@@ -22,10 +22,10 @@ it covers, not before.
 | `SUN_COLOUR` | the colour keys, which are hex in state and `vec3` in the shader — they cannot go through `SUN_UNIFORM` |
 | `src/shaders/sun.frag` | Everything visual: light body, pattern field, figure compositing, wordmark layer, eclipse loader. One shader. Import with `?raw`. |
 
-`src/sun.js` is **a reference implementation to read, not a module to import.** It
-is the finished brand piece — it owns a preset table, specific figures and one
-particular wordmark geometry. Read it to see how something is wired; import
-`quad` and `panel`.
+`src/sun.js` is the finished brand piece, kept for reference. **Do not read it
+during a build.** It is nine hundred lines that will teach you what `scene()`
+already does, and on a clock that is the most expensive way to learn nothing.
+Open it only when a specific problem sends you to a specific part of it.
 
 ## The shader is gated
 

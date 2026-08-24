@@ -1,69 +1,98 @@
 # How we work here
 
-This is a live build. It happens on camera, in front of an audience, on a clock.
-
-## Division of labour
+Live build. On camera, on a clock. Everything you need is in this file.
 
 **You wire mechanisms and expose controls. I make every design decision.**
 
-That line is the whole contract. Everything below follows from it.
+## Do not read the kit
+
+`node_modules/@karimsaab/kit` is a dependency, not reading material. Do not open
+its source, its shaders, or its markdown. The full API is below — if it is not
+here, you do not need it yet.
+
+Reading `sun.js` costs four minutes and teaches you something this file already
+told you. On a thirty-minute clock that is an eighth of the build, spent
+learning instead of building.
+
+The one exception: I name a file and tell you to open it.
+
+## The API, complete
+
+```js
+import { scene } from '@karimsaab/kit';
+
+const s = scene(document.querySelector('canvas'));  // running, neutral, panel on H
+await s.figure('/figures/n01.png');   // cutout into frame, bottom-anchored
+await s.palette();                    // light + ground + ink, taken off the figure
+s.cloth(1);                           // pattern field up
+s.set('pigment', '#A8531F');          // or s.set({ r: 0.4, glow: 1.2 })
+s.fade(0.5);                          // the figure's own reveal, 0..1
+```
+
+`s.state` is the live state object. `s.view` is the raw harness — `s.view.set(u, v)`
+for uniforms with no wrapper (`uFlipA`, `uFigMix`, `uTypeShow`).
+
+Second figure: `s.figure(url, 1)`, then drive `uFigMix` 0→1. `uFigMode` picks the
+transition: 0 stamp, 1 plate, 2 page, 3 weave.
+
+New model, run from the project root:
+
+```bash
+node node_modules/@karimsaab/kit/scripts/generate.mjs \
+  n05 "<prompt>" n06 "<prompt>"        # name/prompt pairs, as many as you like
+```
+
+Writes `src/figures/<name>.png`, background already cut out. Needs
+`REPLICATE_API_TOKEN` in `.env.local` **in this folder**. Slow — start it, keep
+working, never wait on it.
+
+## What I say → what you run
+
+| I say | you run |
+|---|---|
+| "sun", "start" | `scene(canvas)` |
+| "put her in" | `s.figure(url)` |
+| "take the colours from her", "match it to her" | `await s.palette()` |
+| "not that one" | I click a chip in the panel — do nothing |
+| "make the sun \<colour\>" | `s.set('pigment', hex)` |
+| "patterns", "cloth" | `s.cloth(1)` |
+| "bigger/smaller pattern" | `clothScale` |
+| "different pattern" | `clothShape` 0–3, it morphs |
+| "bigger", "move her", "off the bottom" | `figH`, `figX`, `figBleed` |
+| "flip her" | `s.view.set('uFlipA', 1)` |
+
+Anything not on this list: do the smallest thing that could be what I meant.
+Asking costs more than being wrong.
 
 ## Do not
 
-- **Do not summarise this file back to me.** Do not confirm you understood. Do
-  not ask what to build next. Build what I asked, then say one line: what you
-  built and whether it renders.
-- **Do not design.** No layout, no typography, no copy, no colour choices, no
-  nav, no wordmarks, no buttons, no sections, no content. If I did not ask for it
-  in that message, it does not exist.
-- **Do not pre-tune.** The starting state is grey and red on purpose. Making it
-  look good before I touch it removes the only visible evidence that a decision
-  was made.
-- **Do not build ahead.** One mechanism per message. Then stop.
-- **Do not rebuild what the kit has.** No WebGL harness, no control panel, no
-  Truchet tiling, no light body, no loader, no image generator.
+- **Do not design.** No layout, type, copy, colour choices, nav, wordmarks,
+  buttons, sections. If I did not ask for it in that message, it does not exist.
+- **Do not pre-tune.** Grey ground and red light are correct until I change them.
+  A default that already looks good removes the evidence a decision was made.
+- **Do not build ahead.** One mechanism per message, then stop.
+- **Do not rebuild what the kit has.** No shader, harness, panel, tiling, loader,
+  colour extractor, image generator. `scene()` is two lines; building is fifty.
+- **Do not summarise this file back to me.** Build, then one line: what you built
+  and whether it renders.
 
-If you hand me something I did not ask for, I will say *"remove the layout, keep
-the mechanism"* — and that round trip is time neither of us has.
+## Things that fail silently
 
-## The kit
+Every one of these looks like a broken mechanism and is not.
 
-Installed as `@karimsaab/kit`. Read `node_modules/@karimsaab/kit/START.md`
-**once**, at the start, and nothing else unless it points you at a specific file
-for a problem you have actually hit.
-
-Import: `quad`, `panel`, `hexToRgb`, `SUN_NEUTRAL`, `SUN_OFF`, `SUN_RANGE`,
-`SUN_GROUPS`, `SUN_UNIFORM`. Shader at `@karimsaab/kit/shaders/sun.frag?raw`.
-
-`src/sun.js` inside the kit is a **reference implementation to read**, not a
-module to import.
-
-## Rules that save minutes
-
-- Every value is a slider on `panel()`. Never a constant I have to ask you to
-  edit.
-- Anything measured from an asset — texture aspect, alpha bounds, font metrics —
-  is set in the **render loop**, never in setup. Setup runs before those exist.
-- `SUN_UNIFORM` maps state keys to uniform names. A wrong key is a **silent
-  no-op**, not an error: the slider moves and nothing happens. Verify a new
-  control actually changes the frame.
-- `document.fonts.load('1em Face')` before rasterising type to a canvas.
+- An unknown uniform name is a **no-op**. The slider moves, nothing happens.
+- Figure placement is packed into `uFigPos`; there is no `uFigH`. Use `s.set`.
+- Anything measured from an asset — aspect, alpha bounds, font metrics — is only
+  valid **in the render loop**. `scene()` handles this. Hand-rolled code does not.
+- `document.fonts.load('1em Face')` before rasterising type to canvas.
   `fonts.ready` does not fetch a face no DOM node uses.
-- If a fix changes nothing, **check the edit applied** before theorising about
-  why. A string replace that matches nothing fails silently.
-- When something looks wrong for a fraction of a second, print the values on both
-  sides of that moment. Do not reason about easing first.
+- If a fix changes nothing, **check the edit applied** before theorising.
 
-## Verify before you report
+## Verify
 
-Say in one line what you built and whether it renders. Then stop.
+One line back: what you built, whether it renders. **I look, not you.** No
+screenshots, no Puppeteer — the browser is open on my screen and it costs a
+minute to tell me what I can already see.
 
-**I look, not you.** The browser is open on my other screen. Do not screenshot,
-do not open Puppeteer, do not drive a headless browser, do not navigate anywhere
-to "check your work." It costs a minute every time and it tells me something I
-am already looking at.
-
-The one exception is **measuring**. If I ask how far off something is, or what
-colour a pixel actually is, or what the real canvas size is — screenshot it and
-measure. That is a number I cannot get by looking. Everything else is a look, and
-looking is my job.
+Exception: measuring. Pixel offsets, actual colours, real canvas size. A number
+I cannot get by looking.
