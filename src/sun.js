@@ -668,12 +668,24 @@ let revealT = -1;
 const REVEAL_MS = 1750;     // momentum: long enough to read, short enough to drive
 
 function stepLoader(now) {
+  // NOTHING here may decelerate. Three separate mechanisms used to, and they
+  // compounded into the pause before contact:
+  //
+  //   1. an exponentially damped follower -- the last 2% of it took 835ms
+  //   2. easeIO on top, whose slope at the end is 0.00
+  //   3. a held gap in the approach curve
+  //
+  // The follower is only needed while assets are still arriving. Once they are
+  // in, the clock is already smooth and load tracks it exactly, so the count
+  // runs at constant speed and every bit of shaping lives in one place: the
+  // approach curve, which accelerates.
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
   const clock = Math.min((now - bootAt) / LOAD_MIN, 1);
-  load += (Math.min(real, clock) - load) * 0.045;
-  if (load > 0.998) load = 1;
+  if (real >= clock) load = clock;                 // assets ready: no lag at all
+  else load = Math.min(clock, load + (real - load) * 0.12);
+  if (load > 0.999) load = 1;
 
-  const p = easeIO(load);
+  const p = load;                                   // linear. no easing here.
 
   // --- eclipse ---------------------------------------------------------------
   // The body forms but stays SMALL. It used to finish growing to full radius
@@ -686,21 +698,14 @@ function stepLoader(now) {
   // reveal arrives is a bright circle getting bigger -- which is why it read as
   // cheap. Black mass, then ignition, in that order.
   const SEED = 0.085;
-  // THE APPROACH.
+  // THE APPROACH. One curve, monotonic, accelerating the whole way.
   //
-  // Two moves, not one. A steady close to a HELD gap of 0.22 -- wide enough that
-  // the smin never starts bridging -- and then the last 0.22 shut in the final
-  // few percent of the count.
-  //
-  // A single curve to zero merged them at 87% and left ~200ms of settled blob on
-  // screen, which is the thing that killed the tension: once you have seen the
-  // final state, the explosion is an epilogue. This holds them apart until 98%,
-  // so contact and detonation are the same instant and the eye never resolves
-  // the joined shape. About 30ms of merged circle at a 1500ms count.
-  const approach = smoothstep(0.00, 0.88, p);
-  const snap     = smoothstep(0.955, 1.00, p) ** 0.75;
-  const close    = 0.761 * approach + 0.239 * snap;
-  const seam     = Math.exp(-(((p - 0.99) / 0.014) ** 2));
+  // p^5 means they drift at the start and are moving five times average speed at
+  // the moment of contact. No hold, no ease-out, no plateau -- the gap is
+  // shrinking faster on every frame right up to the collision, so the merged
+  // black shape is only on screen for about 60ms and never settles.
+  const close = p ** 5;
+  const seam  = Math.exp(-(((p - 0.985) / 0.018) ** 2));
 
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
