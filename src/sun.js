@@ -707,6 +707,18 @@ function stepLoader(now) {
   const close = p ** 5;
   const seam  = Math.exp(-(((p - 0.985) / 0.018) ** 2));
 
+  // THE HEAT.
+  //
+  // The ignition starts BEFORE contact, driven by how close they are rather than
+  // by a timer that begins afterwards. Two masses closing compress and heat, so
+  // by the time they touch they are already turning into the sun -- and there is
+  // nothing left to wait for at the moment of collision.
+  //
+  // Holding them black until impact and only then starting the colour is what
+  // read as a hold: the eye sees them meet, then sees nothing for a beat, then
+  // sees a light come on.
+  const heat = smoothstep(0.90, 1.00, p);
+
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
   view.set('uEclB', [ start * (1 - close), 0.02]);
@@ -722,8 +734,8 @@ function stepLoader(now) {
   if (load >= 1 && revealT < 0) revealT = now + 260;   // a beat on the number
 
   if (revealT < 0 || now < revealT) {
-    view.set('uEclWhite', 0);       // black through the whole load
-    view.set('uEclFill', 0);
+    view.set('uEclWhite', heat ** 1.6);   // heating as they close
+    view.set('uEclFill', heat ** 4);      // and just catching colour at contact
     view.set('uLoadCover', 1);
     view.set('uClothFront', -1);                        // cloth fully hidden
     view.set('uWave', 0); view.set('uWaveAmt', 0);
@@ -752,8 +764,9 @@ function stepLoader(now) {
   // Holding the ignition back until here means the reveal has a moment of its
   // own rather than continuing something the load already did.
   const look = PRESETS[ORDER[lookIx]];
-  view.set('uEclWhite', seg(0.00, 0.035));
-  view.set('uEclFill',  quartIO(seg(0.02, 0.17)));
+  // already white and part-lit at contact, so this only finishes the job
+  view.set('uEclWhite', 1);
+  view.set('uEclFill',  Math.max(1 - (1 - seg(0.00, 0.10)) ** 3, 0.85));
 
   state.r = SEED + (look.r - SEED) * e;
   view.set('uEclR', state.r);
