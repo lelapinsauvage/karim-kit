@@ -1,3 +1,5 @@
+import { hexToRgb } from './gl.js';
+
 // Control panel, generated from a uniform table rather than written in HTML.
 // Add a key to the table and the control appears; rename a uniform and nothing
 // drifts, because there is only one list. A hand-written panel goes stale the
@@ -20,7 +22,8 @@ export const SUN_UNIFORM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand
   clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
   light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
   figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift',
-  charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen' };
+  charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen',
+  typeInk:'uTypeInk' };
 
 export const SUN_RANGE = {
   r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
@@ -217,4 +220,53 @@ export function panel({
 
   queueMicrotask(sync);
   return { el, sync, toggle };
+}
+
+
+// Colours live in state as hex and in the shader as vec3, so they cannot go
+// through SUN_UNIFORM -- they need converting on the way. Keeping them in a
+// second table rather than special-casing them means adding a colour is still
+// one line in one place.
+export const SUN_COLOUR = { pigment: 'uPigment', bg: 'uBg', clothInk: 'uClothInk' };
+
+/**
+ * applySun(view, state, opts) -- push a whole state object at the shader.
+ *
+ * Call this every frame. SUN_UNIFORM alone is NOT enough to draw a picture: it
+ * carries the scalars only, and a frame missing its colours, its core offset
+ * and its clock renders black on black. That gap is invisible from the outside
+ * -- every slider works, nothing throws, and the canvas stays dark -- so the
+ * whole path lives here instead of in a table that looks complete.
+ *
+ * opts.fig / opts.figB are texture records from view.texture(). They are read
+ * per frame on purpose: rect and aspect are measured when the image loads, so
+ * anything that reads them in setup reads undefined.
+ */
+export function applySun(view, s, opts = {}) {
+  for (const [k, u] of Object.entries(SUN_UNIFORM))
+    if (s[k] !== undefined) view.set(u, s[k]);
+  for (const [k, u] of Object.entries(SUN_COLOUR))
+    if (s[k]) view.set(u, hexToRgb(s[k]));
+
+  // uPos is where the body sits, uCore where its hot centre sits inside it.
+  view.set('uPos',  opts.pos ?? [0, 0]);
+  view.set('uCore', [s.coreX ?? 0, s.coreY ?? 0]);
+
+  // Nothing else advances the clock. Without this, grain never shimmers and
+  // drift, breath and charge sit still -- which reads as "those controls are
+  // broken" rather than "time is frozen".
+  view.set('uTime', (opts.time ?? performance.now()) * 0.001);
+
+  if (s.figShow !== undefined) view.set('uFigShow', s.figShow ? 1 : 0);
+
+  const a = opts.fig, b = opts.figB;
+  if (a && a.ready) {
+    view.set('uFigRect', a.rect);
+    view.set('uFigPos', [a.aspect, s.figH ?? 1, s.figX ?? 0, s.figBleed ?? 0]);
+  }
+  if (b && b.ready) {
+    view.set('uFigRectB', b.rect);
+    view.set('uFigPosB', [b.aspect, s.figHB ?? s.figH ?? 1,
+                          s.figXB ?? s.figX ?? 0, s.figBleedB ?? s.figBleed ?? 0]);
+  }
 }

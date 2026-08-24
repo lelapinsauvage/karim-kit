@@ -12,11 +12,13 @@ it covers, not before.
 | `paletteFrom(img)` | palette off an image → `{swatches, roles}`. `roles` is `{pigment,bg,clothInk}`, ready to use. |
 | `swatchStrip(el, sw, cb)` | those swatches as clickable chips, sized by coverage |
 | `panel({...})` | **The control panel.** Generated from a table — do not write sliders by hand. |
+| `applySun(view, state, {fig})` | **Push a whole state at the shader. Call it every frame.** Colours, core offset, clock and figure placement all go through here. |
 | `SUN_RANGE` | min/max/step for every uniform. Already decided; do not re-pick them. |
 | `SUN_GROUPS` | how the controls are grouped in the panel |
 | `SUN_NEUTRAL` | **the starting state.** Grey ground, red pigment, everything mid-range, every gate off. Obvious placeholders on purpose. |
 | `SUN_OFF` | the uniforms with no slider that still have to be set, at their safe off values |
-| `SUN_UNIFORM` | state key → uniform name (`r` → `uR`). Guessing this wrong fails **silently**: setting an unknown uniform is a no-op, so the control just does nothing. |
+| `SUN_UNIFORM` | state key → uniform name (`r` → `uR`), **scalars only**. Guessing this wrong fails **silently**: setting an unknown uniform is a no-op, so the control just does nothing. |
+| `SUN_COLOUR` | the colour keys, which are hex in state and `vec3` in the shader — they cannot go through `SUN_UNIFORM` |
 | `src/shaders/sun.frag` | Everything visual: light body, pattern field, figure compositing, wordmark layer, eclipse loader. One shader. Import with `?raw`. |
 
 `src/sun.js` is **a reference implementation to read, not a module to import.** It
@@ -46,9 +48,27 @@ loader, an image generator. They exist. Import or copy them.
 
 ## Start neutral
 
-Spread `SUN_NEUTRAL` into your state and `SUN_OFF` onto the shader and you have a
-flat ground with one light body and nothing else. Bring subsystems up one gate at
-a time.
+Spread `SUN_NEUTRAL` into your state and `SUN_OFF` onto the shader, then call
+`applySun` every frame, and you have a flat ground with one light body and
+nothing else. Bring subsystems up one gate at a time.
+
+```js
+const view = quad(canvas, frag);
+const s = { ...SUN_NEUTRAL };
+for (const [k, v] of Object.entries(SUN_OFF)) view.set(k, v);
+
+function loop(t) {
+  applySun(view, s, { fig, time: t });
+  view.draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+```
+
+**Do not hand-roll that loop from `SUN_UNIFORM`.** It carries the scalars only.
+Walking it and nothing else leaves the colours, the core offset and the clock
+unset — and the failure is invisible: every slider works, nothing throws, and
+the canvas renders black on black. `applySun` is the whole path.
 
 **Do not pre-tune it.** Grey and pure red are placeholders nobody ships, which is
 the point: replacing them is the work, and it happens on camera. A default that

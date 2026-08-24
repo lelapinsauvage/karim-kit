@@ -138,15 +138,27 @@ export async function paletteFrom(src, opts = {}) {
 }
 
 /**
- * The proposal. Only the pigment is taken from the image; the ground and the
- * ink are derived from it.
+ * The proposal. Only the pigment's hue and saturation come from the image; every
+ * lightness is retargeted, and the other two colours are derived.
  *
- * That is deliberate. Extracting three independent colours from one photograph
- * gives three colours that merely co-occurred — skin, denim and a shadow are
- * not a palette, they are an accident of what the model wore. Deriving the
- * other two from the pigment's own hue puts the whole frame in one family, so
- * the light looks like it is lighting the room rather than sitting in front of
- * it. Changing figure then changes the whole picture together.
+ * Extracting three independent colours from one photograph gives three colours
+ * that merely co-occurred -- skin, denim and a shadow are not a palette, they
+ * are an accident of what the model wore. Deriving the other two from the
+ * pigment's own hue puts the whole frame in one family, so the light looks like
+ * it is lighting the room rather than sitting in front of it.
+ *
+ * The target ranges are measured off the kit's four presets rather than picked:
+ *
+ *   pigment   v 0.40-0.66   s 0.10-0.82
+ *   ground    v 0.86-0.89   s 0.02-0.08   pigment's hue
+ *   ink       v 0.52-0.59   s about half the pigment's, pigment's hue
+ *
+ * Two of those are worth stating out loud, because the obvious guess is wrong
+ * in both cases. A pigment is not bright: it drives a light BODY, and a
+ * photograph's darkest chromatic region lands near v 0.25, which renders as a
+ * brown hole rather than as a light. And the ink is not black -- it is a
+ * mid-tone carrying the pigment's hue, so pattern sits on the ground as a tone
+ * instead of cutting into it.
  */
 export function rolesFrom(swatches, medianLum = 0.5) {
   // The light wants the garment, not the skin. Skin dominates coverage in
@@ -154,16 +166,19 @@ export function rolesFrom(swatches, medianLum = 0.5) {
   // separates a dyed cloth from a body. Weight still breaks ties, damped so a
   // large dull region cannot outvote a small vivid one.
   const score = (s) => s.hsv[1] ** 1.6 * (0.30 + 0.70 * Math.sqrt(s.weight)) * (s.hsv[2] > 0.18 ? 1 : 0.15);
-  const pig = swatches.slice().sort((a, b) => score(b) - score(a))[0] ?? swatches[0];
-  const [h, s] = pig.hsv;
+  const pick = swatches.slice().sort((a, b) => score(b) - score(a))[0] ?? swatches[0];
+  const [h, s0, v0] = pick.hsv;
 
-  // A ground carrying a trace of the light's hue reads as air in the room. Flat
-  // grey reads as a backdrop the subject was placed on.
-  const dark = medianLum < 0.42;
-  const bg = hsv2rgb(h, Math.min(s * 0.20, 0.14), dark ? 0.93 : 0.88);
-  const ink = hsv2rgb(h, Math.min(s * 0.60, 0.45), 0.13);
+  const sat = Math.min(s0, 0.85);
+  // Compressed, not clamped, so a vivid figure still reads brighter than a
+  // muted one instead of both landing on the same value.
+  const v = 0.38 + 0.30 * v0;
 
-  return { pigment: pig.hex, bg: toHex(bg), clothInk: toHex(ink) };
+  return {
+    pigment:  toHex(hsv2rgb(h, sat, v)),
+    bg:       toHex(hsv2rgb(h, Math.min(sat * 0.10, 0.08), medianLum < 0.42 ? 0.89 : 0.87)),
+    clothInk: toHex(hsv2rgb(h, sat * 0.50, 0.55)),
+  };
 }
 
 /**

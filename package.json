@@ -14,6 +14,8 @@
   "exports": {
     ".": "./index.js",
     "./gl": "./src/gl.js",
+    "./panel": "./src/panel.js",
+    "./palette": "./src/palette.js",
     "./shaders/*": "./src/shaders/*",
     "./scripts/*": "./scripts/*"
   },
@@ -21,10 +23,13 @@
     "index.js",
     "src",
     "scripts",
-    "CLAUDE.md",
+    "START.md",
+    "FIGURE.md",
     "MECHANISMS.md",
     "PRINCIPLES.md",
     "PROMPTING.md",
-    "LIVE.md"
+    "LIVE.md",
+    "SCRIPT.md",
+    "CLAUDE.md"
   ]
 }

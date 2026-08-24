@@ -49,14 +49,23 @@ const fig = view.texture('/figures/a.png');   // { rect, aspect, ready, onready 
 Both are `undefined` for the first frames. **Set them in the render loop**, never
 in setup:
 
+`applySun` does this for you — hand it the texture record and it reads `rect`
+and `aspect` fresh every frame:
+
 ```js
-function frame() {
-  if (fig.ready) {
-    view.set('uFigRect', fig.rect);
-    view.set('uFigPos', [fig.aspect, s.figH, s.figX, s.figBleed]);
-  }
+function frame(t) {
+  applySun(view, s, { fig, time: t });   // fig placement + colours + clock
   view.draw();
   requestAnimationFrame(frame);
+}
+```
+
+By hand, it is:
+
+```js
+if (fig.ready) {
+  view.set('uFigRect', fig.rect);
+  view.set('uFigPos', [fig.aspect, s.figH, s.figX, s.figBleed]);
 }
 ```
 
@@ -68,7 +77,7 @@ slightly squashed, which is the usual symptom of this being wrong.
 
 ```js
 view.bind({ uFigTex0: fig });          // sampler -> unit
-view.set('uFigShow', 1);               // the gate
+s.figShow = true;                      // the gate, via applySun
 view.set('uFigA', 0); view.set('uFigB', 0);   // both point at unit 0
 view.set('uFigMix', 0);                // no transition yet
 view.set('uFigFade', 1);               // her own reveal clock, 0..1
@@ -76,6 +85,10 @@ view.set('uFigFade', 1);               // her own reveal clock, 0..1
 
 `uFigA`/`uFigB`/`uFigMode`/`uFigTex*` are **integers** — `uniform1i`. `set()`
 handles it; hand-rolled uniform calls do not.
+
+For a second figure, pass it as `figB` and `applySun` fills `uFigRectB` and
+`uFigPosB`, taking `figHB`/`figXB`/`figBleedB` from state where they exist and
+falling back to the first figure's placement where they do not.
 
 For a second figure, bind `uFigTex1`, point `uFigB` at it, give it its own
 `uFigRectB`/`uFigPosB`, and drive `uFigMix` 0→1. `uFigMode` picks the transition
