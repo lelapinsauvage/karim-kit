@@ -64,6 +64,27 @@ working, never wait on it.
 Anything not on this list: do the smallest thing that could be what I meant.
 Asking costs more than being wrong.
 
+## If I gave you a role
+
+Several of us are in this folder at once, on one dev server. Agents divide by
+**the files they own**, never by subject. Two agents in one file is a merge
+conflict on camera.
+
+| role | owns | never touches |
+|---|---|---|
+| **stage** | `index.html`, `src/main.js` | `src/sections/*`, `src/figures/*` |
+| **images** | `src/figures/*` — writes PNGs only | any `.js`, `.html`, `.json` |
+| **sections** | `src/sections/*` | `index.html`, `src/main.js` |
+
+**Only stage runs the dev server.** It is already up on
+http://localhost:5199. If you are not stage, never run `npm run dev`, never
+start vite, never kill it — a second server binds another port, and the browser
+keeps showing the first one while you edit code nobody is looking at.
+
+Nobody edits `package.json`. If you think you need to, say so and stop.
+
+If you are about to touch a file you do not own, stop and tell me instead.
+
 ## Do not
 
 - **Do not design.** No layout, type, copy, colour choices, nav, wordmarks,
