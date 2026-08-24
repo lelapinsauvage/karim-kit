@@ -681,18 +681,18 @@ function stepLoader(now) {
   // was already there and the explosion happened around it instead of out of
   // it. Everything expands from the circle, so the circle has to be the thing
   // that expands.
+  // The bodies stay BLACK for the whole load. Lighting them before the counter
+  // is finished spends the only event the opening has, and what is left when the
+  // reveal arrives is a bright circle getting bigger -- which is why it read as
+  // cheap. Black mass, then ignition, in that order.
   const SEED = 0.085;
-  const close  = smoothstep(0.00, 0.60, p);
-  const white_ = smoothstep(0.56, 0.76, p);
-  const fill   = smoothstep(0.72, 0.94, p);
-  const seam   = Math.exp(-(((p - 0.60) / 0.045) ** 2));
+  const close = smoothstep(0.00, 0.72, p);
+  const seam  = Math.exp(-(((p - 0.72) / 0.05) ** 2));
 
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
   view.set('uEclB', [ start * (1 - close), 0.02]);
   view.set('uEclR', SEED);
-  view.set('uEclWhite', white_);
-  view.set('uEclFill', fill);
   view.set('uEclSeam', seam * 0.85);
   view.set('uPaper', hexToRgb('#F5F5F5'));
   view.set('uLoad', p);
@@ -704,6 +704,8 @@ function stepLoader(now) {
   if (load >= 1 && revealT < 0) revealT = now + 260;   // a beat on the number
 
   if (revealT < 0 || now < revealT) {
+    view.set('uEclWhite', 0);       // black through the whole load
+    view.set('uEclFill', 0);
     view.set('uLoadCover', 1);
     view.set('uClothFront', -1);                        // cloth fully hidden
     view.set('uWave', 0); view.set('uWaveAmt', 0);
@@ -717,10 +719,13 @@ function stepLoader(now) {
   const rt = Math.min((now - revealT) / REVEAL_MS, 1);
   const e  = 1 - (1 - rt) ** 4;
 
-  // THE EXPANSION. The sun opens from the seed to full radius on the same beat
-  // as the wave, the cloth and the ground -- one force, four consequences,
-  // rather than four things that happen to start together.
+  // THE IGNITION, then the expansion. The mass goes white, catches, and opens.
+  // Holding the ignition back until here means the reveal has a moment of its
+  // own rather than continuing something the load already did.
   const look = PRESETS[ORDER[lookIx]];
+  view.set('uEclWhite', smoothstep(0.00, 0.10, rt));
+  view.set('uEclFill',  smoothstep(0.06, 0.30, rt));
+
   state.r = SEED + (look.r - SEED) * e;
   view.set('uEclR', state.r);
 
@@ -734,9 +739,12 @@ function stepLoader(now) {
   // the front leaves the body and takes the cloth with it
   // parked well past the far corner once open, so the mask is inert for the
   // rest of the session rather than a value the slider has to keep clearing
-  view.set('uClothFront', rt >= 1 ? 99.0 : SEED + e * 2.9);
-  view.set('uWave', Math.min(rt * 1.2, 1));
-  view.set('uWaveAmt', Math.sin(Math.PI * Math.min(rt * 1.2, 1)) ** 0.55);
+  // the wave leaves just after the flash, so the ignition reads as its cause
+  const wv = Math.max(0, Math.min((rt - 0.07) / 0.93, 1));
+  const we = 1 - (1 - wv) ** 4;
+  view.set('uClothFront', rt >= 1 ? 99.0 : SEED + we * 2.9);
+  view.set('uWave', wv);
+  view.set('uWaveAmt', Math.sin(Math.PI * wv) ** 0.55);
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   view.set('uLoadCover', 1 - smoothstep(0.0, 0.20, rt));

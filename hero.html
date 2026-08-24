@@ -76,10 +76,13 @@
 
   /* the button is the one thing that should feel like it has weight */
   body.reveal .cta{
-    animation:springUp .8s cubic-bezier(.22,1.4,.36,1) .40s both;
+    animation:springUp 1.15s cubic-bezier(.16,.9,.24,1) .52s both;
   }
+  /* rises and settles rather than snapping into place. A hard overshoot on a
+     small element reads as a UI toast; a long soft landing reads as weight. */
   @keyframes springUp{
-    from{opacity:0;transform:translateX(-50%) translateY(2.4rem) scale(.82)}
+    from{opacity:0;transform:translateX(-50%) translateY(1.5rem) scale(.94)}
+    60% {opacity:1;transform:translateX(-50%) translateY(-.12rem) scale(1.004)}
     to  {opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
   }
 
