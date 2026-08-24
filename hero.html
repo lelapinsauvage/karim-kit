@@ -53,7 +53,7 @@
   }
 
   body.reveal .top{
-    animation:dropIn 1.05s var(--rv) .10s both;
+    animation:dropIn .78s var(--rv) .02s both;
   }
   @keyframes dropIn{
     from{opacity:0;transform:translateY(-1.4rem);clip-path:inset(0 0 100% 0)}
@@ -63,12 +63,12 @@
   /* the record is written line by line, left to right, like a label being
      typed rather than a block appearing */
   body.reveal .rail div{
-    animation:wipeIn .82s var(--rv) both;
+    animation:wipeIn .62s var(--rv) both;
   }
-  body.reveal .rail div:nth-child(1){animation-delay:.42s}
-  body.reveal .rail div:nth-child(2){animation-delay:.52s}
-  body.reveal .rail div:nth-child(3){animation-delay:.62s}
-  body.reveal .rail div:nth-child(4){animation-delay:.72s}
+  body.reveal .rail div:nth-child(1){animation-delay:.16s}
+  body.reveal .rail div:nth-child(2){animation-delay:.23s}
+  body.reveal .rail div:nth-child(3){animation-delay:.30s}
+  body.reveal .rail div:nth-child(4){animation-delay:.37s}
   @keyframes wipeIn{
     from{opacity:1;clip-path:inset(0 100% 0 0);transform:translateX(-.4rem)}
     to  {opacity:1;clip-path:inset(0 -2% 0 0);transform:none}
@@ -76,7 +76,7 @@
 
   /* the button is the one thing that should feel like it has weight */
   body.reveal .cta{
-    animation:springUp .95s cubic-bezier(.22,1.4,.36,1) .78s both;
+    animation:springUp .8s cubic-bezier(.22,1.4,.36,1) .40s both;
   }
   @keyframes springUp{
     from{opacity:0;transform:translateX(-50%) translateY(2.4rem) scale(.82)}
@@ -84,7 +84,7 @@
   }
 
   body.reveal .slider{
-    animation:slideIn .9s var(--rv) .66s both;
+    animation:slideIn .7s var(--rv) .30s both;
   }
   @keyframes slideIn{
     from{opacity:0;transform:translateX(2.6rem)}
@@ -94,7 +94,7 @@
   /* the counter leaves upward as the frame takes over -- it does not dissolve,
      it exits */
   body.reveal .count{
-    animation:countOut .7s var(--rv) .04s both;
+    animation:countOut .52s var(--rv) 0s both;
   }
   @keyframes countOut{
     from{opacity:1;transform:translateY(0)}

@@ -640,7 +640,7 @@ for (const f of ASSETS) {
   img.src = `/src/figures/${f}.png`;
 }
 
-const LOAD_MIN = 3600;              // the opening is a shot, not a wait
+const LOAD_MIN = 2300;              // the opening is a shot, not a wait
 const bootAt = performance.now();
 let load = 0, loadDone = false, revealed = false;
 
@@ -665,7 +665,7 @@ const smoothstep01 = smoothstep;
 // Keeping them separate is what lets the counter mean something. A loader whose
 // reveal overlaps its own progress is decoration.
 let revealT = -1;
-const REVEAL_MS = 1500;
+const REVEAL_MS = 1150;
 
 function stepLoader(now) {
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
@@ -675,17 +675,22 @@ function stepLoader(now) {
 
   const p = easeIO(load);
 
-  // --- eclipse: fully formed by the time the counter reads 100 --------------
-  const close  = smoothstep(0.00, 0.62, p);
-  const white_ = smoothstep(0.58, 0.78, p);
-  const fill   = smoothstep(0.74, 0.93, p);
-  const grow   = smoothstep(0.78, 1.00, p);
-  const seam   = Math.exp(-(((p - 0.62) / 0.045) ** 2));
+  // --- eclipse ---------------------------------------------------------------
+  // The body forms but stays SMALL. It used to finish growing to full radius
+  // during the load, which left it with nothing to do at the reveal -- the sun
+  // was already there and the explosion happened around it instead of out of
+  // it. Everything expands from the circle, so the circle has to be the thing
+  // that expands.
+  const SEED = 0.085;
+  const close  = smoothstep(0.00, 0.60, p);
+  const white_ = smoothstep(0.56, 0.76, p);
+  const fill   = smoothstep(0.72, 0.94, p);
+  const seam   = Math.exp(-(((p - 0.60) / 0.045) ** 2));
 
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
   view.set('uEclB', [ start * (1 - close), 0.02]);
-  view.set('uEclR', 0.062 + grow * (state.r - 0.062));
+  view.set('uEclR', SEED);
   view.set('uEclWhite', white_);
   view.set('uEclFill', fill);
   view.set('uEclSeam', seam * 0.85);
@@ -702,15 +707,22 @@ function stepLoader(now) {
     view.set('uLoadCover', 1);
     view.set('uClothFront', -1);                        // cloth fully hidden
     view.set('uWave', 0); view.set('uWaveAmt', 0);
-    const look = PRESETS[ORDER[lookIx]];
     state.bg = '#F5F5F5';
     state.figTint = 0;
-    send(state);
+    state.r = SEED;                 // the scene's sun matches the seed exactly,
+    send(state);                    // so the handover has nothing to reveal
     return;
   }
 
   const rt = Math.min((now - revealT) / REVEAL_MS, 1);
   const e  = 1 - (1 - rt) ** 4;
+
+  // THE EXPANSION. The sun opens from the seed to full radius on the same beat
+  // as the wave, the cloth and the ground -- one force, four consequences,
+  // rather than four things that happen to start together.
+  const look = PRESETS[ORDER[lookIx]];
+  state.r = SEED + (look.r - SEED) * e;
+  view.set('uEclR', state.r);
 
   if (!revealed) {
     revealed = true;
@@ -722,16 +734,15 @@ function stepLoader(now) {
   // the front leaves the body and takes the cloth with it
   // parked well past the far corner once open, so the mask is inert for the
   // rest of the session rather than a value the slider has to keep clearing
-  view.set('uClothFront', rt >= 1 ? 99.0 : -0.25 + e * 3.0);
-  view.set('uWave', Math.min(rt * 1.15, 1));
-  view.set('uWaveAmt', Math.sin(Math.PI * Math.min(rt * 1.15, 1)) ** 0.6);
+  view.set('uClothFront', rt >= 1 ? 99.0 : SEED + e * 2.9);
+  view.set('uWave', Math.min(rt * 1.2, 1));
+  view.set('uWaveAmt', Math.sin(Math.PI * Math.min(rt * 1.2, 1)) ** 0.55);
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   view.set('uLoadCover', 1 - smoothstep(0.0, 0.20, rt));
 
-  const look = PRESETS[ORDER[lookIx]];
-  state.bg = mixPigment('#F5F5F5', look.bg, smoothstep(0.0, 0.42, rt));
-  state.figTint = look.figTint * smoothstep(0.10, 0.55, rt);
+  state.bg = mixPigment('#F5F5F5', look.bg, smoothstep(0.0, 0.38, rt));
+  state.figTint = look.figTint * smoothstep(0.08, 0.50, rt);
   send(state);
 }
 
