@@ -734,7 +734,11 @@ function stepLoader(now) {
   if (el) el.textContent = String(Math.round(load * 100)).padStart(3, '0');
 
   // --- hold on 100, then reveal --------------------------------------------
-  if (load >= 1 && revealT < 0) revealT = now + 260;   // a beat on the number
+  // NO BEAT. Contact is the trigger and the reveal starts on the same frame.
+  // A pause here shows exactly what the whole approach was built to hide: a lit
+  // sun sitting on white paper with the counter reading 100, which is the
+  // finished loader state and the one thing the eye must never settle on.
+  if (load >= 1 && revealT < 0) revealT = now;
 
   if (revealT < 0 || now < revealT) {
     view.set('uEclWhite', heat ** 1.6);   // heating as they close
@@ -806,17 +810,22 @@ function stepLoader(now) {
   // she has attack but a long tail: quickly out of nothing, then a slow settle
   // you can watch. That is different from arriving gradually, which has no
   // moment of arrival at all.
-  view.set('uFigFade', expoOut(seg(0.04, 0.72)));
+  // A 240ms beat before she starts, and a longer tail to land in. Everything
+  // else is already moving by then -- the sun open, the ground down, the front
+  // travelling -- so she arrives INTO a scene rather than alongside its parts.
+  view.set('uFigFade', expoOut(seg(0.115, 0.78)));
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   // hands over almost at once: the loader's job ended on contact, and any
   // lingering is the settled shape the approach was built to hide
-  view.set('uLoadCover', 1 - smoothstep(0.0, 0.035, rt));   // ~110ms
+  // ~55ms. Every extra frame of this is the white paper from the screenshot
+  // still on screen underneath a sun that has already ignited.
+  view.set('uLoadCover', 1 - smoothstep(0.0, 0.017, rt));
 
   // the ground travels with the sun, on the same curve family. Anything that
   // eases IN here leaves the frame white underneath an already-open sun.
   state.bg = mixPigment('#F5F5F5', look.bg, expoOut(seg(0.00, 0.30)));
-  state.figTint = look.figTint * sineOut(seg(0.06, 0.74));
+  state.figTint = look.figTint * sineOut(seg(0.135, 0.80));
   send(state);
 }
 
