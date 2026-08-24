@@ -509,6 +509,9 @@ void main() {
   }
 
   // --- figure ---------------------------------------------------------------
+  // Her coverage is hoisted out of the block: the grain stage below needs to
+  // know where she is, and everything about her is scoped inside it.
+  float figA = 0.0;
   if (uFigShow > 0.5) {
     // The field is already doing something soft, radial and slow. Whatever the
     // figure does has to CONTRAST with that -- hard, linear, mechanical -- or
@@ -622,7 +625,8 @@ void main() {
         float sp = exp(-max(length(uv - uPos) - uR, 0.0) / max(uGlowSize * 0.7, 1e-4));
         fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
       }
-      col = mix(col, fig, tex.a * uFigFade);
+      figA = tex.a * uFigFade;
+      col = mix(col, fig, figA);
     }
     col += bloom;
   }
@@ -640,7 +644,12 @@ void main() {
   // grain belongs to the body, not to the screen. confine it to the disc and
   // the tight part of the glow, so the ground stays clean and the light reads
   // as emulsion rather than as a filter over the whole frame.
-  float onBody = max(disc, near * 0.55);
+  //
+  // The figure counts as body. She is a photograph -- the one element in the
+  // frame that genuinely came off a sensor -- so leaving her out of the mask
+  // makes her the only clean thing in a grained image, and she reads as a
+  // sticker laid on top of it. Grain is what puts her in the same room.
+  float onBody = max(max(disc, near * 0.55), figA);
   float where  = mix(1.0, onBody, uGrainMask);
 
   col += g * uGrain * where * (0.35 + 0.65 * (1.0 - abs(lum - 0.5) * 2.0));

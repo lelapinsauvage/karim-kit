@@ -209,7 +209,7 @@ if (!HAS_PANEL) {
     clothSpeed:[0,5,0.01], light:[0,4,0.01], rake:[0,1,0.01], sheen:[0,3,0.01],
     cord:[0,4,0.01], figDark:[0,1,0.01], figTint:[0,1,0.01], figLift:[0,3,0.01],
     charge:[0,2,0.01], chargeSpd:[0,3,0.01], chargeLen:[1,30,0.1],
-    tear:[0,3,0.01], thread:[0.2,3,0.01], figMode:[0,3,1], figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figY:[-1.4,0.6,0.005],
+    tear:[0,3,0.01], thread:[0.2,3,0.01], figMode:[0,3,1], figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figBleed:[-0.4,0.6,0.005],
     coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
   };
   const GROUPS = [
@@ -316,7 +316,7 @@ if (!HAS_PANEL) {
   // only ever captures one look, which is why placing four figures meant four
   // round trips.
   document.getElementById('p-copy').onclick = () => {
-    const KEEP = ['id','name','fig','pigment','bg','clothInk','figH','figX','figY',
+    const KEEP = ['id','name','fig','pigment','bg','clothInk','figH','figX','figBleed',
                   'glow','rimStr','rimW','warmth','purity','pig','origin','material'];
     const out = ORDER.map((id) => {
       const l = PRESETS[id], o = {};
@@ -338,18 +338,20 @@ if (!HAS_PANEL) {
 }
 
 // Live placement without a panel. In the console:
-//   fig({ h: 1.05, x: 0.14, y: -0.42 })
-// h is drawn height in uv units (viewport short axis = 1.0), x/y shift her.
+//   fig({ h: 1.05, x: 0.14, bleed: 0.06 })
+// h is drawn height in uv units (viewport short axis = 1.0), x shifts her,
+// bleed sinks her below the bottom edge. She is anchored to the frame bottom,
+// so there is no y: raising her is what bleed does, negatively.
 // Logs the values back so a placement you like can be pasted into the preset.
 window.fig = (o = {}) => {
   Object.assign(state, {
     figH: o.h ?? state.figH,
     figX: o.x ?? state.figX,
-    figY: o.y ?? state.figY,
+    figBleed: o.bleed ?? state.figBleed,
   });
   send(state);
-  console.log(`figH:${state.figH}, figX:${state.figX}, figY:${state.figY}`);
-  return { h: state.figH, x: state.figX, y: state.figY };
+  console.log(`figH:${state.figH}, figX:${state.figX}, figBleed:${state.figBleed}`);
+  return { h: state.figH, x: state.figX, bleed: state.figBleed };
 };
 window.halo = (o = {}) => {
   Object.assign(state, { r: o.r ?? state.r, coreY: o.cy ?? state.coreY });
@@ -380,7 +382,7 @@ function push() {
     state[id] = parseFloat($(id).value);
     const o = $('o-' + id); if (o) o.textContent = state[id].toFixed(3);
   }
-  for (const id of ['figH','figX','figY','coreX','coreY']) {
+  for (const id of ['figH','figX','figBleed','coreX','coreY']) {
     state[id] = parseFloat($(id).value);
     const o = $('o-' + id); if (o) o.textContent = state[id].toFixed(3);
   }
@@ -399,7 +401,7 @@ function push() {
 
 if (HAS_PANEL) {
   for (const id of [...Object.keys(NUM), ...Object.keys(COL),
-                    'coreX','coreY','linkBg','figShow','figH','figX','figY'])
+                    'coreX','coreY','linkBg','figShow','figH','figX','figBleed'])
     $(id).addEventListener('input', push);
 }
 

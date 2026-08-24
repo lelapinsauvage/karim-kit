@@ -9,6 +9,8 @@ it covers, not before.
 |---|---|
 | `quad(canvas, frag)` | WebGL2 fullscreen-quad harness. Returns `{set, draw, texture, canvasTexture, bind}`. Sizing handled. |
 | `hexToRgb(hex)` | hex string → `[r,g,b]` 0..1 |
+| `paletteFrom(img)` | palette off an image → `{swatches, roles}`. `roles` is `{pigment,bg,clothInk}`, ready to use. |
+| `swatchStrip(el, sw, cb)` | those swatches as clickable chips, sized by coverage |
 | `panel({...})` | **The control panel.** Generated from a table — do not write sliders by hand. |
 | `SUN_RANGE` | min/max/step for every uniform. Already decided; do not re-pick them. |
 | `SUN_GROUPS` | how the controls are grouped in the panel |
@@ -76,6 +78,9 @@ already looks good removes the only visible evidence that a decision was made.
 
 - `MECHANISMS.md` — you are about to build a transition, a loader, a dissolve, or
   type behind a subject. Has the traps.
+- `FIGURE.md` — **you are about to put the model in the frame.** Placement is
+  packed into one vec4 and two of its values are measured, not chosen; a `figH`
+  slider written the obvious way is a silent no-op. Read it before wiring her.
 - `PROMPTING.md` — you are about to generate a figure.
 - `PRINCIPLES.md` — you are choosing colour, type or motion yourself.
 - `LIVE.md` — you want the kit/live split.
