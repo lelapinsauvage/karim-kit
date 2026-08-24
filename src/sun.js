@@ -686,11 +686,21 @@ function stepLoader(now) {
   // reveal arrives is a bright circle getting bigger -- which is why it read as
   // cheap. Black mass, then ignition, in that order.
   const SEED = 0.085;
-  // They close for the entire count and touch on the last frame of it. The
-  // contact IS the trigger -- there is no moment where a merged body sits
-  // waiting for something else to start, which was the dead spot.
-  const close = p ** 1.35;
-  const seam  = Math.exp(-(((p - 0.985) / 0.02) ** 2));
+  // THE APPROACH.
+  //
+  // Two moves, not one. A steady close to a HELD gap of 0.22 -- wide enough that
+  // the smin never starts bridging -- and then the last 0.22 shut in the final
+  // few percent of the count.
+  //
+  // A single curve to zero merged them at 87% and left ~200ms of settled blob on
+  // screen, which is the thing that killed the tension: once you have seen the
+  // final state, the explosion is an epilogue. This holds them apart until 98%,
+  // so contact and detonation are the same instant and the eye never resolves
+  // the joined shape. About 30ms of merged circle at a 1500ms count.
+  const approach = smoothstep(0.00, 0.88, p);
+  const snap     = smoothstep(0.955, 1.00, p) ** 0.75;
+  const close    = 0.761 * approach + 0.239 * snap;
+  const seam     = Math.exp(-(((p - 0.99) / 0.014) ** 2));
 
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
@@ -769,7 +779,9 @@ function stepLoader(now) {
   view.set('uFigFade', expoOut(seg(0.08, 0.58)));
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
-  view.set('uLoadCover', 1 - smoothstep(0.0, 0.20, rt));
+  // hands over almost at once: the loader's job ended on contact, and any
+  // lingering is the settled shape the approach was built to hide
+  view.set('uLoadCover', 1 - smoothstep(0.0, 0.07, rt));
 
   state.bg = mixPigment('#F5F5F5', look.bg, quartIO(seg(0.00, 0.28)));
   state.figTint = look.figTint * sineOut(seg(0.10, 0.62));
