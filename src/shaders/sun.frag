@@ -359,10 +359,22 @@ void main() {
   float halo = (near * 1.0 + wide * 0.45) * uGlow;
 
   // the rim, both sides of the edge. narrow and outside, softer and inside.
-  float edgeBand = abs(r - 1.0);
-  float rimGlow  = exp(-pow(edgeBand / max(uRimW, 1e-4), 1.5))
-                 + exp(-max(1.0 - r, 0.0) / max(uRimIn, 1e-4)) * 0.6;
-  halo += rimGlow * uRimStr;
+  // Two decays that both PEAK at the edge and fall away from it -- outward at
+  // uRimW, inward at uRimIn.
+  //
+  // The previous inward term was exp(-max(1.0 - r, 0.0) / uRimIn), and
+  // max(1 - r, 0) is zero for every pixel OUTSIDE the body: exp(0) = 1. So it
+  // contributed a constant 0.6 * uRimStr across the whole frame, and in tint
+  // mode that stains the ground. At the default rimStr a paper ground rendered
+  // as terracotta -- the art-directed colour was simply not on screen, with no
+  // error and nothing in the panel to suggest why.
+  // Each side must be zeroed on the other side explicitly. Clamping the
+  // argument to 0 does not do it: exp(0) is 1, so the term stays at full
+  // strength across the entire half-plane it was meant to be absent from. That
+  // is the bug twice over -- once in the original, once in the first fix.
+  float outer = (r >= 1.0) ? exp(-pow((r - 1.0) / max(uRimW,  1e-4), 1.5)) : 1.0;
+  float inner = (r <= 1.0) ? exp(-pow((1.0 - r) / max(uRimIn, 1e-4), 1.2)) : 0.0;
+  halo += max(outer * step(1.0, r), inner) * uRimStr;
 
   vec3 lightCol = core(uPigment, uSpread * 1.5, 1.0);
 
