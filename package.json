@@ -17,7 +17,8 @@
     "./panel": "./src/panel.js",
     "./palette": "./src/palette.js",
     "./shaders/*": "./src/shaders/*",
-    "./scripts/*": "./scripts/*"
+    "./scripts/*": "./scripts/*",
+    "./scene": "./src/scene.js"
   },
   "files": [
     "index.js",

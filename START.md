@@ -7,6 +7,7 @@ it covers, not before.
 
 | import | what it does |
 |---|---|
+| `scene(canvas)` | **Start here.** One call: harness, gates, neutral state, panel, render loop, all running. Then `.figure(url)`, `.palette()`, `.cloth(1)`, `.set(k,v)`. |
 | `quad(canvas, frag)` | WebGL2 fullscreen-quad harness. Returns `{set, draw, texture, canvasTexture, bind}`. Sizing handled. |
 | `hexToRgb(hex)` | hex string → `[r,g,b]` 0..1 |
 | `paletteFrom(img)` | palette off an image → `{swatches, roles}`. `roles` is `{pigment,bg,clothInk}`, ready to use. |
@@ -96,6 +97,8 @@ already looks good removes the only visible evidence that a decision was made.
 
 ## When to open the others
 
+- `SAY.md` — **what a spoken instruction maps to.** Open it first if you are
+  about to write more than five lines.
 - `MECHANISMS.md` — you are about to build a transition, a loader, a dissolve, or
   type behind a subject. Has the traps.
 - `FIGURE.md` — **you are about to put the model in the frame.** Placement is
