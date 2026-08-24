@@ -113,6 +113,15 @@ export function setLockup(name, num) {
   typeCtx.fillStyle = '#fff';                // only the alpha is read
   typeCtx.textBaseline = 'alphabetic';
 
+  // an empty name clears and returns: the lockup belongs to the reveal, and
+  // painting it during the eclipse would mean the page was already finished
+  // behind the loader
+  if (!name) {
+    if (!typeTex) typeTex = view.canvasTexture(typeCv, 3);
+    else typeTex.upload();
+    return;
+  }
+
   // -4% throughout, straight off the board -- name and number alike
   typeCtx.letterSpacing = '-0.04em';
   typeCtx.font = `${size}px Disp, Impact, sans-serif`;
@@ -165,10 +174,11 @@ function stepWordmark(now) {
 }
 
 document.fonts?.ready.then(() => {
-  const l = PRESETS[ORDER[lookIx]];
-  wm.to = l.name.toUpperCase();
+  // deliberately NOT drawn yet. The lockup belongs to the reveal; painting it
+  // during the eclipse means the page was already finished behind the loader.
+  wm.to = '';
   wm.num = '°01';
-  setLockup(wm.to, wm.num);
+  setLockup('', wm.num);
 });
 addEventListener('resize', () => { if (wm.to) setLockup(wm.to, wm.num ?? '°01'); });
 
@@ -632,7 +642,7 @@ for (const f of ASSETS) {
 
 const LOAD_MIN = 4200;              // the opening is a shot, not a wait
 const bootAt = performance.now();
-let load = 0, loadDone = false;
+let load = 0, loadDone = false, revealed = false;
 
 const easeIO = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
 
@@ -685,7 +695,10 @@ function stepLoader(now) {
   // the loader lets go, so the colour arrives WITH the reveal instead of being
   // uncovered already finished underneath it.
   if (p < 0.999) {
-    const flood = smoothstep(0.86, 1.0, p);
+    // A short, late, hard-edged flood. Spread over a long window it reads as the
+    // colour slowly appearing -- which is a fade wearing a different name. Cubed
+    // so almost nothing happens until the eclipse actually breaks.
+    const flood = smoothstep(0.90, 1.0, p) ** 3;
     const look = PRESETS[ORDER[lookIx]];
     state.bg = mixPigment('#F5F5F5', look.bg, flood);
     state.cloth = look.cloth * flood;
@@ -701,13 +714,28 @@ function stepLoader(now) {
     view.set('uWaveAmt', Math.sin(Math.PI * bp) ** 0.6);
   }
 
+  // The counter has to arrive at 100. It used to fade out between 60% and 76%,
+  // so it was gone long before the number it was counting to -- a progress
+  // readout that never reaches its own target reads as broken, however pretty
+  // the rest is.
   const el = document.getElementById('pct');
   if (el) {
     el.textContent = String(Math.round(load * 100)).padStart(3, '0');
-    el.style.opacity = String(1 - smoothstep(0.60, 0.76, p));
+    el.style.opacity = String(1 - smoothstep(0.965, 1.0, p));
   }
-  const sh = document.getElementById('shell');
-  if (sh) sh.style.opacity = String(smoothstep(0.90, 1.0, p));
+
+  // The reveal is a choreography, not an opacity ramp. Fire it once, on the
+  // frame the eclipse breaks, and let CSS run the parts -- each element gets its
+  // own motion and its own delay.
+  if (p > 0.90 && !revealed) {
+    revealed = true;
+    document.body.classList.add('reveal');
+    // the lockup resolves out of noise rather than arriving finished -- it is
+    // the one element the wave passes straight through, so it should look
+    // written by it
+    const l = PRESETS[ORDER[lookIx]];
+    scrambleTo(l.name.toUpperCase(), '°01');
+  }
 }
 
 function frame(t) {

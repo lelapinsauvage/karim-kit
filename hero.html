@@ -17,6 +17,7 @@
   
 
   :root{
+    --rv: cubic-bezier(.16,1,.3,1);
     --ink:#141414;
     --dim:rgba(20,20,20,.52);
     --hair:rgba(20,20,20,.16);
@@ -38,6 +39,67 @@
 
   .frame{position:fixed;inset:0;z-index:3;pointer-events:none}
   .frame *{pointer-events:auto}
+
+  /* THE REVEAL.
+     Every element hides itself and states its own way back. A single opacity
+     ramp on a wrapper is one gesture applied to eight things, which is why it
+     reads as cheap: nothing has a reason to arrive the way it does.
+     Here the row drops in behind a clip, the record wipes left to right a line
+     at a time, the button springs up from under the frame edge, and the slider
+     slides in from the side it points to. Same instant, eight different arrivals. */
+  .top,.rail div,.cta,.slider{
+    opacity:0;
+    transition:opacity .01s;
+  }
+
+  body.reveal .top{
+    animation:dropIn 1.05s var(--rv) .10s both;
+  }
+  @keyframes dropIn{
+    from{opacity:0;transform:translateY(-1.4rem);clip-path:inset(0 0 100% 0)}
+    to  {opacity:1;transform:none;clip-path:inset(0 0 -20% 0)}
+  }
+
+  /* the record is written line by line, left to right, like a label being
+     typed rather than a block appearing */
+  body.reveal .rail div{
+    animation:wipeIn .82s var(--rv) both;
+  }
+  body.reveal .rail div:nth-child(1){animation-delay:.42s}
+  body.reveal .rail div:nth-child(2){animation-delay:.52s}
+  body.reveal .rail div:nth-child(3){animation-delay:.62s}
+  body.reveal .rail div:nth-child(4){animation-delay:.72s}
+  @keyframes wipeIn{
+    from{opacity:1;clip-path:inset(0 100% 0 0);transform:translateX(-.4rem)}
+    to  {opacity:1;clip-path:inset(0 -2% 0 0);transform:none}
+  }
+
+  /* the button is the one thing that should feel like it has weight */
+  body.reveal .cta{
+    animation:springUp .95s cubic-bezier(.22,1.4,.36,1) .78s both;
+  }
+  @keyframes springUp{
+    from{opacity:0;transform:translateX(-50%) translateY(2.4rem) scale(.82)}
+    to  {opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  }
+
+  body.reveal .slider{
+    animation:slideIn .9s var(--rv) .66s both;
+  }
+  @keyframes slideIn{
+    from{opacity:0;transform:translateX(2.6rem)}
+    to  {opacity:1;transform:none}
+  }
+
+  /* the counter leaves upward as the frame takes over -- it does not dissolve,
+     it exits */
+  body.reveal .count{
+    animation:countOut .7s var(--rv) .04s both;
+  }
+  @keyframes countOut{
+    from{opacity:1;transform:translateY(0)}
+    to  {opacity:0;transform:translateY(-1.2rem)}
+  }
 
   /* the one hard edge on the page */
   /* THE TOP ROW.
@@ -144,7 +206,7 @@
 <body class="paper">
 <canvas id="c"></canvas>
 
-<div class="frame" id="shell" style="opacity:0">
+<div class="frame" id="shell">
 
   <div class="top">
     <div class="meta"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
