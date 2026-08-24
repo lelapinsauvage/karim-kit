@@ -103,6 +103,11 @@ uniform float uThread;     // scale of the threads she comes apart along
 // field pulsing in place.
 uniform float uWave;
 uniform float uWaveAmt;
+
+// The cloth is UNCOVERED by a front leaving the body, not faded up. An opacity
+// ramp makes the pattern appear everywhere at once, which has no relationship to
+// the circle it is supposed to be coming from. A radius does.
+uniform float uClothFront;   // -1 = fully hidden, large = fully shown
 uniform float uFlipA;
 uniform float uFlipB;
 // --- loader -----------------------------------------------------------------
@@ -383,6 +388,13 @@ void main() {
       float ring  = exp(-pow(dRing / 0.18, 2.0)) * uWaveAmt;
       vec2  outward = normalize(uv - uPos + 1e-5);
 
+      // uncovered from the body outward, with the edge of the front burning as
+      // it passes -- the same gesture the slider uses, so the two rhyme
+      float dFront = length(uv - uPos);
+      float uncover = smoothstep(uClothFront + 0.22, uClothFront - 0.22, dFront);
+      float crest   = exp(-pow((dFront - uClothFront) / 0.20, 2.0))
+                    * step(0.0, uClothFront) * (1.0 - step(2.6, uClothFront));
+
       vec2 g  = (uv + outward * ring * 0.10) * uClothScale;
       vec2 id = floor(g);
       vec2 f  = fract(g) - 0.5;
@@ -466,7 +478,11 @@ void main() {
       // not a separate effect drawn on top of it
       inkC += core(uPigment, uSpread * 2.2, 1.0) * ring * 1.4;
 
-      col = mix(col, inkC, ink * uCloth * shade * (1.0 + pulse * uCharge * 1.6 + ring * 2.0));
+      inkC += core(uPigment, uSpread * 2.4, 1.0) * crest * 1.6;
+
+      col = mix(col, inkC,
+                ink * uCloth * shade * uncover
+                * (1.0 + pulse * uCharge * 1.6 + ring * 2.0 + crest * 2.4));
     }
   }
 

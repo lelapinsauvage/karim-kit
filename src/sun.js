@@ -640,7 +640,7 @@ for (const f of ASSETS) {
   img.src = `/src/figures/${f}.png`;
 }
 
-const LOAD_MIN = 4200;              // the opening is a shot, not a wait
+const LOAD_MIN = 3600;              // the opening is a shot, not a wait
 const bootAt = performance.now();
 let load = 0, loadDone = false, revealed = false;
 
@@ -654,88 +654,85 @@ const smoothstep = (e0, e1, x) => {
 };
 const smoothstep01 = smoothstep;
 
+// TWO PHASES, in order.
+//
+//   LOAD    the counter climbs to 100 and the eclipse forms the sun. Nothing
+//           else moves. The reveal used to fire at 90%, so the page opened
+//           before the number it was counting to ever arrived.
+//   REVEAL  only once 100 is on screen: the wave leaves the body, uncovers the
+//           cloth as it travels, floods the ground, and the frame states itself.
+//
+// Keeping them separate is what lets the counter mean something. A loader whose
+// reveal overlaps its own progress is decoration.
+let revealT = -1;
+const REVEAL_MS = 1500;
+
 function stepLoader(now) {
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
   const clock = Math.min((now - bootAt) / LOAD_MIN, 1);
-  load += (Math.min(real, clock) - load) * 0.045;      // slower, damped
-  if (load > 0.995) load = 1;
+  load += (Math.min(real, clock) - load) * 0.045;
+  if (load > 0.998) load = 1;
 
   const p = easeIO(load);
 
-  // APPROACH  two black bodies, FIXED size, closing on the centre
-  // JOIN      they merge, the seam flares, the mass turns white
-  // IGNITE    it fills with pigment and grows into the sun
-  // BREAK     the wave leaves it, the ground floods, the scene arrives
-  const close  = smoothstep(0.00, 0.66, p);
-  const white_ = smoothstep(0.60, 0.76, p);
-  const fill   = smoothstep(0.74, 0.90, p);
-  const grow   = smoothstep(0.76, 0.96, p);
-  const seam   = Math.exp(-(((p - 0.66) / 0.045) ** 2));
+  // --- eclipse: fully formed by the time the counter reads 100 --------------
+  const close  = smoothstep(0.00, 0.62, p);
+  const white_ = smoothstep(0.58, 0.78, p);
+  const fill   = smoothstep(0.74, 0.93, p);
+  const grow   = smoothstep(0.78, 1.00, p);
+  const seam   = Math.exp(-(((p - 0.62) / 0.045) ** 2));
 
   const start = 0.46;
-  const cx = state.figX !== undefined ? 0.0 : 0.0;
-  view.set('uEclA', [cx - start * (1 - close), 0.02]);
-  view.set('uEclB', [cx + start * (1 - close), 0.02]);
-
-  // size is constant until the two are one, then the single mass grows into the
-  // halo. scaling during the approach would read as a zoom, not as a meeting.
+  view.set('uEclA', [-start * (1 - close), 0.02]);
+  view.set('uEclB', [ start * (1 - close), 0.02]);
   view.set('uEclR', 0.062 + grow * (state.r - 0.062));
-
   view.set('uEclWhite', white_);
   view.set('uEclFill', fill);
   view.set('uEclSeam', seam * 0.85);
   view.set('uPaper', hexToRgb('#F5F5F5'));
   view.set('uLoad', p);
 
-  // the loader holds the frame until the body IS the sun, then hands over in
-  // one beat and lets the wave do the reveal
-  view.set('uLoadCover', 1 - smoothstep(0.90, 0.99, p));
-
-  // The scene's own ground starts as paper and floods to the look's colour as
-  // the loader lets go, so the colour arrives WITH the reveal instead of being
-  // uncovered already finished underneath it.
-  if (p < 0.999) {
-    // A short, late, hard-edged flood. Spread over a long window it reads as the
-    // colour slowly appearing -- which is a fade wearing a different name. Cubed
-    // so almost nothing happens until the eclipse actually breaks.
-    const flood = smoothstep(0.90, 1.0, p) ** 3;
-    const look = PRESETS[ORDER[lookIx]];
-    state.bg = mixPigment('#F5F5F5', look.bg, flood);
-    state.cloth = look.cloth * flood;
-    state.figDark = look.figDark;
-    state.figTint = look.figTint * flood;
-    send(state);
-  }
-
-  // the burst: the same wave the transition uses, fired once on opening
-  if (p > 0.88) {
-    const bp = (p - 0.88) / 0.12;
-    view.set('uWave', bp);
-    view.set('uWaveAmt', Math.sin(Math.PI * bp) ** 0.6);
-  }
-
-  // The counter has to arrive at 100. It used to fade out between 60% and 76%,
-  // so it was gone long before the number it was counting to -- a progress
-  // readout that never reaches its own target reads as broken, however pretty
-  // the rest is.
   const el = document.getElementById('pct');
-  if (el) {
-    el.textContent = String(Math.round(load * 100)).padStart(3, '0');
-    el.style.opacity = String(1 - smoothstep(0.965, 1.0, p));
+  if (el) el.textContent = String(Math.round(load * 100)).padStart(3, '0');
+
+  // --- hold on 100, then reveal --------------------------------------------
+  if (load >= 1 && revealT < 0) revealT = now + 260;   // a beat on the number
+
+  if (revealT < 0 || now < revealT) {
+    view.set('uLoadCover', 1);
+    view.set('uClothFront', -1);                        // cloth fully hidden
+    view.set('uWave', 0); view.set('uWaveAmt', 0);
+    const look = PRESETS[ORDER[lookIx]];
+    state.bg = '#F5F5F5';
+    state.figTint = 0;
+    send(state);
+    return;
   }
 
-  // The reveal is a choreography, not an opacity ramp. Fire it once, on the
-  // frame the eclipse breaks, and let CSS run the parts -- each element gets its
-  // own motion and its own delay.
-  if (p > 0.90 && !revealed) {
+  const rt = Math.min((now - revealT) / REVEAL_MS, 1);
+  const e  = 1 - (1 - rt) ** 4;
+
+  if (!revealed) {
     revealed = true;
     document.body.classList.add('reveal');
-    // the lockup resolves out of noise rather than arriving finished -- it is
-    // the one element the wave passes straight through, so it should look
-    // written by it
-    const l = PRESETS[ORDER[lookIx]];
-    scrambleTo(l.name.toUpperCase(), '°01');
+    scrambleTo(PRESETS[ORDER[lookIx]].name.toUpperCase(), '°01');
+    if (el) el.style.transition = '';
   }
+
+  // the front leaves the body and takes the cloth with it
+  // parked well past the far corner once open, so the mask is inert for the
+  // rest of the session rather than a value the slider has to keep clearing
+  view.set('uClothFront', rt >= 1 ? 99.0 : -0.25 + e * 3.0);
+  view.set('uWave', Math.min(rt * 1.15, 1));
+  view.set('uWaveAmt', Math.sin(Math.PI * Math.min(rt * 1.15, 1)) ** 0.6);
+
+  // the loader lets go immediately -- the wave is the reveal, not a curtain
+  view.set('uLoadCover', 1 - smoothstep(0.0, 0.20, rt));
+
+  const look = PRESETS[ORDER[lookIx]];
+  state.bg = mixPigment('#F5F5F5', look.bg, smoothstep(0.0, 0.42, rt));
+  state.figTint = look.figTint * smoothstep(0.10, 0.55, rt);
+  send(state);
 }
 
 function frame(t) {
