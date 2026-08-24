@@ -129,6 +129,7 @@ uniform int   uFigMode;    // 0 stamp, 1 plate, 2 page, 3 weave
 uniform vec4  uFigRect;    // alpha bounding box of the cutout
 uniform vec4  uFigPos;     // aspect, height (uv units), x, y
 uniform float uFigShow;
+uniform float uFigFade;    // the figure resolves in on its own clock
 uniform float uFigDark;    // pull toward silhouette
 uniform float uFigTint;    // how far the figure takes the pigment's colour
 uniform float uFigLift;    // light spilling onto her from the body
@@ -609,7 +610,7 @@ void main() {
         float sp = exp(-max(length(uv - uPos) - uR, 0.0) / max(uGlowSize * 0.7, 1e-4));
         fig += core(uPigment, uSpread * 1.6, 1.0) * sp * uFigLift * 0.5;
       }
-      col = mix(col, fig, tex.a);
+      col = mix(col, fig, tex.a * uFigFade);
     }
     col += bloom;
   }

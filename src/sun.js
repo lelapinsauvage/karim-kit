@@ -640,7 +640,7 @@ for (const f of ASSETS) {
   img.src = `/src/figures/${f}.png`;
 }
 
-const LOAD_MIN = 2300;              // the opening is a shot, not a wait
+const LOAD_MIN = 1500;      // the count is brisk; the reveal is not              // the opening is a shot, not a wait
 const bootAt = performance.now();
 let load = 0, loadDone = false, revealed = false;
 
@@ -665,7 +665,7 @@ const smoothstep01 = smoothstep;
 // Keeping them separate is what lets the counter mean something. A loader whose
 // reveal overlaps its own progress is decoration.
 let revealT = -1;
-const REVEAL_MS = 1150;
+const REVEAL_MS = 2800;     // room to watch each part arrive
 
 function stepLoader(now) {
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
@@ -686,8 +686,11 @@ function stepLoader(now) {
   // reveal arrives is a bright circle getting bigger -- which is why it read as
   // cheap. Black mass, then ignition, in that order.
   const SEED = 0.085;
-  const close = smoothstep(0.00, 0.72, p);
-  const seam  = Math.exp(-(((p - 0.72) / 0.05) ** 2));
+  // They approach slowly and only meet at the very end of the count. Merging at
+  // 70% leaves a third of the load with one static blob on screen, which is dead
+  // time -- the join has to land ON the number.
+  const close = smoothstep(0.05, 0.965, p) ** 1.6;
+  const seam  = Math.exp(-(((p - 0.965) / 0.035) ** 2));
 
   const start = 0.46;
   view.set('uEclA', [-start * (1 - close), 0.02]);
@@ -712,19 +715,30 @@ function stepLoader(now) {
     state.bg = '#F5F5F5';
     state.figTint = 0;
     state.r = SEED;                 // the scene's sun matches the seed exactly,
-    send(state);                    // so the handover has nothing to reveal
+    view.set('uFigFade', 0);        // so the handover has nothing to reveal
+    send(state);
     return;
   }
 
   const rt = Math.min((now - revealT) / REVEAL_MS, 1);
-  const e  = 1 - (1 - rt) ** 4;
+
+  // Each element gets its OWN easing, not one shared curve. A single curve
+  // across eight things is one gesture repeated; different curves at different
+  // offsets is choreography.
+  const seg = (a, b) => Math.max(0, Math.min((rt - a) / (b - a), 1));
+  const expoOut = (x) => (x >= 1 ? 1 : 1 - 2 ** (-9 * x));   // leaves hard, lands soft
+  const quartIO = (x) => (x < 0.5 ? 8 * x ** 4 : 1 - (-2 * x + 2) ** 4 / 2);
+  const sineOut = (x) => Math.sin((x * Math.PI) / 2);        // gentlest of the three
+
+  // the sun opens on expo -- it should feel released, not driven
+  const e = expoOut(seg(0.00, 0.62));
 
   // THE IGNITION, then the expansion. The mass goes white, catches, and opens.
   // Holding the ignition back until here means the reveal has a moment of its
   // own rather than continuing something the load already did.
   const look = PRESETS[ORDER[lookIx]];
-  view.set('uEclWhite', smoothstep(0.00, 0.10, rt));
-  view.set('uEclFill',  smoothstep(0.06, 0.30, rt));
+  view.set('uEclWhite', seg(0.00, 0.05));
+  view.set('uEclFill',  quartIO(seg(0.03, 0.22)));
 
   state.r = SEED + (look.r - SEED) * e;
   view.set('uEclR', state.r);
@@ -739,18 +753,24 @@ function stepLoader(now) {
   // the front leaves the body and takes the cloth with it
   // parked well past the far corner once open, so the mask is inert for the
   // rest of the session rather than a value the slider has to keep clearing
-  // the wave leaves just after the flash, so the ignition reads as its cause
-  const wv = Math.max(0, Math.min((rt - 0.07) / 0.93, 1));
-  const we = 1 - (1 - wv) ** 4;
-  view.set('uClothFront', rt >= 1 ? 99.0 : SEED + we * 2.9);
+  // the wave leaves just after the flash, so the ignition reads as its cause,
+  // and travels on a slower curve than the sun so the two separate as they go
+  const wv = quartIO(seg(0.05, 0.78));
+  view.set('uClothFront', rt >= 1 ? 99.0 : SEED + wv * 2.9);
   view.set('uWave', wv);
   view.set('uWaveAmt', Math.sin(Math.PI * wv) ** 0.55);
+
+  // THE FIGURE. The slowest thing on screen and the last to finish: she resolves
+  // across nearly the whole reveal on a sine, which has no acceleration to
+  // notice. Everything else can be seen arriving; she should only be seen to
+  // have arrived.
+  view.set('uFigFade', sineOut(seg(0.16, 0.92)));
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   view.set('uLoadCover', 1 - smoothstep(0.0, 0.20, rt));
 
-  state.bg = mixPigment('#F5F5F5', look.bg, smoothstep(0.0, 0.38, rt));
-  state.figTint = look.figTint * smoothstep(0.08, 0.50, rt);
+  state.bg = mixPigment('#F5F5F5', look.bg, quartIO(seg(0.02, 0.40)));
+  state.figTint = look.figTint * sineOut(seg(0.20, 0.85));
   send(state);
 }
 
