@@ -173,7 +173,12 @@ function stepWordmark(now) {
   if (raw >= 1) { wm.t0 = -1; setLockup(wm.to, wm.num ?? '°01'); }
 }
 
-document.fonts?.ready.then(() => {
+// load(), not ready(). A face that no DOM node uses is never fetched, so
+// fonts.ready resolves happily and the canvas rasterises in the fallback -- the
+// wordmark silently draws in Impact and nothing reports a problem.
+(document.fonts?.load('1em Disp') ?? Promise.resolve())
+  .then(() => document.fonts?.ready)
+  .then(() => {
   // deliberately NOT drawn yet. The lockup belongs to the reveal; painting it
   // during the eclipse means the page was already finished behind the loader.
   wm.to = '';

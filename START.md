@@ -29,6 +29,14 @@ loader, an image generator. They exist. Import or copy them.
 4. **Verify the edit landed.** A string replace that matches nothing fails
    silently. If a fix changes nothing, check it applied before theorising.
 
+## Two things that will bite you
+
+- **`document.fonts.ready` is not enough for a canvas-only face.** A font no DOM
+  node uses is never fetched, so `ready` resolves and the canvas rasterises the
+  fallback. Call `document.fonts.load('1em YourFace')` first.
+- **`bayard.woff2` has no composed accented glyphs.** `Á` draws as a broken box.
+  Keep display text ASCII, or check before committing to a name.
+
 ## When to open the others
 
 - `MECHANISMS.md` — you are about to build a transition, a loader, a dissolve, or
