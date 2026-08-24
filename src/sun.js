@@ -758,6 +758,7 @@ function stepLoader(now) {
   const seg = (a, b) => Math.max(0, Math.min((rt - a) / (b - a), 1));
   const expoOut = (x) => (x >= 1 ? 1 : 1 - 2 ** (-9 * x));   // leaves hard, lands soft
   const quartIO = (x) => (x < 0.5 ? 8 * x ** 4 : 1 - (-2 * x + 2) ** 4 / 2);
+  const quartOut = (x) => 1 - (1 - x) ** 4;                  // leaves at once
   const sineOut = (x) => Math.sin((x * Math.PI) / 2);        // gentlest of the three
 
   // the sun opens on expo -- it should feel released, not driven
@@ -789,7 +790,11 @@ function stepLoader(now) {
   // rest of the session rather than a value the slider has to keep clearing
   // the wave leaves just after the flash, so the ignition reads as its cause,
   // and travels on a slower curve than the sun so the two separate as they go
-  const wv = quartIO(seg(0.03, 0.66));  // the wave takes its time crossing
+  // Leaves AT ONCE and then takes its time. quartIO spent its first third
+  // barely moving, so the front had not left the body while the sun was already
+  // most of the way open -- which is the beat where an orange disc sat on white
+  // paper. Departure must be immediate; only the journey is slow.
+  const wv = quartOut(seg(0.00, 0.70));
   view.set('uClothFront', rt >= 1 ? 99.0 : SEED + wv * 2.9);
   view.set('uWave', wv);
   view.set('uWaveAmt', Math.sin(Math.PI * wv) ** 0.55);
@@ -801,15 +806,17 @@ function stepLoader(now) {
   // she has attack but a long tail: quickly out of nothing, then a slow settle
   // you can watch. That is different from arriving gradually, which has no
   // moment of arrival at all.
-  view.set('uFigFade', expoOut(seg(0.10, 0.72)));
+  view.set('uFigFade', expoOut(seg(0.04, 0.72)));
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   // hands over almost at once: the loader's job ended on contact, and any
   // lingering is the settled shape the approach was built to hide
   view.set('uLoadCover', 1 - smoothstep(0.0, 0.035, rt));   // ~110ms
 
-  state.bg = mixPigment('#F5F5F5', look.bg, quartIO(seg(0.00, 0.24)));
-  state.figTint = look.figTint * sineOut(seg(0.14, 0.74));
+  // the ground travels with the sun, on the same curve family. Anything that
+  // eases IN here leaves the frame white underneath an already-open sun.
+  state.bg = mixPigment('#F5F5F5', look.bg, expoOut(seg(0.00, 0.30)));
+  state.figTint = look.figTint * sineOut(seg(0.06, 0.74));
   send(state);
 }
 
