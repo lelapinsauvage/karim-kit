@@ -13,7 +13,7 @@
 
 import { quad } from './gl.js';
 import { panel, applySun, SUN_NEUTRAL, SUN_OFF, SUN_COLOUR, SUN_GROUPS } from './panel.js';
-import { paletteFrom, swatchStrip } from './palette.js';
+import { paletteFrom, swatchStrip, rgb2hsv, hsv2rgb, toHex } from './palette.js';
 import frag from './shaders/sun.frag?raw';
 
 /**
@@ -35,6 +35,27 @@ export function scene(canvas, opts = {}) {
 
   const slots = [null, null, null, null];
   let lastURL = null;
+
+  // --- the set -------------------------------------------------------------
+  const models = [];          // { url, tex, roles }
+  let ix = 0, tween = null;
+
+  // Pigments interpolate in HSV, the short way round the hue circle. An RGB
+  // lerp between two saturated colours passes through grey -- measured on
+  // indigo to brass, saturation falls from 0.79 to 0.13 at the midpoint. That
+  // dead middle is what reads as the frame dropping out halfway through a
+  // switch and snapping back.
+  const mixHex = (A, B, t) => {
+    const a = rgb2hsv(...hexArr(A)), b = rgb2hsv(...hexArr(B));
+    let dh = b[0] - a[0];
+    if (dh >  0.5) dh -= 1;
+    if (dh < -0.5) dh += 1;
+    return toHex(hsv2rgb((a[0] + dh * t + 1) % 1,
+                         a[1] + (b[1] - a[1]) * t,
+                         a[2] + (b[2] - a[2]) * t));
+  };
+  const hexArr = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+  const easeOut = (t) => 1 - Math.pow(2, -10 * t);   // normalised below
 
   const api = {
     view,
@@ -103,6 +124,64 @@ export function scene(canvas, opts = {}) {
 
     /** the figure's own reveal, 0..1 -- drive it from a transition */
     fade(v = 1) { view.set('uFigFade', v); return api; },
+
+    /**
+     * models(urls, opts) -- a set you can move between.
+     *
+     * Loads every figure, binds each to its own sampler, and gives you next /
+     * prev / go with the shader's own transition. Arrow keys are wired unless
+     * you turn them off.
+     *
+     * opts.palette: extract a palette per figure and carry the colours through
+     * the move, so each character brings its own light, ground and ink. OFF by
+     * default -- colour is a decision, and nothing here takes one unasked.
+     *
+     * Capped at FOUR. The shader has uFigTex0..3; a fifth needs a texture
+     * array, which is a real change, not a bigger number.
+     */
+    async models(urls, { palette = false, duration = 900, mode = 0, keys = true } = {}) {
+      if (urls.length > 4) throw new Error(`scene.models: ${urls.length} given, 4 is the limit (uFigTex0..3)`);
+      models.length = 0;
+      urls.forEach((url, i) => {
+        const tex = view.texture(url, i);
+        view.bind({ ['uFigTex' + i]: tex });
+        models.push({ url, tex, roles: null });
+      });
+      await Promise.all(models.map((m) =>
+        m.tex.ready ? null : new Promise((r) => { m.tex.onready = r; })));
+
+      if (palette)
+        for (const m of models) m.roles = (await paletteFrom(m.url)).roles;
+
+      state.figShow = true;
+      state.figMode = mode;
+      view.set('uFigMode', mode);
+      view.set('uFigFade', 1);
+      ix = 0;
+      if (models[0].roles) api.set(models[0].roles);
+      if (!live.figure) { live.figure = true; buildPanel(); }
+
+      if (keys) addEventListener('keydown', (e) => {
+        const d = /Right|Down/.test(e.key) ? 1 : /Left|Up/.test(e.key) ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        api.go(d);
+      });
+      return api;
+    },
+
+    /** step through the set. Input during a move is ignored, not queued. */
+    go(dir = 1, duration = 900) {
+      if (tween || !models.length || !dir) return api;
+      const from = ix;
+      ix = (ix + dir + models.length) % models.length;
+      tween = { from, to: ix, t0: null, duration,
+                a: models[from].roles, b: models[ix].roles };
+      return api;
+    },
+    next() { return api.go(1); },
+    prev() { return api.go(-1); },
+    at()   { return ix; },
   };
 
   // Which groups are live. A control for something that is not on screen is
@@ -144,7 +223,30 @@ export function scene(canvas, opts = {}) {
   }
 
   function loop(t) {
-    applySun(view, state, { fig: slots[0], figB: slots[1], time: t });
+    let fig = slots[0], figB = slots[1];
+
+    if (models.length) {
+      let m = 1, A = ix, B = ix;
+      if (tween) {
+        if (tween.t0 === null) tween.t0 = t;
+        const raw = Math.min((t - tween.t0) / tween.duration, 1);
+        // normalised, so it actually REACHES 1. An un-normalised expo-out
+        // stops at 0.999 and the last thousandth arrives as a snap.
+        m = raw >= 1 ? 1 : easeOut(raw) / easeOut(1);
+        A = tween.from; B = tween.to;
+        if (tween.a && tween.b)
+          api.set({ pigment:  mixHex(tween.a.pigment,  tween.b.pigment,  m),
+                    bg:       mixHex(tween.a.bg,       tween.b.bg,       m),
+                    clothInk: mixHex(tween.a.clothInk, tween.b.clothInk, m) });
+        if (raw >= 1) tween = null;
+      }
+      fig = models[A].tex; figB = models[B].tex;
+      view.set('uFigA', A);
+      view.set('uFigB', B);
+      view.set('uFigMix', m);
+    }
+
+    applySun(view, state, { fig, figB, time: t });
     view.draw();
     requestAnimationFrame(loop);
   }

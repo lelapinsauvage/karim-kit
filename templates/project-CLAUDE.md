@@ -32,8 +32,22 @@ s.fade(0.5);                          // the figure's own reveal, 0..1
 `s.state` is the live state object. `s.view` is the raw harness — `s.view.set(u, v)`
 for uniforms with no wrapper (`uFlipA`, `uFigMix`, `uTypeShow`).
 
-Second figure: `s.figure(url, 1)`, then drive `uFigMix` 0→1. `uFigMode` picks the
-transition: 0 stamp, 1 plate, 2 page, 3 weave.
+A set of models with a slider — **one call, when I ask for it**:
+
+```js
+await s.models([a, b, c, d], { palette: true, mode: 3 });
+s.next(); s.prev(); s.go(-1);        // arrow keys already wired
+```
+
+`palette: true` gives each character its own light, ground and ink, carried
+through the move in HSV so nothing goes grey at the midpoint. Leave it off and
+the colours stay as I set them. `mode`: 0 stamp, 1 plate, 2 page, 3 weave.
+
+**Four models maximum.** The shader has `uFigTex0..3`; a fifth needs a texture
+array, which is a real change and not a bigger number. If I ask for five, say so
+rather than silently dropping one.
+
+Two figures without a slider: `s.figure(url, 1)`, then drive `uFigMix` 0→1.
 
 New model, run from the project root:
 
