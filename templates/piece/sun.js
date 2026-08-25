@@ -136,36 +136,37 @@ export function setLockup(name, num) {
   typeCtx.textAlign = 'left';
   const NAME = name.toUpperCase();
   const nameY = h * 0.29 + size * 0.78;
-  {
-    // ALWAYS per letter, including at rest.
-    //
-    // Drawing the whole string in one call and only splitting it for the rise
-    // gives two different layouts: one fillText kerns its pairs, letters drawn
-    // separately cannot. So the word shifted at the exact frame the reveal
-    // handed over. One code path, one layout, no handover.
-    //
-    // Prefix widths, not per-character widths: letterSpacing lives BETWEEN
-    // glyphs, so measuring each one alone and summing drifts a little further
-    // left with every letter and the word comes apart as it arrives.
+
+  // The whole string is drawn EVERY time, kerned as one word. To lift a single
+  // letter, the full string is drawn again clipped to that letter's column.
+  //
+  // Drawing letters individually is the obvious way and it is wrong: a display
+  // face kerns its pairs, and glyphs drawn one at a time cannot be kerned
+  // against neighbours that are not there. The word then sits a hair wide, and
+  // worse, it changes layout at whatever frame the animation stops splitting
+  // it. This way there is one layout, always, and the reveal only decides where
+  // the clip is and how far down the word is pushed inside it.
+  if (lockRise >= 1) {
+    typeCtx.fillText(NAME, pad, nameY);
+  } else {
+    const edge = (i) => pad + (i ? typeCtx.measureText(NAME.slice(0, i)).width : 0);
     for (let i = 0; i < NAME.length; i++) {
-      const x = pad + (i ? typeCtx.measureText(NAME.slice(0, i)).width : 0);
       const start = (i / NAME.length) * 0.5;
       const t = Math.max(0, Math.min((lockRise - start) / 0.5, 1));
       const e = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t);
       if (e <= 0) continue;
-      if (e >= 1) {
-        // settled: no clip, no alpha, nothing that could round differently
-        typeCtx.fillText(NAME[i], x, nameY);
-        continue;
-      }
+
+      const x0 = edge(i);
+      const x1 = i === NAME.length - 1 ? x0 + size * 2 : edge(i + 1);
+
       typeCtx.save();
       typeCtx.beginPath();
-      // the clip stops ON the baseline, so a letter climbs out of the line
-      // rather than sliding past it
-      typeCtx.rect(x - size * 0.12, nameY - size * 1.05, size * 1.6, size * 1.05);
+      // the column, and a clip that stops ON the baseline so the letter climbs
+      // out of the line rather than sliding past it
+      typeCtx.rect(x0, nameY - size * 1.15, x1 - x0, size * 1.15);
       typeCtx.clip();
       typeCtx.globalAlpha = e;
-      typeCtx.fillText(NAME[i], x, nameY + (1 - e) * size * 0.72);
+      typeCtx.fillText(NAME, pad, nameY + (1 - e) * size * 0.72);
       typeCtx.restore();
     }
     typeCtx.globalAlpha = 1;
