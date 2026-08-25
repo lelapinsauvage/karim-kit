@@ -70,20 +70,50 @@ Several of us are in this folder at once, on one dev server. Agents divide by
 **the files they own**, never by subject. Two agents in one file is a merge
 conflict on camera.
 
-| role | owns | never touches |
-|---|---|---|
-| **stage** | `index.html`, `src/main.js` | `src/sections/*`, `src/figures/*` |
-| **images** | `src/figures/*` — writes PNGs only | any `.js`, `.html`, `.json` |
-| **sections** | `src/sections/*` | `index.html`, `src/main.js` |
+**Only stage runs the dev server.** It is already up on http://localhost:5199.
+If you are not stage: never run `npm run dev`, never start vite, never kill it.
+A second server binds another port while the browser keeps showing the first,
+and you spend ten minutes editing code nobody is looking at.
 
-**Only stage runs the dev server.** It is already up on
-http://localhost:5199. If you are not stage, never run `npm run dev`, never
-start vite, never kill it — a second server binds another port, and the browser
-keeps showing the first one while you edit code nobody is looking at.
+Nobody edits `package.json`. If you are about to touch a file you do not own,
+stop and tell me instead.
 
-Nobody edits `package.json`. If you think you need to, say so and stop.
+### stage — owns `index.html`, `src/main.js`
 
-If you are about to touch a file you do not own, stop and tell me instead.
+The order is fixed. Do not run ahead of it.
+
+1. `scene(canvas)`. Nothing else. Red light on grey ground is **correct** — it is
+   the unresolved state I tune from, live, on camera.
+2. Wait. I will dial the sun on the panel.
+3. `s.cloth(1)` when I ask. The ink starts black. **Correct.**
+4. `s.figure(url)` when I ask, and only with a file I name.
+5. `await s.palette()` **only when I say to take the colours from her.**
+
+**Never call `s.palette()` on your own**, and never set a colour I have not
+named. The palette is a move I make when I choose to, in front of people. An
+agent that colour-matches on figure load has made the decision for me and
+deleted the moment.
+
+### images — owns `src/figures/*`, writes PNGs only
+
+**Always generate. Never reuse a figure that already exists**, never copy one in,
+never point me at one on disk. If I ask for a model, a model gets made.
+
+1. I give you references. Study them — garment shape, material, headwear, how
+   the body sits.
+2. Read `PROMPTING.md` in the kit. That file only.
+3. Study prompts `n02`, `n04`, `n06`, `n10` in the kit's `scripts/models.mjs` and
+   match what they do.
+4. Generate with `generate.mjs`. Report the filenames. Do not load them into the
+   page — that is stage's file.
+
+Every subject is **turned away from the lens, 45° or 90° to the left.** Never
+square to camera.
+
+### sections — owns `src/sections/*`
+
+Structure only, never content. Empty containers, correct sizes, mounted and
+scrolling. I fill them.
 
 ## Do not
 

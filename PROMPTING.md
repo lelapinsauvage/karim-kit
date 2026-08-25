@@ -12,6 +12,42 @@ Generates, removes the background, writes `src/figures/<name>.png`.
 
 ---
 
+## Where the body faces — the rule that decides most of it
+
+**The subject is turned away from the lens: 45 degrees or 90 degrees to the
+left. Never square to camera.**
+
+This is not a stylistic preference, it is what the frame needs. The figure
+stands against a disc. Square-on shoulders give the silhouette a flat rectangle
+that fights the circle behind it; rotated shoulders give it a diagonal and a
+clean profile edge, and the cutout starts reading as a shape rather than as a
+photograph pasted on a background.
+
+Of ten figures generated for this project, the four that got used were `n02`,
+`n04`, `n06` and `n10`. Read them in `scripts/models.mjs`. What they share is
+the only thing they share:
+
+| | body | head |
+|---|---|---|
+| `n02` | three-quarters away | looking back over the shoulder |
+| `n04` | strict profile, facing left | chin raised, eyes closed |
+| `n06` | shoulders turned away | face back toward the lens |
+| `n10` | angled, seen from slightly below | looking off past the frame edge |
+
+The six that were not used — `n01`, `n03`, `n05`, `n07`, `n08`, `n09` — are all
+square to the camera or turned to the right.
+
+So the body rotates away and the head does one of two things: **follows into
+profile**, or **counter-turns back**. The counter-turn is the stronger of the
+two, because the twist between shoulders and head is what stops a portrait
+looking posed.
+
+Say it in the prompt as an action, never as an angle. "Turned three-quarters
+away and looking back over his shoulder" works. "45 degree angle" returns a
+passport photo taken slightly wrong.
+
+---
+
 ## Making it look like a photograph
 
 The first batch on this project came back reading unmistakably as AI. Four

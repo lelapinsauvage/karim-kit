@@ -122,6 +122,7 @@ export function panel({
   hotkey = 'h',
   open = false,
   note = '',
+  copyAs = 's.set',
 } = {}) {
   const keys = groups.flatMap(([, k]) => k);
 
@@ -205,7 +206,11 @@ export function panel({
   $('p-copy').onclick = () => {
     const o = {};
     for (const k of [...keys, ...colors]) if (state[k] !== undefined) o[k] = state[k];
-    const txt = JSON.stringify(o, null, 2);
+    // Copied as a call, not as data. The point of copying is to hand the
+    // values to someone -- an agent, another window, a preset -- and a bare
+    // object needs a human to wrap it before it does anything. This can be
+    // pasted straight into a message or a console and it runs.
+    const txt = `${copyAs}(${JSON.stringify(o, null, 2)})`;
     navigator.clipboard?.writeText(txt);
     console.log(txt);
     $('p-copy').textContent = 'copied';

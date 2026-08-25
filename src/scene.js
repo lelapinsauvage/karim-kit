@@ -12,7 +12,7 @@
 // nothing is not something this file knows about.
 
 import { quad } from './gl.js';
-import { panel, applySun, SUN_NEUTRAL, SUN_OFF, SUN_COLOUR } from './panel.js';
+import { panel, applySun, SUN_NEUTRAL, SUN_OFF, SUN_COLOUR, SUN_GROUPS } from './panel.js';
 import { paletteFrom, swatchStrip } from './palette.js';
 import frag from './shaders/sun.frag?raw';
 
@@ -61,6 +61,7 @@ export function scene(canvas, opts = {}) {
       view.set('uFigMix', 0); view.set('uFigMode', 0); view.set('uFigFade', 1);
       state.figShow = true;
       if (slot === 0) lastURL = url;
+      if (!live.figure) { live.figure = true; buildPanel(); }
       return t.ready ? Promise.resolve(t)
                      : new Promise((res) => { t.onready = () => res(t); });
     },
@@ -77,6 +78,7 @@ export function scene(canvas, opts = {}) {
       if (!url) throw new Error('scene.palette: no figure loaded yet');
       const { swatches, roles, medianLum } = await paletteFrom(url);
       api.set(roles);
+      lastSwatches = swatches;
       if (api.panel && opts.panel !== false) mountSwatches(swatches);
       return { swatches, roles, medianLum };
     },
@@ -95,6 +97,7 @@ export function scene(canvas, opts = {}) {
      */
     cloth(v = 1, front = v > 0 ? 99 : -1) {
       view.set('uClothFront', front);
+      if (!live.cloth) { live.cloth = true; buildPanel(); }
       return api.set('cloth', +v);
     },
 
@@ -102,14 +105,31 @@ export function scene(canvas, opts = {}) {
     fade(v = 1) { view.set('uFigFade', v); return api; },
   };
 
-  if (opts.panel !== false) {
+  // Which groups are live. A control for something that is not on screen is
+  // worse than a missing one: it reads as broken when dragging it does nothing,
+  // and it costs the time it takes to find that out.
+  const live = { cloth: false, figure: false, type: false };
+  let panelOpen = opts.open ?? false;
+
+  function buildPanel() {
+    if (opts.panel === false) return;
+    if (api.panel) { panelOpen = api.panel.el.style.display !== 'none'; api.panel.el.remove(); }
+    // 'surface' is the cloth's own shading -- rake, sheen, cord -- so it
+    // arrives with the cloth rather than sitting there doing nothing.
+    const on = { ...live, surface: live.cloth };
+    const groups = SUN_GROUPS.filter(([name]) => on[name] ?? true);
     api.panel = panel({
-      state,
-      colors: Object.keys(SUN_COLOUR),
-      open: opts.open ?? false,
+      state, groups,
+      colors: Object.keys(SUN_COLOUR).filter((k) =>
+        k !== 'clothInk' || live.cloth),
+      open: panelOpen,
       note: opts.note ?? '',
+      copyAs: opts.copyAs,
     });
+    if (lastSwatches) mountSwatches(lastSwatches);
   }
+  let lastSwatches = null;
+  buildPanel();
 
   // The strip goes at the top of the panel, above the sliders: it is the first
   // decision made after a figure lands, not a footnote to the tuning.
