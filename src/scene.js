@@ -29,8 +29,10 @@ import frag from './shaders/sun.frag?raw';
  * removes the only visible evidence that a decision was made.
  */
 export function scene(canvas, opts = {}) {
-  // opts.onSwitch({from, to}) -- called when a move begins
-  const onSwitch = opts.onSwitch;
+  // Set by models(), not by scene(): a switch is a property of the SET, and
+  // reading it here meant every onSwitch passed to models() was silently
+  // dropped -- the rail never scrambled and nothing reported a problem.
+  let onSwitch = opts.onSwitch ?? null;
   const view = quad(canvas, frag);
   // blank by default: white, empty. sun() brings the body up when asked.
   const state = { ...SUN_BLANK, ...(opts.state || {}) };
@@ -107,7 +109,8 @@ export function scene(canvas, opts = {}) {
       slots[slot] = t;
       view.bind({ ['uFigTex' + slot]: t });
       view.set('uFigA', 0); view.set('uFigB', slots[1] ? 1 : 0);
-      view.set('uFigMix', 0); view.set('uFigMode', 0); view.set('uFigFade', 1);
+      view.set('uFigMix', 0); view.set('uFigMode', 0);
+      if (!loaderStep) view.set('uFigFade', 1);
       state.figShow = true;
       if (slot === 0) lastURL = url;
       if (!live.figure) { live.figure = true; buildPanel(); }
@@ -300,10 +303,11 @@ export function scene(canvas, opts = {}) {
      * Eight figures. Past that the shader wants a sampler2DArray.
      */
     async models(urls, { palette = false, duration = 1450, mode = 0, keys = true,
-                         looks = null, intensity = 1 } = {}) {
+                         looks = null, intensity = 1, onSwitch: onSw = null } = {}) {
       if (urls.length > 8) throw new Error(`scene.models: ${urls.length} given, 8 samplers exist`);
       models.length = 0;
       moveIntensity = intensity;
+      if (onSw) onSwitch = onSw;
       urls.forEach((url, i) => {
         const tex = view.texture(url, i);
         view.bind({ ['uFigTex' + i]: tex });
@@ -322,7 +326,11 @@ export function scene(canvas, opts = {}) {
       state.figShow = true;
       state.figMode = mode;
       view.set('uFigMode', mode);
-      view.set('uFigFade', 1);
+      // Do NOT force her visible if an opening is running. The loader owns
+      // uFigFade -- she is the last thing to arrive and she arrives on its
+      // clock. Setting it here made her fade up behind the eclipse, which is
+      // the scene assembling itself in front of the thing built to hide it.
+      if (!loaderStep) view.set('uFigFade', 1);
       ix = 0;
       if (models[0].roles) api.set(models[0].roles);
       api.set({ ...models[0].place });
