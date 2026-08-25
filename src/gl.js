@@ -46,7 +46,15 @@ export function quad(canvas, frag) {
                   new Uint8Array([0, 0, 0, 0]));
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    // LINEAR, not LINEAR_MIPMAP_LINEAR, and no mips generated below.
+    //
+    // figAt() returns early outside the figure's box, so the derivatives along
+    // that boundary are garbage and the hardware picks the smallest mip -- the
+    // entire photograph averaged to one dark colour. It draws as a dark
+    // rectangle around the cutout, and it looks like a matte problem, which is
+    // where the time goes. A cutout is never minified far enough for mips to
+    // earn their keep here anyway.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     // rect = the alpha bounding box in texture coords. cutouts come back with
     // wildly different amounts of empty padding, so framing by canvas height
@@ -61,7 +69,6 @@ export function quad(canvas, frag) {
       // premultiply so the cutout's soft edge composites without a dark fringe
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-      gl.generateMipmap(gl.TEXTURE_2D);
       rec.rect   = alphaBounds(img);
       rec.aspect = (rec.rect[2] * img.width) / (rec.rect[3] * img.height);
       rec.ready  = true;

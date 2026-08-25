@@ -29,6 +29,8 @@ import frag from './shaders/sun.frag?raw';
  * removes the only visible evidence that a decision was made.
  */
 export function scene(canvas, opts = {}) {
+  // opts.onSwitch({from, to}) -- called when a move begins
+  const onSwitch = opts.onSwitch;
   const view = quad(canvas, frag);
   // blank by default: white, empty. sun() brings the body up when asked.
   const state = { ...SUN_BLANK, ...(opts.state || {}) };
@@ -46,6 +48,7 @@ export function scene(canvas, opts = {}) {
   // that shows up is you tune a figure, move to the next, come back, and the
   // first one has moved.
   const PLACE = ['figScale', 'figX', 'figY', 'figRot'];
+  let moveIntensity = 1;
   const models = [];
   let ix = 0, tween = null, loaderStep = null;
 
@@ -235,13 +238,19 @@ export function scene(canvas, opts = {}) {
      *
      * Eight figures. Past that the shader wants a sampler2DArray.
      */
-    async models(urls, { palette = false, duration = 1450, mode = 0, keys = true } = {}) {
+    async models(urls, { palette = false, duration = 1450, mode = 0, keys = true,
+                         looks = null, intensity = 1 } = {}) {
       if (urls.length > 8) throw new Error(`scene.models: ${urls.length} given, 8 samplers exist`);
       models.length = 0;
+      moveIntensity = intensity;
       urls.forEach((url, i) => {
         const tex = view.texture(url, i);
         view.bind({ ['uFigTex' + i]: tex });
-        models.push({ url, tex, roles: null, place: readPlace() });
+        // `looks` is colour set by hand, per figure. It goes in the same slot
+        // the extracted palette uses, so everything downstream -- the HSV
+        // hand-off through a move, most of all -- works the same whether the
+        // colour was measured off the photograph or chosen.
+        models.push({ url, tex, roles: looks?.[i] ?? null, place: readPlace() });
       });
       await Promise.all(models.map((m) =>
         m.tex.ready ? null : new Promise((r) => { m.tex.onready = r; })));
@@ -306,6 +315,9 @@ export function scene(canvas, opts = {}) {
     go(dir = 1, duration = 1450) {
       if (tween || !models.length || !dir) return api;
       const from = ix;
+      // fired at the START of the move, so anything hung off it -- a rail, a
+      // counter, a tear on the type -- lands with the move rather than after it
+      onSwitch?.({ from, to: (from + dir + models.length) % models.length });
       // whatever I have just been dragging belongs to the model I was looking
       // at, not to the next one
       models[from].place = readPlace();
@@ -398,7 +410,7 @@ export function scene(canvas, opts = {}) {
     // Applied over applySun rather than into state, so the panel does not
     // twitch through the move and the values it shows stay the ones I set.
     if (tween && tween.raw !== undefined) {
-      const k = DIP(tween.raw);
+      const k = DIP(tween.raw) * moveIntensity;
       view.set('uR',       (state.r ?? 0.3)      * (1 + 0.20 * k));
       view.set('uRimStr',  (state.rimStr ?? 0.5) * (1 + 1.40 * k));
       view.set('uBgFloor', (state.bgFloor ?? 1)  * (1 - 0.62 * k));
@@ -410,6 +422,13 @@ export function scene(canvas, opts = {}) {
       // within the move rather than peaking halfway.
       view.set('uWave',    tween.m);
       view.set('uWaveAmt', k);
+
+      // uTear scales the displacement band that pushes her out of shape and the
+      // channel separation trailing it. It rides the same envelope as
+      // everything else, so the whole move is one gesture rather than several
+      // arriving on their own clocks. Grain is deliberately NOT on this list --
+      // grain on a moving edge is noise laid over the thing you are watching.
+      view.set('uTear', (state.tear ?? 1) * (1 + 3.4 * k));
     } else {
       view.set('uWave', 0);
       view.set('uWaveAmt', 0);

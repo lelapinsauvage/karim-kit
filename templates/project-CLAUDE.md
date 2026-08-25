@@ -76,9 +76,22 @@ await s.models([a, b, c, d], { palette: true, mode: 3 });
 s.next(); s.prev(); s.go(-1);        // arrow keys already wired
 ```
 
-`palette: true` gives each character its own light, ground and ink, carried
-through the move in HSV so nothing goes grey at the midpoint. Leave it off and
-the colours stay as I set them.
+Colour per character, two ways — and **both carry through the move in HSV**, so
+nothing snaps and nothing goes grey at the midpoint:
+
+```js
+s.models(urls, { palette: true })            // taken off each photograph
+s.models(urls, { looks: [                    // or set by hand
+  { pigment:'#A8531F', bg:'#E2DBD1', clothInk:'#967154' }, ...
+]})
+```
+
+Hand-set colour is not a lesser case. Do **not** write your own crossfade — if
+colour is snapping between figures, `looks` is missing, not broken.
+
+`intensity` scales the whole reaction — swell, dip, wave, tear — on one
+envelope. `onSwitch({from,to})` fires as a move begins, for a rail or a counter
+that has to land with it. Neither needs `s.go` replaced.
 
 `mode`: 0 stamp, 1 plate, 2 page, 3 weave, **4 slip** — the glitch. It tears
 along the pattern's own cell grid, rows sliding by whole cells and crossing over
