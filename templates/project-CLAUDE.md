@@ -66,54 +66,65 @@ Asking costs more than being wrong.
 
 ## If I gave you a role
 
-Several of us are in this folder at once, on one dev server. Agents divide by
-**the files they own**, never by subject. Two agents in one file is a merge
-conflict on camera.
+Three of us are in this folder at once, on one dev server. We divide by **the
+files we own**, never by subject. Two agents in one file is a merge conflict on
+camera.
 
-**Only stage runs the dev server.** It is already up on http://localhost:5199.
-If you are not stage: never run `npm run dev`, never start vite, never kill it.
-A second server binds another port while the browser keeps showing the first,
-and you spend ten minutes editing code nobody is looking at.
+| role | owns | never touches |
+|---|---|---|
+| **shaders** | `index.html`, `src/main.js` | `src/sections/*`, `src/figures/*` |
+| **images** | `src/figures/*` — PNGs only | any `.js`, `.html`, `.json` |
+| **ux** | `src/sections/*` | `index.html`, `src/main.js` |
+
+**Only shaders runs the dev server** — http://localhost:5199. If you are not
+shaders: never run `npm run dev`, never start vite, never kill it. A second
+server binds another port while the browser keeps showing the first, and you
+spend ten minutes editing code nobody is looking at.
 
 Nobody edits `package.json`. If you are about to touch a file you do not own,
 stop and tell me instead.
 
-### stage — owns `index.html`, `src/main.js`
+### shaders — `index.html`, `src/main.js`
 
 The order is fixed. Do not run ahead of it.
 
 1. `scene(canvas)`. Nothing else. Red light on grey ground is **correct** — it is
    the unresolved state I tune from, live, on camera.
-2. Wait. I will dial the sun on the panel.
+2. I tune on the panel. **When I paste you a `s.set({...})`, write those values
+   into `src/main.js`** so they survive a reload. That is the whole loop: I
+   decide in the GUI, you make it permanent. Paste it in as one call at setup,
+   do not scatter the values through the file.
 3. `s.cloth(1)` when I ask. The ink starts black. **Correct.**
 4. `s.figure(url)` when I ask, and only with a file I name.
 5. `await s.palette()` **only when I say to take the colours from her.**
 
-**Never call `s.palette()` on your own**, and never set a colour I have not
-named. The palette is a move I make when I choose to, in front of people. An
-agent that colour-matches on figure load has made the decision for me and
-deleted the moment.
+**Never propose values unless I ask for them**, and never call `s.palette()` on
+your own. Colour-matching on figure load makes the decision for me and deletes
+the moment. If I do ask for a starting point, give one and say plainly that it
+is a guess.
 
-### images — owns `src/figures/*`, writes PNGs only
+### images — `src/figures/*`
 
 **Always generate. Never reuse a figure that already exists**, never copy one in,
-never point me at one on disk. If I ask for a model, a model gets made.
+never point me at one on disk. If I ask for a subject, it gets made.
 
-1. I give you references. Study them — garment shape, material, headwear, how
-   the body sits.
-2. Read `PROMPTING.md` in the kit. That file only.
-3. Study prompts `n02`, `n04`, `n06`, `n10` in the kit's `scripts/models.mjs` and
-   match what they do.
-4. Generate with `generate.mjs`. Report the filenames. Do not load them into the
-   page — that is stage's file.
+1. I give you references. Study them — shape, material, how the thing sits.
+2. Read `PROMPTING.md` in the kit. That file only. It covers people, objects and
+   objects worn by people; use the part that matches what I asked for.
+3. Generate with `generate.mjs`. Report the filenames and stop. Do not load them
+   into the page — that is the shaders agent's file.
 
-Every subject is **turned away from the lens, 45° or 90° to the left.** Never
-square to camera.
+People are **turned away from the lens, 45° or 90° to the left**, never square
+to camera. Whatever the subject, the lighting clause is byte-identical across
+every image in a set, or they cannot share a frame.
 
-### sections — owns `src/sections/*`
+### ux — `src/sections/*`
 
-Structure only, never content. Empty containers, correct sizes, mounted and
-scrolling. I fill them.
+Sitemap, structure, copy. Sections mounted and scrolling, sized correctly.
+
+Write copy when I ask for copy — that is your job, not design. Do not choose
+type, colour or layout treatment. Empty containers at the right size beat
+decorated ones I have to strip.
 
 ## Do not
 

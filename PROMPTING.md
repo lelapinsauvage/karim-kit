@@ -12,6 +12,49 @@ Generates, removes the background, writes `src/figures/<name>.png`.
 
 ---
 
+## What the subject is
+
+The brief decides this and it can change late. Three cases, one discipline. The
+**lighting clause never changes between them** — a ring lit differently from the
+woman wearing it cannot appear in the same frame, and by the time that is
+obvious you have generated the whole set.
+
+### A person
+
+The rules below. Body rotated away from the lens, action not pose, film stock
+named.
+
+### An object on its own — jewellery, a garment, a mask
+
+Same stock, same light, three things different:
+
+- **Give it scale.** An object photographed against nothing reads as either a
+  toy or a monument, and the shader cannot fix that. Name what it rests on or
+  hangs from — "hung on a taut wire", "laid on raw linen" — then let the cutout
+  remove it.
+- **Metal needs a shape to reflect.** Specular highlight is the only thing that
+  says brass rather than orange plastic, and a highlight is a picture of the
+  light source. "One large softbox" gives it a clean rectangular catch; a
+  featureless environment gives it nothing and it comes back looking printed.
+- **Name the making.** "Hand-hammered, uneven planishing marks, edges worn
+  bright" is what separates an object with a history from a render. Same
+  principle as skin pores.
+
+Negative constraints that matter here: `no floating, no drop shadow, no
+reflective floor, no gradient backdrop, no studio reflected in the metal.`
+
+### An object worn by a person
+
+Frame **tight** — hands, throat, ear, the turn of a wrist. The person is context
+and should be cropped, not posed; the moment the whole face is in frame the
+object stops being the subject.
+
+The body still turns away. A hand at the jaw, a head turned so an ear comes
+forward, a throat exposed by a raised chin — these exist to present the object
+on a diagonal, which is the same reason the body rotates in the portraits.
+
+---
+
 ## Where the body faces — the rule that decides most of it
 
 **The subject is turned away from the lens: 45 degrees or 90 degrees to the
