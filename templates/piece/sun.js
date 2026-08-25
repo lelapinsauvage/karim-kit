@@ -201,6 +201,12 @@ export function scrambleTo(text, num) {
 }
 
 function stepWordmark(now) {
+  // The rise owns the lockup while it is running. Both of these write the same
+  // canvas, and apply() calls scrambleTo at startup -- so through the whole
+  // opening one was painting real letters climbing out and the other was
+  // painting random glyphs over them, every frame. The letters looked like they
+  // were rearranging because they were.
+  if (lockRise < 1) return;
   if (wm.t0 < 0) return;
   const raw = Math.min((now - wm.t0) / wm.dur, 1);
   const n = Math.max(wm.to.length, wm.from.length);
@@ -851,6 +857,8 @@ function stepLoader(now) {
     // NOT scrambleTo here. The opening is the word arriving for the first
     // time, and a shuffle says it is being replaced.
     setRise(0);
+    wm.t0 = -1;                       // stand the shuffle down; the rise has it
+    wm.from = '';
     wm.to = PRESETS[ORDER[lookIx]].name.toUpperCase();
     wm.num = '°01';
     // The mark resolves rather than fading in with the row it sits in. It
