@@ -284,32 +284,80 @@ ask about, and it costs the round trip.
 If a direct request means editing a file you do not own, edit it and say which
 file in your one line, so the other agent knows to reload.
 
-### shaders — `index.html`, `src/main.js`
+### shaders — `index.html`, `src/main.js`, `src/sun.js`
 
-When I ask you to start: dev server, `index.html` as a bare full-bleed canvas,
-`src/main.js` as `scene(canvas)` and nothing else, `s` on `window`.
+**Start from the piece. Never rebuild it.**
 
-**The first frame is a WHITE, EMPTY canvas.** No sun, no loader, no counter, no
-numbers. `scene()` starts blank on purpose: the light arriving is something the
-room watches happen, and it cannot happen if it was already there when the page
-appeared.
+`node_modules/@karimsaab/kit/templates/piece/` is the finished work: the loader,
+the switch, the wave, the scramble, the lockup reveal, the panel. Copy all four
+files — `index.html`, `sun.js`, `text.js`, and the kit's `gl.js` and
+`shaders/sun.frag` — then edit `LOOKS`, which is four entries of figure plus the
+colours and provenance that travel with it.
 
-The order after that is fixed. Do not run ahead of it.
+When I ask for the loader, the transition, the slider or the reveal, that is the
+answer. Do not assemble an equivalent from `scene()`. Every number in there was
+arrived at by watching it fail and none are derivable at speed: the approach is
+`p ** 5`, ignition is `smoothstep(0.90, 1.00, p)`, the cover releases across 17
+thousandths of the reveal, the figure resolves on `expoOut(seg(0.115, 0.78))`.
 
-1. Done above. Red light on grey ground is **correct** — it is the unresolved
-   state I tune from, live, on camera.
-2. I tune on the panel. **When I paste you a `s.set({...})`, write those values
-   into `src/main.js`** so they survive a reload. That is the whole loop: I
-   decide in the GUI, you make it permanent. Paste it in as one call at setup,
-   do not scatter the values through the file.
-3. `s.cloth(1)` when I ask. The ink starts black. **Correct.**
-4. `s.figure(url)` when I ask, and only with a file I name.
-5. `await s.palette()` **only when I say to take the colours from her.**
+`scene()` is for building something NEW, on top. Never instead.
 
-**Never propose values unless I ask for them**, and never call `s.palette()` on
-your own. Colour-matching on figure load makes the decision for me and deletes
-the moment. If I do ask for a starting point, give one and say plainly that it
-is a guess.
+#### If a mechanism looks broken, say so — do not route around it
+
+This is the rule that matters most, and it is the one that cost a whole evening.
+
+Everything that went wrong last time looked from the outside like the mechanism
+being broken, because it was: three uniforms missing from a table so every
+transition collapsed to a crossfade; a callback read at the wrong scope so no
+switch ever fired; figures mipmapped so a dark rectangle framed every cutout.
+
+Faced with those, the reasonable move was taken — patch `gl.generateMipmap`,
+intercept `view.set`, replace `go()`, run a second animation loop. All four
+worked. All four hid a real bug, and every one of them had to be found again
+later underneath the workaround.
+
+**So: if something does not behave, tell me in one line and stop.** Do not
+monkey-patch the kit, do not shadow its functions, do not reimplement its
+maths. A bug I know about takes minutes. A bug wearing a workaround takes an
+evening.
+
+#### Live
+
+Naming you does nothing. Everything below happens because I asked for it.
+
+| I say | you run |
+|---|---|
+| "start" | copy the piece, dev server, report the URL |
+| "house" / "the look" | `s.set(HOUSE)` — 46 tuned values |
+| "sun" | `s.sun()` — grey ground, red disc, **both correct** |
+| "patterns" / "cloth" | `s.cloth(1)` — ink starts black, **correct** |
+| "put her in" | `s.figure(url)`, only a file I name |
+| "take the colours from her" | `await s.palette()` — **only when I say this** |
+| "slider with these" | `s.models(urls, { looks, mode, intensity, onSwitch })` |
+| "what is she set to" | `s.current()` — never guess from `s.state` |
+
+**The panel is always up, and it is how I decide.** I drag, I hit copy, I paste
+the `s.set({...})` back to you, and you write those values into the file so they
+survive a reload. That loop is the whole job. Never propose values unless I ask;
+if I do, say plainly that it is a guess.
+
+Placement is **per figure**: `figX` left/right, `figY` up/down, `figScale` size,
+`figRot` turn. `s.place(2, {figY:-0.04})`, `s.places()` to copy them all.
+
+The move's four multipliers are `MOVES` in `sun.js` — `mid` is the one. Tune
+from the console with `move({tear: 4})`, never by editing and reloading, because
+the only way to judge a switch is to watch it twice with one number different.
+`tear` is how hard she deforms; `wave` is how hard the ring answers. The wave at
+rest is `BASE.charge` and is not in there.
+
+#### Safe to change on request / not without being asked
+
+| yours on request | mine unless I say so |
+|---|---|
+| `LOOKS`, copy, labels, the rail | the loader's curves and timings |
+| CSS: type, spacing, colour, layout | `DUR`, `DIP`, the wave envelope |
+| reveal delays and easings | the scramble's stagger |
+| new sections, new elements | `sun.frag`, `send()`, `frame()` |
 
 ### images — `src/figures/*`
 
