@@ -149,7 +149,7 @@ export const MODELS = [
   ['a01', POSE.left, 'deep oxblood red', WHO.w1,
     'Wearing an oversized short-sleeved camp-collar shirt in Dutch wax print, '
     + 'cobalt blue swirls over acid ochre yellow with black crackle outlines, '
-    + 'open over a plain black ribbed vest. Large thin gold hoops. Long fine '
+    + 'open over a plain black ribbed sleeveless tank top. Large thin gold hoops. Long fine '
     + 'box braids gathered high.'],
 
   ['a02', POSE.left, 'flat olive green', WHO.w1,
@@ -203,6 +203,39 @@ export const MODELS = [
     'Wearing an oversized rugby shirt in wide bands of acid green and cream '
     + 'with a white collar, worn under a cropped tan leather utility vest. '
     + 'Beaded cowrie choker. Long fine box braids falling loose.'],
+
+  // ---- summer set --------------------------------------------------------
+  // No outerwear. Short sleeves or none, open necks, the body and the face
+  // readable. The second element is a CONTRAST COLLAR or placket rather than a
+  // jacket -- which is what a02 actually does, and a02 beats everything.
+  ['b01', POSE.left, 'deep plum', WHO.w1,
+    'Wearing a short-sleeved knitted jacquard polo, acid yellow and black on '
+    + 'burnt orange, ribbed contrast collar and placket in solid black, top '
+    + 'buttons undone, fitted at the shoulder. One large gold hoop. Long fine '
+    + 'box braids gathered high.'],
+
+  ['b02', POSE.left, 'deep forest green', WHO.w2,
+    'Wearing a sleeveless knitted tank in handwoven kente bands, green, gold '
+    + 'and vermilion running across the chest, ribbed cream trim at the neck '
+    + 'and arms, bare shoulders and arms. A single carved bone ear cuff. Tight '
+    + 'coiled locs in a high sculptural knot.'],
+
+  ['b03', POSE.centre, 'burnt orange', WHO.w1,
+    'Wearing a short-sleeved camp-collar shirt in indigo adire, pale cracked '
+    + 'geometry resist-dyed into the cloth, worn open over a cream ribbed sleeveless tank top, '
+    + 'collar wide and flat. Small gold nose ring. Long fine box braids falling '
+    + 'loose.'],
+
+  ['b04', POSE.left, 'pale mint', WHO.m1,
+    'Wearing a short-sleeved football jersey in bogolanfini mud cloth, cream '
+    + 'geometric marks worked through deep black, contrast collar and cuffs in '
+    + 'solid vermilion, loose across the chest. Heavy brass chain at the '
+    + 'throat. Close-cropped hair with a fine parting cut into it.'],
+
+  ['b05', POSE.left, 'deep teal', WHO.w2,
+    'Wearing a cropped wrap top in Dutch wax print, hot pink and acid green '
+    + 'swirls with black crackle outlines, tied at the waist, bare shoulders '
+    + 'and midriff. Beaded cowrie choker. Long fine box braids gathered high.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.

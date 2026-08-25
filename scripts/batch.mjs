@@ -16,7 +16,12 @@ const list = only.length ? MODELS.filter(([n]) => only.includes(n)) : MODELS;
 
 const t0 = Date.now();
 const jobs = list.map(async ([name, pose, ground, who, body]) => {
-  if (existsSync(`src/figures/${name}.png`)) return `${name}: exists, skipped`;
+  // The skip-if-exists guard silently served stale images after a prompt
+  // change -- the run reports success, the files are yesterday's, and the only
+  // way to find out is to open one. Regenerating is the default; skipping is
+  // opt-in.
+  if (process.env.KEEP && existsSync(`src/figures/${name}.png`))
+    return `${name}: exists, skipped`;
   try {
     await run('node', ['scripts/generate.mjs', name, prompt(pose, ground, who, body)]);
     await run('sips', ['-Z', '1400', `src/figures/${name}.png`,
