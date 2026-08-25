@@ -12,6 +12,56 @@ Generates, removes the background, writes `src/figures/<name>.png`.
 
 ---
 
+## Two looks, and why the default was wrong
+
+```bash
+node scripts/batch.mjs cinema n02 n04     # writes n02-cinema.png, n04-cinema.png
+node scripts/batch.mjs                    # flat, the original
+```
+
+**`flat`** — one soft source front-on, even, relightable. It exists so the
+shader can supply all the drama.
+
+**`cinema`** — backlit, deep shadow side, halation.
+
+The flat look was chosen for a real reason and it is still the wrong default.
+Soft front-on light **is e-commerce lighting**: it is the light you use to
+*describe* a garment, and describing is the opposite of what a cinematic frame
+does. It also uses Portra 400, a low-contrast negative built to be kind to skin,
+and kindness is not what this is for.
+
+What `cinema` changes, in order of how much each is worth:
+
+1. **The lead phrase.** `Film still.` instead of `Editorial fashion
+   photograph.` This decides what the model thinks it is making before any other
+   word lands — one implies a shoot, the other implies a scene the camera
+   happened to be present for.
+2. **Backlight.** A single hard source behind and slightly to one side; the edge
+   of the head and shoulders burns, the front falls away, one weak bounce keeps
+   the shadow side from going solid.
+3. **A motion picture stock.** Kodak Vision3 500T — tungsten-balanced, coarse
+   grain, and it haloes around a hot edge. Halation is the single most cinematic
+   artefact available and no adjective produces it.
+4. **A wider lens, closer.** 40mm wide open instead of 85mm. Portrait lengths
+   flatter and stand back; a wide lens at short distance puts the viewer in the
+   room.
+
+### The backlight is not a style choice
+
+The figure stands in front of a sun. A frame where the brightest thing is behind
+the subject is the honest version as well as the better-looking one — the light
+in the photograph and the light in the composition become the same light.
+
+### Keep the backdrop mid grey
+
+Not black, however much better black looks in the raw generation. A rim-lit
+subject on a dark backdrop mattes badly: the cutter takes the haze and the
+halation out with the background, and what is left is a hard bright outline
+around a hole. Let the shader put the atmosphere back — `figLift` exists for
+exactly this.
+
+---
+
 ## What the subject is
 
 The brief decides this and it can change late. Three cases, one discipline. The

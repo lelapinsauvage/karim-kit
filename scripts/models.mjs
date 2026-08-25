@@ -21,7 +21,19 @@
 // differently cannot share a scene, and by the time you notice you have
 // generated all of them.
 
-const CAPTURE =
+// ---------------------------------------------------------------------------
+// TWO looks. Pass the one you want to prompt().
+//
+//   'flat'   -- even, frontal, relightable. The shader supplies all the drama.
+//   'cinema' -- backlit, deep shadow side, halation. The photograph already has
+//               its own light, and the shader agrees with it.
+//
+// The choice is not cosmetic. Flat front-on soft light IS e-commerce lighting --
+// it is chosen to describe a garment, and describing is the opposite of what a
+// cinematic frame does. But it relights cleanly, which is why it was here first.
+// ---------------------------------------------------------------------------
+
+const CAPTURE_FLAT =
   'Shot on Kodak Portra 400, 85mm lens, Hasselblad. Visible skin pores and '
   + 'natural skin texture, faint specular sheen on the skin, catchlight in the '
   + 'eyes, fine film grain, slight asymmetry in the face. '
@@ -29,10 +41,40 @@ const CAPTURE =
 
 // Even and frontal, but from a large soft source -- flat enough to relight,
 // with enough shaping that it still reads as a photograph.
-const LIGHT =
+const LIGHT_FLAT =
   'Lit by one large softbox directly front-on, very soft and even, shadows open '
   + 'and weak, no rim light, no hard key, neutral white balance, low contrast. '
   + 'Flat seamless studio backdrop in mid grey, nothing else in frame.';
+
+// Cinema. A motion picture stock rather than a portrait negative: Portra is a
+// low-contrast film built to be kind to skin, and kindness is not what this is
+// for. 500T is tungsten-balanced, coarse-grained and haloes around a hot edge.
+// The lens goes wider and closer -- 85mm is a portrait length and it flatters;
+// 40mm at a short distance puts the viewer in the room.
+const CAPTURE_CINEMA =
+  'Shot on Kodak Vision3 500T, 40mm spherical prime, shot wide open. Halation '
+  + 'blooming softly around the brightest edges the way tungsten stock does. '
+  + 'Coarse 35mm grain, filmic highlight rolloff, blacks lifted slightly rather '
+  + 'than crushed. Visible skin pores, faint specular sheen on the skin, slight '
+  + 'asymmetry in the face. No beauty retouch, no smooth skin filter, no plastic '
+  + 'skin, no symmetrical face, no digital sharpening, no HDR.';
+
+// Backlit, because the figure stands in front of a sun. A frame where the
+// brightest thing is behind the subject and the front falls away is both the
+// cinematic version and the honest one -- the light in the photograph and the
+// light in the composition are the same light.
+//
+// The backdrop stays MID GREY, not black. A dark backdrop behind a rim-lit
+// subject looks better in the raw generation and mattes badly: the cutter takes
+// the haze and the halation with the background, and what is left has a hard
+// bright outline around a hole. Let the shader put the atmosphere back --
+// figLift exists for exactly this.
+const LIGHT_CINEMA =
+  'Lit from behind and slightly to one side by a single hard source, so the '
+  + 'edge of the head and shoulders burns bright and the front of the figure '
+  + 'falls into deep shadow. One weak bounce from the front keeps detail in the '
+  + 'shadow side. Strong contrast, warm key against cool shadow. Flat seamless '
+  + 'studio backdrop in mid grey, nothing else in frame.';
 
 export const MODELS = [
   ['n01', 'A dark-skinned woman, head and shoulders, chin lifted and eyes '
@@ -87,5 +129,16 @@ export const MODELS = [
     + 'natural straw, loose threads visible at the edge.'],
 ];
 
-export const prompt = (body) =>
-  `Editorial fashion photograph. ${body} ${LIGHT} ${CAPTURE}`;
+const LOOKS = {
+  flat:   { light: LIGHT_FLAT,   capture: CAPTURE_FLAT,   lead: 'Editorial fashion photograph.' },
+  cinema: { light: LIGHT_CINEMA, capture: CAPTURE_CINEMA, lead: 'Film still.' },
+};
+
+// 'Film still' rather than 'editorial photograph' is doing real work in the
+// lead. It changes what the model thinks it is making before a single other
+// word lands -- one implies a shoot, the other implies a scene the camera
+// happened to be present for.
+export const prompt = (body, look = 'flat') => {
+  const L = LOOKS[look] ?? LOOKS.flat;
+  return `${L.lead} ${body} ${L.light} ${L.capture}`;
+};
