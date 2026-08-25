@@ -32,6 +32,18 @@ s.fade(0.5);                          // the figure's own reveal, 0..1
 `s.state` is the live state object. `s.view` is the raw harness — `s.view.set(u, v)`
 for uniforms with no wrapper (`uFlipA`, `uFigMix`, `uTypeShow`).
 
+The opening:
+
+```js
+await s.load(['/figures/a01.png', '/figures/a02.png'], {
+  onProgress: (p) => count.textContent = String(Math.round(p * 100)).padStart(3, '0'),
+});
+```
+
+Two bodies cross into eclipse, join, ignite, hand the frame over. Progress is
+real — the slower of "everything decoded" and a minimum duration. There is no
+pause at the end, deliberately.
+
 A set of models with a slider — **one call, when I ask for it**:
 
 ```js
@@ -46,6 +58,11 @@ the colours stay as I set them.
 `mode`: 0 stamp, 1 plate, 2 page, 3 weave, **4 slip** — the glitch. It tears
 along the pattern's own cell grid, rows sliding by whole cells and crossing over
 at their own moments. Eight figures.
+
+The move is not a crossfade. The halo swells, the ground dips and recovers, and
+a ring leaves the body and crosses the pattern — the light reacts to the change
+instead of the palette sliding underneath it. All of that is automatic; the only
+thing to pick is `mode`.
 
 `figRot` rotates her, radians, about her own middle. Keep it small: past about
 0.2 her feet leave the bottom edge and she stops standing on anything.
@@ -85,6 +102,20 @@ missing — they are in `/public/fonts` and wired in `src/type.css`.
 Before rasterising ANY of them into a canvas:
 `await document.fonts.load('1em Disp')`. `fonts.ready` does not fetch a face no
 DOM node is using, so it resolves and the canvas draws Times.
+
+## The page furniture
+
+`src/chrome.css` and `src/chrome.html` are the nav, rail, CTA, slider ticker,
+arrows and corner count, lifted from the finished piece. Proportions, weights
+and spacing are already decided.
+
+**Start from them.** When I send a Figma screenshot: change the text, the labels
+and the colours to match it, and leave the geometry alone unless I say
+otherwise. Do not rebuild a nav from nothing — the one you have is the one I
+drew.
+
+Keep the ids. `s-prev`, `s-next`, `s-now`, `s-bar`, `s-all` and `pct` are what
+the slider and the loader are wired to.
 
 ## What I say → what you run
 

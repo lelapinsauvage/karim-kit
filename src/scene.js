@@ -38,7 +38,7 @@ export function scene(canvas, opts = {}) {
 
   // --- the set -------------------------------------------------------------
   const models = [];          // { url, tex, roles }
-  let ix = 0, tween = null;
+  let ix = 0, tween = null, loaderStep = null;
 
   // Pigments interpolate in HSV, the short way round the hue circle. An RGB
   // lerp between two saturated colours passes through grey -- measured on
@@ -55,7 +55,15 @@ export function scene(canvas, opts = {}) {
                          a[2] + (b[2] - a[2]) * t));
   };
   const hexArr = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
-  const easeOut = (t) => 1 - Math.pow(2, -10 * t);   // normalised below
+  const easeOut = (t) => 1 - Math.pow(1 - t, 4);
+
+  // The reaction curve. Peaks EARLY and decays with a vanishing derivative:
+  // 0.05 at 90% of the move, 0.001 at 99%, exactly 0 at the end. A symmetric
+  // sin(pi*t) is still at 0.44 at 90% and then drops to zero, and that last
+  // fall is a cliff -- it is what reads as the ground snapping from deep to
+  // pale at the moment you are watching it land. Grow fast, return slowly.
+  const DIP_PK = Math.pow(0.35 / 2.05, 0.35) * Math.pow(1 - 0.35 / 2.05, 1.7);
+  const DIP = (t) => Math.pow(t, 0.35) * Math.pow(1 - t, 1.7) / DIP_PK;
 
   const api = {
     view,
@@ -126,6 +134,78 @@ export function scene(canvas, opts = {}) {
     fade(v = 1) { view.set('uFigFade', v); return api; },
 
     /**
+     * load(assets, opts) -- the opening. Two bodies cross into eclipse, join,
+     * ignite, and hand the frame over to the scene. Resolves when the reveal is
+     * finished.
+     *
+     * Progress is REAL: it is the slower of "every asset has decoded" and a
+     * minimum duration. A loader on a timer alone is a lie and always looks
+     * like one -- it completes while the page is still blank. A loader on
+     * decode alone flashes past on a warm cache.
+     *
+     * opts.onProgress(p) fires every frame with 0..1, for a counter in the
+     * corner.
+     */
+    load(assets = [], { min = 1500, reveal = 3200, onProgress } = {}) {
+      let decoded = 0;
+      const total = Math.max(assets.length, 1);
+      for (const url of assets) {
+        const im = new Image();
+        im.onload = im.onerror = () => { decoded++; };
+        im.src = url;
+      }
+
+      const t0 = performance.now();
+      let revealT = -1;
+      const seed = state.r ?? 0.30;
+      view.set('uLoadCover', 1);
+      view.set('uClothFront', -1);
+      view.set('uFigFade', 0);
+      view.set('uEclR', seed);
+
+      return new Promise((done) => {
+        loaderStep = (now) => {
+          if (revealT < 0) {
+            const p = Math.min(decoded / total, (now - t0) / min);
+            onProgress?.(Math.max(0, Math.min(p, 1)));
+
+            // accelerating all the way in. any easing that flattens near the
+            // end puts a plateau right before contact, and a pause before an
+            // impact reads as a stall rather than as anticipation.
+            const close = Math.pow(Math.max(p, 0), 5);
+            view.set('uEclA', [-0.42 * (1 - close), 0]);
+            view.set('uEclB', [ 0.42 * (1 - close), 0]);
+            view.set('uEclR', seed);
+
+            // it ignites BEFORE they touch. light arriving after contact is
+            // light reporting the event; arriving just before, it causes it.
+            const heat = smooth(0.88, 1.0, p);
+            view.set('uEclWhite', heat);
+            view.set('uEclFill',  smooth(0.94, 1.0, p));
+            view.set('uEclSeam',  Math.exp(-Math.pow((p - 0.985) / 0.014, 2)));
+
+            // NO BEAT. A hold here is the single thing that made this feel
+            // like a loading screen rather than an opening shot.
+            if (p >= 1) revealT = now;
+            return;
+          }
+
+          const rt = Math.min((now - revealT) / reveal, 1);
+          const seg = (a, b) => Math.max(0, Math.min((rt - a) / (b - a), 1));
+          const expo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -9 * x));
+
+          // Each element on its OWN curve at its own offset. One curve across
+          // everything is a single gesture repeated; different curves at
+          // different offsets is choreography.
+          view.set('uLoadCover', 1 - expo(seg(0.00, 0.26)));
+          view.set('uFigFade',       expo(seg(0.10, 0.72)));
+
+          if (rt >= 1) { loaderStep = null; done(api); }
+        };
+      });
+    },
+
+    /**
      * models(urls, opts) -- a set you can move between.
      *
      * Loads every figure, binds each to its own sampler, and gives you next /
@@ -138,7 +218,7 @@ export function scene(canvas, opts = {}) {
      *
      * Eight figures. Past that the shader wants a sampler2DArray.
      */
-    async models(urls, { palette = false, duration = 900, mode = 0, keys = true } = {}) {
+    async models(urls, { palette = false, duration = 1450, mode = 0, keys = true } = {}) {
       if (urls.length > 8) throw new Error(`scene.models: ${urls.length} given, 8 samplers exist`);
       models.length = 0;
       urls.forEach((url, i) => {
@@ -170,7 +250,7 @@ export function scene(canvas, opts = {}) {
     },
 
     /** step through the set. Input during a move is ignored, not queued. */
-    go(dir = 1, duration = 900) {
+    go(dir = 1, duration = 1450) {
       if (tween || !models.length || !dir) return api;
       const from = ix;
       ix = (ix + dir + models.length) % models.length;
@@ -221,7 +301,13 @@ export function scene(canvas, opts = {}) {
     swatchStrip(host, swatches, (hex) => { api.set('pigment', hex); });
   }
 
+  const smooth = (a, b, x) => {
+    const t = Math.max(0, Math.min((x - a) / (b - a), 1));
+    return t * t * (3 - 2 * t);
+  };
+
   function loop(t) {
+    loaderStep?.(t);
     let fig = slots[0], figB = slots[1];
 
     if (models.length) {
@@ -229,9 +315,8 @@ export function scene(canvas, opts = {}) {
       if (tween) {
         if (tween.t0 === null) tween.t0 = t;
         const raw = Math.min((t - tween.t0) / tween.duration, 1);
-        // normalised, so it actually REACHES 1. An un-normalised expo-out
-        // stops at 0.999 and the last thousandth arrives as a snap.
-        m = raw >= 1 ? 1 : easeOut(raw) / easeOut(1);
+        m = easeOut(raw);
+        tween.raw = raw; tween.m = m;
         A = tween.from; B = tween.to;
         if (tween.a && tween.b)
           api.set({ pigment:  mixHex(tween.a.pigment,  tween.b.pigment,  m),
@@ -246,6 +331,28 @@ export function scene(canvas, opts = {}) {
     }
 
     applySun(view, state, { fig, figB, time: t });
+
+    // The light REACTS to the change instead of the palette sliding under it.
+    // Applied over applySun rather than into state, so the panel does not
+    // twitch through the move and the values it shows stay the ones I set.
+    if (tween && tween.raw !== undefined) {
+      const k = DIP(tween.raw);
+      view.set('uR',       (state.r ?? 0.3)      * (1 + 0.20 * k));
+      view.set('uRimStr',  (state.rimStr ?? 0.5) * (1 + 1.40 * k));
+      view.set('uBgFloor', (state.bgFloor ?? 1)  * (1 - 0.62 * k));
+      view.set('uGlow',    (state.glow ?? 0.5)   * (1 + 0.55 * k));
+
+      // A ring leaves the body and crosses the cloth. It is a POSITION, not an
+      // amount, so the wave travels rather than the whole field pulsing at
+      // once -- and it is the transition's clock, so it sweeps the full frame
+      // within the move rather than peaking halfway.
+      view.set('uWave',    tween.m);
+      view.set('uWaveAmt', k);
+    } else {
+      view.set('uWave', 0);
+      view.set('uWaveAmt', 0);
+    }
+
     view.draw();
     requestAnimationFrame(loop);
   }
