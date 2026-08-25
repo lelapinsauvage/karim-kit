@@ -16,6 +16,33 @@ learning instead of building.
 
 The one exception: I name a file and tell you to open it.
 
+## The piece already exists — copy it, do not rebuild it
+
+`node_modules/@karimsaab/kit/templates/piece/` holds `index.html` and `sun.js`:
+the finished work, verbatim. Loader, switch, wave, scramble, reveal, panel, all
+of it, all correct.
+
+```bash
+cp node_modules/@karimsaab/kit/templates/piece/index.html .
+cp node_modules/@karimsaab/kit/templates/piece/sun.js     src/
+cp node_modules/@karimsaab/kit/src/gl.js                  src/
+cp node_modules/@karimsaab/kit/src/shaders/sun.frag       src/shaders/
+```
+
+Then edit **`LOOKS` only** — four entries, each a figure plus the colours and
+provenance that travel with it.
+
+**When I ask for the loader, the transition, the slider or the reveal, this is
+the answer.** Do not assemble an equivalent out of `scene()` and its parts. The
+numbers in here were arrived at by watching them fail and none of them are
+derivable: the approach is `p ** 5`, ignition is `smoothstep(0.90, 1.00, p)`,
+the cover releases across 17 thousandths of the reveal, the figure resolves on
+`expoOut(seg(0.115, 0.78))`. A rebuild lands close and is wrong in a dozen small
+ways at once — and each one costs a round trip to find.
+
+`scene()` is for building something NEW. The template is for reproducing what
+exists. Reach for the template first.
+
 ## The API, complete
 
 ```js

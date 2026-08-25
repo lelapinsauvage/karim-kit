@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>hero</title>
+<style>
+  /* Display: Bayard, always. Vocal Type Co., drawn from the placards of the
+     1963 March on Washington -- it is the only element on the page carrying the
+     concept in the letterforms themselves, and no grotesque substitutes for
+     that. Data: IBM Plex Mono, tabular by nature, says "catalogue" without
+     decoration. One loud face, one quiet one. */
+  @font-face{font-family:'Disp';src:url('/public/fonts/bayard.woff2') format('woff2');font-display:swap}
+  @font-face{font-family:'Mono';src:url('/public/fonts/plex-mono-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+  @font-face{font-family:'Mono';src:url('/public/fonts/plex-mono-semibold.woff2') format('woff2');font-weight:600;font-display:swap}
+  @font-face{font-family:'Grot';src:url('/public/fonts/america-bold.woff2') format('woff2');font-display:swap}
+  
+
+  :root{
+    --rv: cubic-bezier(.16,1,.3,1);
+    --ink:#141414;
+    --dim:rgba(20,20,20,.52);
+    --hair:rgba(20,20,20,.16);
+    --pad:3rem;                      /* 48px on the reference board */
+  }
+
+  /* THE SCALE.
+     Every size below is in rem, taken straight off the 1920 artboard: 1rem is
+     16px there, so a 169px heading is 10.5625rem and it stays 169px at 1920 and
+     scales proportionally everywhere else. Hard pixel values would have been
+     right on exactly one screen width -- which is the width the mock happened
+     to be drawn at, not a decision.
+     Clamped so it neither collapses on a laptop nor runs away on a 4K panel. */
+  html{ font-size: clamp(10.5px, 100vw / 120, 19px); }
+  *{margin:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#F5F5F5}
+  body{font-family:'Mono',ui-monospace,monospace;color:var(--ink)}
+  canvas{position:fixed;top:0;left:0;display:block}
+
+  .frame{position:fixed;inset:0;z-index:3;pointer-events:none}
+  .frame *{pointer-events:auto}
+
+  /* THE REVEAL.
+     Every element hides itself and states its own way back. A single opacity
+     ramp on a wrapper is one gesture applied to eight things, which is why it
+     reads as cheap: nothing has a reason to arrive the way it does.
+     Here the row drops in behind a clip, the record wipes left to right a line
+     at a time, the button springs up from under the frame edge, and the slider
+     slides in from the side it points to. Same instant, eight different arrivals. */
+  .top,.rail div,.cta,.slider{
+    opacity:0;
+    transition:opacity .01s;
+  }
+
+  body.reveal .top{
+    animation:dropIn 1.25s cubic-bezier(.19,1,.22,1) .52s both;
+  }
+  @keyframes dropIn{
+    from{opacity:0;transform:translateY(-1.4rem);clip-path:inset(0 0 100% 0)}
+    to  {opacity:1;transform:none;clip-path:inset(0 0 -20% 0)}
+  }
+
+  /* the record is written line by line, left to right, like a label being
+     typed rather than a block appearing */
+  body.reveal .rail div{
+    animation:wipeIn 1.05s cubic-bezier(.25,1,.3,1) both;
+  }
+  body.reveal .rail div:nth-child(1){animation-delay:.95s}
+  body.reveal .rail div:nth-child(2){animation-delay:1.13s}
+  body.reveal .rail div:nth-child(3){animation-delay:1.31s}
+  body.reveal .rail div:nth-child(4){animation-delay:1.49s}
+  @keyframes wipeIn{
+    from{opacity:1;clip-path:inset(0 100% 0 0);transform:translateX(-.4rem)}
+    to  {opacity:1;clip-path:inset(0 -2% 0 0);transform:none}
+  }
+
+  /* the button is the one thing that should feel like it has weight */
+  body.reveal .cta{
+    animation:springUp 1.25s cubic-bezier(.16,.9,.24,1) 1.95s both;
+  }
+  /* rises and settles rather than snapping into place. A hard overshoot on a
+     small element reads as a UI toast; a long soft landing reads as weight. */
+  @keyframes springUp{
+    from{opacity:0;transform:translateX(-50%) translateY(1.5rem) scale(.94)}
+    60% {opacity:1;transform:translateX(-50%) translateY(-.12rem) scale(1.004)}
+    to  {opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  }
+
+  body.reveal .slider{
+    animation:slideIn 1.05s cubic-bezier(.2,.9,.25,1) 1.60s both;
+  }
+  @keyframes slideIn{
+    from{opacity:0;transform:translateX(2.6rem)}
+    to  {opacity:1;transform:none}
+  }
+
+  /* the counter leaves upward as the frame takes over -- it does not dissolve,
+     it exits */
+  body.reveal .count{
+    animation:countOut .42s cubic-bezier(.7,0,.84,0) 0s both;
+  }
+  /* ease-IN on the way out: it accelerates away rather than drifting, which is
+     what makes it read as leaving rather than dimming */
+  @keyframes countOut{
+    from{opacity:1;transform:translateY(0)}
+    to  {opacity:0;transform:translateY(-2.2rem)}
+  }
+
+  /* the one hard edge on the page */
+  /* THE TOP ROW.
+     Previously each corner was positioned independently against the same top
+     edge, so items of different sizes sat at different heights -- 1rem nav
+     against a 3.125rem mark aligns their boxes, not their centres. One flex row
+     of fixed height with align-items:center puts every item on the same optical
+     line whatever its size. */
+  /* Full-bleed with its own padding. Insetting the container instead meant the
+     mark's 50% was the container's centre, not the frame's -- so it sat left of
+     true centre by half the padding. */
+  .top{
+    position:absolute;top:calc(var(--pad) * .55);left:0;right:0;
+    height:3.5rem;padding:0 var(--pad);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+
+  .mark{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-family:'Disp',Impact,sans-serif;font-size:3.125rem;letter-spacing:.01em;
+    text-transform:uppercase;line-height:1;white-space:nowrap;
+  }
+
+  .meta{font-size:1rem;font-weight:600;letter-spacing:.06em;color:var(--dim);
+    text-transform:uppercase;font-variant-numeric:tabular-nums;line-height:1}
+
+  .right{display:flex;align-items:center;gap:2rem}
+  nav{display:flex;align-items:center;gap:2rem}
+  nav a{font-size:1rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink);text-decoration:none;position:relative;line-height:1}
+  /* the underline grows from the left rather than appearing: a state that
+     arrives has direction, a state that switches does not */
+  nav a::after{content:'';position:absolute;left:0;right:100%;bottom:-.4rem;height:1px;
+    background:var(--ink);transition:right .32s cubic-bezier(.2,.8,.2,1)}
+  nav a:hover::after{right:0}
+
+  .cart{display:flex;align-items:center;gap:.5rem;color:var(--ink);
+    font-size:1rem;font-weight:600;letter-spacing:.08em;line-height:1;cursor:pointer}
+  .cart svg{width:1.15rem;height:1.15rem;display:block}
+  .cart sup{font-size:.72em;vertical-align:super;opacity:.55}
+
+  /* THE PRODUCT BUTTON. A pill in the one place nothing else occupies -- bottom
+     centre, on her. White on a warm ground is the only pure value in the frame,
+     which is what makes it read as the single actionable thing. */
+  .cta{
+    position:absolute;left:50%;bottom:calc(var(--pad) + .5rem);transform:translateX(-50%);
+    display:inline-flex;align-items:center;gap:.9rem;
+    background:#fff;color:#141414;border:0;border-radius:99rem;
+    padding:1.05rem 2rem;cursor:pointer;
+    font-family:'Mono',monospace;font-size:1rem;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;line-height:1;
+    box-shadow:0 .1rem 1.6rem rgba(0,0,0,.10);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
+  }
+  .cta:hover{transform:translateX(-50%) translateY(-.15rem);box-shadow:0 .4rem 2.2rem rgba(0,0,0,.16)}
+  .cta .dot{width:.42rem;height:.42rem;border-radius:50%;background:#141414;
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* SLIDER CONTROLS. A ring, a hairline, and a readout -- the futurism is in the
+     restraint and the tabular numbers, not in glow. */
+  .slider{
+    position:absolute;right:var(--pad);bottom:calc(var(--pad) + .5rem);
+    display:flex;align-items:center;gap:1rem;
+  }
+  .nb{
+    width:3.4rem;height:3.4rem;border-radius:50%;
+    border:1px solid rgba(20,20,20,.28);background:transparent;color:var(--ink);
+    display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;
+    transition:color .3s, border-color .3s;
+  }
+  /* an SVG rather than a glyph: a text arrow sits on the font's baseline, which
+     is never the optical centre of a circle, so it always reads low */
+  .nb svg{width:1.15rem;height:1.15rem;display:block;position:relative}
+  /* the fill sweeps in from the direction the button points */
+  /* the fill sweeps in from the side the arrow points */
+  .nb::before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--ink);
+    transform:translateX(-101%);transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+  .nb.next::before{transform:translateX(101%)}
+  .nb:hover{color:#F5F5F5;border-color:var(--ink)}
+  .nb:hover::before{transform:translateX(0)}
+  .nb:disabled{opacity:.3;cursor:default}
+
+  .ticker{display:flex;align-items:center;gap:.55rem;font-size:1rem;font-weight:600;
+    letter-spacing:.06em;font-variant-numeric:tabular-nums;line-height:1}
+  .ticker .bar{width:3.2rem;height:1px;background:rgba(20,20,20,.22);position:relative}
+  .ticker .bar i{position:absolute;inset:0 auto 0 0;background:var(--ink);
+    transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .ticker .of{color:var(--dim)}
+
+  .rail{position:absolute;left:var(--pad);bottom:calc(var(--pad) + 3rem);
+    display:grid;gap:.5rem;font-size:1rem;letter-spacing:.06em}
+  .rail div{display:grid;grid-template-columns:8ch 1fr;gap:1.5rem}
+  .rail dt{font-family:'Grot',sans-serif;font-weight:400;letter-spacing:.02em;text-transform:uppercase}
+  .rail dd{color:var(--dim);text-transform:uppercase}
+
+
+  .count{position:fixed;left:var(--pad);bottom:var(--pad);z-index:30;
+    font-family:'Disp',Impact,sans-serif;font-size:6rem;line-height:.8;
+    color:#141414;font-variant-numeric:tabular-nums;letter-spacing:-.04em;
+    mix-blend-mode:multiply;pointer-events:none}
+</style>
+</head>
+<body class="paper">
+<canvas id="c"></canvas>
+
+<div class="frame" id="shell">
+
+  <div class="top">
+    <div class="meta"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
+    <div class="mark">Maison Noir</div>
+    <div class="right">
+      <nav><a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a></nav>
+      <div class="cart" role="button" tabindex="0">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M3 5h2l1.6 8.2A1.6 1.6 0 0 0 8.2 14.5h6.1a1.6 1.6 0 0 0 1.55-1.2L17.4 7H5.6"/>
+          <circle cx="8.6" cy="17" r="1.05" fill="currentColor" stroke="none"/>
+          <circle cx="14.6" cy="17" r="1.05" fill="currentColor" stroke="none"/>
+        </svg>
+        Cart<sup>0</sup>
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div><dt>Pigment</dt><dd id="r-pig">—</dd></div>
+    <div><dt>Origin</dt><dd id="r-org">—</dd></div>
+    <div><dt>Cloth</dt><dd id="r-cloth">—</dd></div>
+    <div><dt>Edition</dt><dd id="r-ed">Twenty seven of one hundred</dd></div>
+  </div>
+
+  <button class="cta"><span class="dot"></span>See the product</button>
+
+  <div class="slider">
+    <div class="ticker">
+      <span id="s-now">01</span>
+      <span class="bar"><i id="s-bar" style="width:25%"></i></span>
+      <span class="of" id="s-all">04</span>
+    </div>
+    <button class="nb prev" id="s-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+    <button class="nb next" id="s-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
+  </div>
+
+</div>
+
+<div class="count" id="pct">000</div>
+<script type="module" src="/src/sun.js"></script>
+</body>
+</html>

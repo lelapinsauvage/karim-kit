@@ -20,7 +20,8 @@
     "./scripts/*": "./scripts/*",
     "./scene": "./src/scene.js",
     "./text": "./src/text.js",
-    "./house": "./src/house.js"
+    "./house": "./src/house.js",
+    "./templates/*": "./templates/*"
   },
   "files": [
     "index.js",
@@ -33,7 +34,8 @@
     "PROMPTING.md",
     "LIVE.md",
     "SCRIPT.md",
-    "CLAUDE.md"
+    "CLAUDE.md",
+    "templates"
   ],
   "dependencies": {
     "sharp": "^0.35.3"
