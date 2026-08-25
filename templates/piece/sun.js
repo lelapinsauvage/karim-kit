@@ -1,4 +1,5 @@
 import { quad, hexToRgb } from './gl.js';
+import { scramble } from '@karimsaab/kit';
 import frag from './shaders/sun.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
@@ -44,30 +45,29 @@ const BASE = {
 // The pigment is taken from what each one is actually wearing: barkcloth and
 // cowrie, white clay and cotton, indigo resist, undyed raffia.
 const LOOKS = [
-  { id:'l1', name:'Barkcloth', fig:'n02',
-    pigment:'#A8531F', bg:'#E2DBD1', clothInk:'#967154', warmth:0.58,
-    figH:0.85, figX:0.055, figBleed:0.06,
-    pig:'Beaten fig bark · ómútuba', origin:'Buganda, Uganda',
-    material:'Barkcloth, cowrie, raffia' },
+  { id:'l1', name:'Barkcloth', fig:'a01',
+    pigment:'#AE7C1A', bg:'#E3DDD2', clothInk:'#8F7950',
+    figH:0.850, figX:0.000, figBleed:0.050,
+    pig:'Brass, unlacquered', origin:'Lagos · Foundry 4',
+    material:'Barkcloth, beaten thin' },
 
-  { id:'l2', name:'Efun', fig:'n06',
-    pigment:'#5C6660', bg:'#DDDDD9', clothInk:'#7E857F', purity:0.50,
-    figH:0.85, figX:0.055, figBleed:0.06,
-    pig:'White clay · efun', origin:'Cross River, Nigeria',
-    material:'Cotton veil, seed pearl, brass' },
+  { id:'l2', name:'Indigo', fig:'a02',
+    pigment:'#A43C1E', bg:'#DED1CD', clothInk:'#8F6052',
+    figH:0.790, figX:0.025, figBleed:0.000,
+    pig:'Indigo, third dip', origin:'Abeokuta · Adire pits',
+    material:'Resist cotton, cracked' },
 
-  { id:'l3', name:'Adire', fig:'n08',
-    pigment:'#243A7A', bg:'#D5D7DB', clothInk:'#6C7791',
-    rimW:0.035, rimStr:1.05, purity:0.70, flip:true,
-    figH:0.85, figX:0.055, figBleed:0.06,
-    pig:'Indigo · cassava resist', origin:'Abeokuta, Nigeria',
-    material:'Adire cotton, cast brass' },
+  { id:'l3', name:'Cowrie', fig:'a05',
+    pigment:'#15568D', bg:'#D2DBE3', clothInk:'#50728F',
+    figH:0.885, figX:0.000, figBleed:0.015,
+    pig:'Cowrie, bleached', origin:'Ouidah · Coast trade',
+    material:'Raffia, wound wet' },
 
-  { id:'l4', name:'Raffia', fig:'n10',
-    pigment:'#5E6B2F', bg:'#DEDCD0', clothInk:'#7E8560', warmth:0.45, flip:true,
-    figH:0.85, figX:0.055, figBleed:0.06,
-    pig:'Raffia palm · undyed', origin:'Kasai, DR Congo',
-    material:'Open-weave raffia' },
+  { id:'l4', name:'Raffia', fig:'a10',
+    pigment:'#939717', bg:'#DDDECD', clothInk:'#8D8F50',
+    figH:0.885, figX:0.000, figBleed:0.095,
+    pig:'Brass, hammer-marked', origin:'Lagos · Foundry 4',
+    material:'Barkcloth on wire' },
 ];
 
 const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id, { ...BASE, ...l }]));
@@ -99,6 +99,14 @@ let typeTex = null;
 //
 // Geometry is kept in the same units the CSS uses (a rem derived from viewport
 // width) so the canvas copy and the layout cannot drift apart.
+// 0..1. Below 1 the lockup is UNCOVERED rather than drawn: each letter rises
+// out of its own box behind a clip that stops at the baseline, staggered left
+// to right. A glitch and a reveal are different events -- the shuffle is right
+// for a switch, where the word is being replaced, and wrong for the opening,
+// where it is arriving for the first time.
+let lockRise = 1;
+export function setRise(v) { lockRise = v; }
+
 export function setLockup(name, num) {
   const dpr = Math.min(devicePixelRatio, 2);
   const w = Math.round(innerWidth * dpr), h = Math.round(innerHeight * dpr);
@@ -126,7 +134,32 @@ export function setLockup(name, num) {
   typeCtx.letterSpacing = '-0.04em';
   typeCtx.font = `${size}px Disp, Impact, sans-serif`;
   typeCtx.textAlign = 'left';
-  typeCtx.fillText(name.toUpperCase(), pad, h * 0.29 + size * 0.78);
+  const NAME = name.toUpperCase();
+  const nameY = h * 0.29 + size * 0.78;
+  if (lockRise >= 1) {
+    typeCtx.fillText(NAME, pad, nameY);
+  } else {
+    // Prefix widths, not per-character widths: letterSpacing lives BETWEEN
+    // glyphs, so measuring each one alone and summing drifts a little further
+    // left with every letter and the word comes apart as it arrives.
+    for (let i = 0; i < NAME.length; i++) {
+      const x = pad + (i ? typeCtx.measureText(NAME.slice(0, i)).width : 0);
+      const start = (i / NAME.length) * 0.5;
+      const t = Math.max(0, Math.min((lockRise - start) / 0.5, 1));
+      const e = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t);
+      if (e <= 0) continue;
+      typeCtx.save();
+      typeCtx.beginPath();
+      // the clip stops ON the baseline, so a letter climbs out of the line
+      // rather than sliding past it
+      typeCtx.rect(x - size * 0.12, nameY - size * 1.05, size * 1.6, size * 1.05);
+      typeCtx.clip();
+      typeCtx.globalAlpha = e;
+      typeCtx.fillText(NAME[i], x, nameY + (1 - e) * size * 0.72);
+      typeCtx.restore();
+    }
+    typeCtx.globalAlpha = 1;
+  }
 
   // right block, low -- deliberately off the left block's baseline
   const numTxt = 'NUM';
@@ -136,10 +169,21 @@ export function setLockup(name, num) {
   const supSize = size * 0.30;
   typeCtx.font = `${supSize}px Disp, Impact, sans-serif`;
   const supW = typeCtx.measureText(supTxt).width;
-  typeCtx.fillText(supTxt, w - pad, h * 0.52 + supSize * 0.9);
-
+  // the number block follows the word -- it starts at 0.55 of the run, so it
+  // reads as the caption to something that has already arrived
+  const nt = Math.max(0, Math.min((lockRise - 0.55) / 0.45, 1));
+  const ne = nt >= 1 ? 1 : 1 - Math.pow(2, -9 * nt);
+  const numY = h * 0.52 + size * 0.78;
+  typeCtx.save();
+  typeCtx.beginPath();
+  typeCtx.rect(0, numY - size * 1.05, w, size * 1.05);
+  typeCtx.clip();
+  typeCtx.globalAlpha = ne;
+  typeCtx.fillText(supTxt, w - pad, h * 0.52 + supSize * 0.9 + (1 - ne) * size * 0.72);
   typeCtx.font = `${size}px Disp, Impact, sans-serif`;
-  typeCtx.fillText(numTxt, w - pad - supW - size * 0.05, h * 0.52 + size * 0.78);
+  typeCtx.fillText(numTxt, w - pad - supW - size * 0.05, numY + (1 - ne) * size * 0.72);
+  typeCtx.restore();
+  typeCtx.globalAlpha = 1;
 
   if (!typeTex) typeTex = view.canvasTexture(typeCv, 3);
   else typeTex.upload();
@@ -602,8 +646,20 @@ for (const b of document.querySelectorAll('.preset'))
 // ONE navigation entry point. The logic used to live inline inside the keydown
 // listener, so the slider buttons had nothing to call -- every new control would
 // have had to reimplement the guard and the wrap.
+let tearT = null;
+function tear() {
+  const shell = document.getElementById('shell');
+  if (!shell) return;
+  shell.classList.remove('tear');
+  void shell.offsetWidth;               // restart the animation, do not queue it
+  shell.classList.add('tear');
+  clearTimeout(tearT);
+  tearT = setTimeout(() => shell.classList.remove('tear'), 460);
+}
+
 export function go(dir) {
   if (tween || !dir) return;            // ignore input mid-move
+  tear();
   lookIxPrev = lookIx;
   lookIx = (lookIx + dir + ORDER.length) % ORDER.length;
   transitionTo(ORDER[lookIx]);
@@ -792,7 +848,19 @@ function stepLoader(now) {
   if (!revealed) {
     revealed = true;
     document.body.classList.add('reveal');
-    scrambleTo(PRESETS[ORDER[lookIx]].name.toUpperCase(), '°01');
+    // NOT scrambleTo here. The opening is the word arriving for the first
+    // time, and a shuffle says it is being replaced.
+    setRise(0);
+    wm.to = PRESETS[ORDER[lookIx]].name.toUpperCase();
+    wm.num = '°01';
+    // The mark resolves rather than fading in with the row it sits in. It
+    // starts 520ms late, with the top row's own arrival, so the name settles
+    // as the frame around it lands rather than before it.
+    const markEl = document.querySelector('.mark');
+    if (markEl) {
+      const MARK = markEl.textContent;
+      setTimeout(() => scramble(markEl, MARK, { duration: 1500 }), 520);
+    }
     if (el) el.style.transition = '';
   }
 
@@ -821,6 +889,18 @@ function stepLoader(now) {
   // else is already moving by then -- the sun open, the ground down, the front
   // travelling -- so she arrives INTO a scene rather than alongside its parts.
   view.set('uFigFade', expoOut(seg(0.115, 0.78)));
+
+  // The lockup climbs out with the rest of the frame, ahead of the figure.
+  // Guarded: stepLoader keeps running after the reveal lands, and redrawing the
+  // type canvas every frame means a full-screen texture upload at 60Hz for the
+  // rest of the session.
+  if (rt < 1 && lockRise < 1) {
+    setRise(seg(0.07, 0.86));
+    setLockup(wm.to, wm.num ?? '°01');
+  } else if (lockRise < 1) {
+    setRise(1);
+    setLockup(wm.to, wm.num ?? '°01');
+  }
 
   // the loader lets go immediately -- the wave is the reveal, not a curtain
   // hands over almost at once: the loader's job ended on contact, and any
