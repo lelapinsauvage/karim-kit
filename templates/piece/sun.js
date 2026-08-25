@@ -105,6 +105,7 @@ let typeTex = null;
 // for a switch, where the word is being replaced, and wrong for the opening,
 // where it is arriving for the first time.
 let lockRise = 1;
+let checkedWord = null;
 export function setRise(v) { lockRise = v; }
 
 export function setLockup(name, num) {
@@ -149,12 +150,33 @@ export function setLockup(name, num) {
   // Drawing a single glyph leaves no neighbour ink to cut, so no horizontal
   // boundary is needed at all. The only clip left is the baseline.
   //
-  // Pen positions come from prefix advances, which kern internally. The one
-  // kern not accounted for is between the prefix and the glyph being placed,
-  // and at this tracking it is far below a pixel -- and it is applied
-  // identically at rest, so there is no layout to hand over to.
-  const penX = (i) => pad + (i ? typeCtx.measureText(NAME.slice(0, i)).width : 0);
+  // EXACT kerned pen position for glyph i, taken out of the real layout:
+  //
+  //   width(prefix through i) = x_i + advance(c_i) + spacing
+  //   measureText(c_i).width  =       advance(c_i) + spacing
+  //   so  x_i = width(prefix through i) - measureText(c_i).width
+  //
+  // The left side includes every kern up to and including the pair (c_i-1, c_i),
+  // so the subtraction leaves the true pen position with nothing missing.
+  // Measuring the prefix BEFORE the glyph instead -- which is the obvious way
+  // and what this did -- omits exactly that last kern, and the error
+  // accumulates letter by letter until pairs collide.
+  const penX = (i) => pad + typeCtx.measureText(NAME.slice(0, i + 1)).width
+                          - typeCtx.measureText(NAME[i]).width;
   const over = size * 0.035;           // round glyphs sit below the baseline
+
+  // Prove the placement matches the real layout instead of assuming it. The
+  // last glyph's pen position plus its own advance must equal the width of the
+  // whole word; any drift shows up here as a number instead of as letters
+  // touching. Runs once per word.
+  if (checkedWord !== NAME) {
+    checkedWord = NAME;
+    const last = NAME.length - 1;
+    const mine = (penX(last) - pad) + typeCtx.measureText(NAME[last]).width;
+    const real = typeCtx.measureText(NAME).width;
+    const off = Math.abs(mine - real);
+    if (off > 0.5) console.warn(`lockup: ${NAME} placed ${off.toFixed(2)}px off the real layout`);
+  }
 
   for (let i = 0; i < NAME.length; i++) {
     if (NAME[i] === ' ') continue;
