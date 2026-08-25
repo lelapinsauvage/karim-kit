@@ -606,7 +606,27 @@ const MOVES = {
   mid:   { wave: 1.25, tear: 3.4, spread: 0.4, charge: 0.5 },
 };
 
-const MOVE = MOVES.mid;
+let MOVE = { ...MOVES.mid };
+
+// Switch and tune from the console, because the only way to judge a move is to
+// watch it twice in a row with one number different.
+//
+//   move()              what is set now
+//   move('loud')        a named set
+//   move({ tear: 5 })   one value, keeping the rest
+//   move.save()         print it as a line to paste back into MOVES
+window.move = (v) => {
+  if (typeof v === 'string') MOVE = { ...(MOVES[v] ?? MOVE) };
+  else if (v) Object.assign(MOVE, v);
+  console.log(MOVE);
+  return MOVE;
+};
+window.move.save = () => {
+  const t = `  name:  { wave: ${MOVE.wave}, tear: ${MOVE.tear}, spread: ${MOVE.spread}, charge: ${MOVE.charge} },`;
+  navigator.clipboard?.writeText(t);
+  console.log(t);
+  return t;
+};
 let tween = null;
 
 function transitionTo(name) {
