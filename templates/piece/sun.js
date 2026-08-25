@@ -572,6 +572,41 @@ const DIP = (t) => Math.pow(t, 0.35) * Math.pow(1 - t, 1.7) / DIP_PK;
 // 820ms blurred them into a cut; 2100ms left the tail crawling. This is the
 // window where the parts read separately and none of them outstays.
 const DUR = 1450;
+
+// HOW HARD THE MOVE HITS. Four multipliers, all riding the same envelope so the
+// switch stays one gesture rather than several effects on their own clocks.
+//
+// Kept as a named set because these are the numbers worth arguing about and
+// they are impossible to find again once overwritten.
+//
+//   wave    the ring leaving the body, and how much the cloth reacts to it
+//   tear    displacement that pushes the FIGURE out of shape as the front
+//           passes -- the only one of the four that touches her
+//   spread  pigment pushed toward its core, so the crest runs hotter than the
+//           ink it is crossing
+//   charge  the travelling waves in the field surging behind the front
+const MOVES = {
+  // the first version: the ring alone, polite. The light changed and the cloth
+  // and the figure barely answered it.
+  calm:  { wave: 1.0, tear: 0.0, spread: 0.0, charge: 0.0 },
+
+  // 26 Aug, the one on screen when this was written. Everything answers the
+  // ring hard. The wave is beautiful at rest and buries the figure mid-switch.
+  loud:  { wave: 1.9, tear: 3.4, spread: 0.8, charge: 1.5 },
+
+  // The one to keep. Same reasoning as loud, weighted differently: the ring and
+  // the charge are what FLOOD the frame, and when they surge together at the
+  // moment of the switch the figure is the thing they bury -- her displacement
+  // is happening, you simply cannot see it under everything else.
+  //
+  // So the flood comes down and the figure stays at full: the ring still leaves
+  // the body and the cloth still answers it, but she is the loudest thing in
+  // the move rather than the quietest. The resting wave is untouched either
+  // way -- that lives in BASE.charge, not here.
+  mid:   { wave: 1.25, tear: 3.4, spread: 0.4, charge: 0.5 },
+};
+
+const MOVE = MOVES.mid;
 let tween = null;
 
 function transitionTo(name) {
@@ -631,7 +666,7 @@ function stepTween(now) {
   // Everything below hangs off the same envelope, so this stays one gesture
   // rather than several effects arriving on their own clocks.
   view.set('uWave', t);
-  view.set('uWaveAmt', swell * 1.9);
+  view.set('uWaveAmt', swell * MOVE.wave);
 
   // These go through STATE, not straight at the shader. send() runs at the end
   // of this function and frame() sets uTear from state on every pass, so a
@@ -641,15 +676,15 @@ function stepTween(now) {
   // uTear carries the displacement that pushes the figure out of shape as the
   // front passes: the largest single contributor to a switch reading as an
   // event rather than a crossfade.
-  state.tear = (state.tear ?? 1) * (1 + 3.4 * swell);
+  state.tear = (state.tear ?? 1) * (1 + MOVE.tear * swell);
 
   // the pigment spreads toward its core as the front goes by, so the crest is
   // hotter than the ink it crosses
-  state.spread = state.spread * (1 + 0.8 * swell);
+  state.spread = state.spread * (1 + MOVE.spread * swell);
 
   // and the charge gathers behind it -- the travelling waves in the field surge
   // with the ring instead of carrying on as though nothing happened
-  state.charge = state.charge * (1 + 1.5 * swell);
+  state.charge = state.charge * (1 + MOVE.charge * swell);
 
   send(state);
   if (raw >= 1) {
