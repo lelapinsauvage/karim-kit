@@ -105,6 +105,7 @@ let typeTex = null;
 // for a switch, where the word is being replaced, and wrong for the opening,
 // where it is arriving for the first time.
 let lockRise = 1;
+let riseCv = null, riseCtx = null;
 export function setRise(v) { lockRise = v; }
 
 export function setLockup(name, num) {
@@ -137,55 +138,56 @@ export function setLockup(name, num) {
   const NAME = name.toUpperCase();
   const nameY = h * 0.29 + size * 0.78;
 
-  // The whole string is drawn EVERY time, kerned as one word. To lift a single
-  // letter, the full string is drawn again clipped to that letter's column.
-  //
-  // Drawing letters individually is the obvious way and it is wrong: a display
-  // face kerns its pairs, and glyphs drawn one at a time cannot be kerned
-  // against neighbours that are not there. The word then sits a hair wide, and
-  // worse, it changes layout at whatever frame the animation stops splitting
-  // it. This way there is one layout, always, and the reveal only decides where
-  // the clip is and how far down the word is pushed inside it.
   if (lockRise >= 1) {
     typeCtx.fillText(NAME, pad, nameY);
   } else {
-    // Column edges from the INK of the kerned string, not from advance widths.
+    // The word is rasterised ONCE, kerned, into an offscreen canvas. The reveal
+    // then only COPIES PIXELS out of it, one column per letter, shifted down.
     //
-    // measureText(prefix).width is the advance and it does not include the kern
-    // between the prefix's last glyph and the next one -- so a column built
-    // from advances lands a few pixels off where the glyph actually sits, and
-    // catches a sliver of its neighbour. That sliver is at a different height
-    // mid-reveal, which is what shows up as fragments inside the letters.
-    //
-    // actualBoundingBoxRight is where the ink of that prefix really ends, in
-    // the string as it is actually laid out. The gap between one letter's ink
-    // and the next one's start belongs to nobody and is empty either way.
-    const inkRight = (n) => pad + typeCtx.measureText(NAME.slice(0, n)).actualBoundingBoxRight;
+    // Rasterising the string again for every letter is what produced the
+    // fragments: each pass lays the text out afresh at a different sub-pixel
+    // offset, and the hinting and antialiasing land differently, so the strips
+    // no longer agree at their seams. Copying cannot disagree with itself.
+    if (!riseCv) { riseCv = document.createElement('canvas'); riseCtx = riseCv.getContext('2d'); }
+    if (riseCv.width !== w || riseCv.height !== h) { riseCv.width = w; riseCv.height = h; }
+    riseCtx.setTransform(1, 0, 0, 1, 0, 0);
+    riseCtx.clearRect(0, 0, w, h);
+    riseCtx.fillStyle = '#fff';
+    riseCtx.textBaseline = 'alphabetic';
+    riseCtx.textAlign = 'left';
+    riseCtx.letterSpacing = '-0.04em';
+    riseCtx.font = `${size}px Disp, Impact, sans-serif`;
+    riseCtx.fillText(NAME, pad, nameY);
+
+    // Column edges in the GAP between glyphs, never on the ink. The pen
+    // position before a letter and the ink edge after the previous one bracket
+    // that gap; the midpoint sits safely inside it even where the pair kerns
+    // tightly.
+    const penX  = (n) => pad + (n ? typeCtx.measureText(NAME.slice(0, n)).width : 0);
+    const inkX  = (n) => pad + typeCtx.measureText(NAME.slice(0, n)).actualBoundingBoxRight;
+    const split = (n) => (inkX(n) + penX(n)) / 2;
+
+    const top  = nameY - size * 1.15;
+    const over = size * 0.035;          // round glyphs sit below the baseline
+    const band = size * 1.15 + over;
+
     for (let i = 0; i < NAME.length; i++) {
-      // A space has no ink, so its column collapses and inkRight stops
-      // advancing across it. Nothing to draw and nothing to measure.
       if (NAME[i] === ' ') continue;
       const start = (i / NAME.length) * 0.5;
       const t = Math.max(0, Math.min((lockRise - start) / 0.5, 1));
       const e = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t);
       if (e <= 0) continue;
 
-      const x0 = i === 0 ? pad - size * 0.25 : inkRight(i);
-      const x1 = i === NAME.length - 1 ? inkRight(NAME.length) + size * 0.25
-                                       : inkRight(i + 1);
+      const x0 = i === 0 ? 0 : split(i);
+      const x1 = i === NAME.length - 1 ? w : split(i + 1);
+      const dy = (1 - e) * size * 0.72;
+      // only the part that still lands above the baseline is copied, which is
+      // what makes the letter climb OUT of the line instead of across it
+      const srcH = band - dy;
+      if (srcH <= 0) continue;
 
-      typeCtx.save();
-      typeCtx.beginPath();
-      // The clip stops just BELOW the baseline, not on it. Round glyphs
-      // overshoot the baseline by a percent or two so they look the same
-      // height as the flat ones -- clip exactly at the baseline and every O, C,
-      // S and U loses its bottom curve.
-      const over = size * 0.035;
-      typeCtx.rect(x0, nameY - size * 1.15, x1 - x0, size * 1.15 + over);
-      typeCtx.clip();
       typeCtx.globalAlpha = e;
-      typeCtx.fillText(NAME, pad, nameY + (1 - e) * size * 0.72);
-      typeCtx.restore();
+      typeCtx.drawImage(riseCv, x0, top, x1 - x0, srcH, x0, top + dy, x1 - x0, srcH);
     }
     typeCtx.globalAlpha = 1;
   }
