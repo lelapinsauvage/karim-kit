@@ -69,10 +69,18 @@ export function scene(canvas, opts = {}) {
     view,
     state,
 
-    /** set one or many values: set('r', 0.4) or set({ r: 0.4, glow: 1 }) */
+    /**
+     * set one or many values: set('r', 0.4) or set({ r: 0.4, glow: 1 })
+     *
+     * figY and figScale are aliases. The uniforms are figBleed -- which sinks
+     * her, so up is a NEGATIVE bleed -- and figH. Both are correct and neither
+     * survives being said out loud at speed.
+     */
     set(k, v) {
       if (typeof k === 'object') Object.assign(state, k);
       else state[k] = v;
+      if (state.figY !== undefined)     { state.figBleed = -state.figY; delete state.figY; }
+      if (state.figScale !== undefined) { state.figH = state.figScale; delete state.figScale; }
       api.panel?.sync();
       return api;
     },

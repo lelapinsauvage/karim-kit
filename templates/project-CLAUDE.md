@@ -19,7 +19,7 @@ The one exception: I name a file and tell you to open it.
 ## The API, complete
 
 ```js
-import { scene } from '@karimsaab/kit';
+import { scene, HOUSE, CHARACTERS } from '@karimsaab/kit';
 
 const s = scene(document.querySelector('canvas'));  // running, neutral, panel on H
 await s.figure('/figures/n01.png');   // cutout into frame, bottom-anchored
@@ -28,6 +28,12 @@ s.cloth(1);                           // pattern field up
 s.set('pigment', '#A8531F');          // or s.set({ r: 0.4, glow: 1.2 })
 s.fade(0.5);                          // the figure's own reveal, 0..1
 ```
+
+`HOUSE` is the settled look — 46 values. `s.set(HOUSE)` when I ask for it and
+**never before**: the frame starting unresolved is the point. `CHARACTERS`
+carries the four figures with their pigment, ground, ink and provenance.
+
+Placement: `figX` left/right, `figY` up/down, `figScale` size, `figRot` turn.
 
 `s.state` is the live state object. `s.view` is the raw harness — `s.view.set(u, v)`
 for uniforms with no wrapper (`uFlipA`, `uFigMix`, `uTypeShow`).
@@ -153,6 +159,7 @@ camera.
 | **shaders** | `index.html`, `src/main.js` | `src/sections/*`, `src/figures/*` |
 | **images** | `src/figures/*` — PNGs only | any `.js`, `.html`, `.json` |
 | **ux** | `src/sections/*` | `index.html`, `src/main.js` |
+| **layout** | `index.html`, `src/chrome.css` | `src/main.js`, `src/figures/*` |
 
 **Only shaders runs the dev server** — http://localhost:5199. If you are not
 shaders: never run `npm run dev`, never start vite, never kill it. A second
@@ -210,6 +217,18 @@ the shaders agent's file.
 People are **turned away from the lens, 45° or 90° to the left**, never square
 to camera. Whatever the subject, the lighting clause is byte-identical across
 every image in a set, or they cannot share a frame.
+
+### layout — `index.html`, `src/chrome.css`
+
+**First move, on being named:** read `BRIEF.md`. Mount the page shell from
+`src/chrome.html` and `src/chrome.css`, with `src/type.css` linked. Report, stop.
+
+Then I send screenshots. **Change the text, the labels and the colours to match
+them. Do not rebuild the geometry** — the proportions, weights and spacing are
+already mine and already right. A nav rebuilt from nothing is the most expensive
+way to arrive somewhere worse.
+
+Keep the ids: `s-prev`, `s-next`, `s-now`, `s-bar`, `s-all`, `pct`.
 
 ### ux — `src/sections/*`
 
