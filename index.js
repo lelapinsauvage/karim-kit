@@ -6,3 +6,4 @@ export { panel, applySun, SUN_RANGE, SUN_GROUPS, SUN_UNIFORM, SUN_COLOUR,
          SUN_BLANK, SUN_NEUTRAL, SUN_OFF } from './src/panel.js';
 export { paletteFrom, rolesFrom, swatchStrip, rgb2hsv, hsv2rgb, toHex } from './src/palette.js';
 export { HOUSE, CHARACTERS } from './src/house.js';
+export { scramble, scrambleAll } from './src/text.js';

@@ -18,7 +18,9 @@
     "./palette": "./src/palette.js",
     "./shaders/*": "./src/shaders/*",
     "./scripts/*": "./scripts/*",
-    "./scene": "./src/scene.js"
+    "./scene": "./src/scene.js",
+    "./text": "./src/text.js",
+    "./house": "./src/house.js"
   },
   "files": [
     "index.js",

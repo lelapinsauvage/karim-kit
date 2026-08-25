@@ -141,6 +141,23 @@ Before rasterising ANY of them into a canvas:
 `await document.fonts.load('1em Disp')`. `fonts.ready` does not fetch a face no
 DOM node is using, so it resolves and the canvas draws Times.
 
+## Text that resolves
+
+```js
+import { scramble, scrambleAll } from '@karimsaab/kit';
+
+scramble(document.querySelector('.mark'), 'MAISON NOIR');
+scrambleAll({ 'r-pig': 'Indigo, third dip', 'r-org': 'Abeokuta' }, { duration: 1450 });
+```
+
+Each letter churns through glyphs and locks, staggered left to right, so the
+word arrives in order like something decoded. Run it at **1450ms, the same clock
+as a figure switch**, so the record and the picture land together.
+
+Never write a CSS keyframe glitch for this. Letters locking together read as one
+flicker, which is a cheaper effect entirely, and it is what a CSS animation
+gives you.
+
 ## The page furniture
 
 `src/chrome.css` and `src/chrome.html` are the nav, rail, CTA, slider ticker,
