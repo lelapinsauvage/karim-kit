@@ -1,5 +1,5 @@
 import { quad, hexToRgb } from './gl.js';
-import { scramble } from '@karimsaab/kit';
+import { scramble } from './text.js';
 import frag from './shaders/sun.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
@@ -25,7 +25,7 @@ const BASE = {
   grain:0.15, grainSize:1.45, grainMask:0.75, spread:0.30,
   bgFall:0.62, bgFloor:0.88, warmth:0.40, purity:0.62, wobble:1.42,
   cloth:0.32, clothScale:33, clothShape:2.729, clothMorph:2, clothWeight:0.095,
-  clothWave:7.5, clothSpeed:1.9, charge:0.18, chargeSpd:0.55, chargeLen:9,
+  clothWave:7.5, clothSpeed:1.9, charge:0.83, chargeSpd:0.93, chargeLen:10.9,
   light:0.85, rake:0.82, sheen:0.4, cord:1.3,
   figMode:0, tear:1.0, thread:0.7, figH:0.85, figX:0.055, figBleed:0.06, figDark:0.07, figTint:0.18, figLift:0,
   coreX:0.19, coreY:-0.110, typeInk:0.07,
@@ -621,8 +621,35 @@ function stepTween(now) {
   // amount, so the wave travels rather than the whole field pulsing at once.
   // the wave IS the transition clock now -- the figure turns over as it passes,
   // so it has to sweep the full frame within the move, not peak halfway
+  // THE RING, and everything that rides it.
+  //
+  // uWave is where the front is, uWaveAmt how hard it hits. On its own the ring
+  // was a polite ripple: the light changed but the CLOTH barely reacted, so the
+  // pattern read as a backdrop the switch happened in front of rather than as
+  // the thing the switch travelled through.
+  //
+  // Everything below hangs off the same envelope, so this stays one gesture
+  // rather than several effects arriving on their own clocks.
   view.set('uWave', t);
-  view.set('uWaveAmt', swell);
+  view.set('uWaveAmt', swell * 1.9);
+
+  // These go through STATE, not straight at the shader. send() runs at the end
+  // of this function and frame() sets uTear from state on every pass, so a
+  // direct view.set here is overwritten a few lines later by the resting value
+  // -- silently, with the move simply not happening.
+  //
+  // uTear carries the displacement that pushes the figure out of shape as the
+  // front passes: the largest single contributor to a switch reading as an
+  // event rather than a crossfade.
+  state.tear = (state.tear ?? 1) * (1 + 3.4 * swell);
+
+  // the pigment spreads toward its core as the front goes by, so the crest is
+  // hotter than the ink it crosses
+  state.spread = state.spread * (1 + 0.8 * swell);
+
+  // and the charge gathers behind it -- the travelling waves in the field surge
+  // with the ring instead of carrying on as though nothing happened
+  state.charge = state.charge * (1 + 1.5 * swell);
 
   send(state);
   if (raw >= 1) {
