@@ -43,6 +43,28 @@ ways at once — and each one costs a round trip to find.
 `scene()` is for building something NEW. The template is for reproducing what
 exists. Reach for the template first.
 
+### Then change it
+
+Copying is the floor, not the finish. The piece is where we start and then I
+direct it — new copy, a different rail, another section, a heading that arrives
+differently, a colour I decide on camera.
+
+| safe to change on request | do not touch unless I say so |
+|---|---|
+| `LOOKS` — figures, colours, provenance | the loader's curves and timings |
+| copy, labels, nav, the rail's fields | the switch: `DUR`, `DIP`, the wave |
+| CSS: type, spacing, colour, layout | the scramble's stagger |
+| reveal delays and easings | `send()`, `frame()`, the panel wiring |
+| new sections and new elements | `sun.frag` |
+
+Two heading lines in the DOM get `.t-a` and `.t-b` — they rise out of their own
+box on a clip-path 160ms apart, which is what makes two lines read as one
+sentence arriving rather than a block appearing.
+
+**If I ask for something the piece does not do, build it — on top, not
+instead.** Add to `sun.js` or a new file; do not rewrite what is already
+working to make room for it.
+
 ## The API, complete
 
 ```js
