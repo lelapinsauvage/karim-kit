@@ -33,7 +33,7 @@ export function scene(canvas, opts = {}) {
   const state = { ...SUN_NEUTRAL, ...(opts.state || {}) };
   for (const [k, v] of Object.entries(SUN_OFF)) view.set(k, v);
 
-  const slots = [null, null, null, null];
+  const slots = new Array(8).fill(null);
   let lastURL = null;
 
   // --- the set -------------------------------------------------------------
@@ -136,11 +136,10 @@ export function scene(canvas, opts = {}) {
      * the move, so each character brings its own light, ground and ink. OFF by
      * default -- colour is a decision, and nothing here takes one unasked.
      *
-     * Capped at FOUR. The shader has uFigTex0..3; a fifth needs a texture
-     * array, which is a real change, not a bigger number.
+     * Eight figures. Past that the shader wants a sampler2DArray.
      */
     async models(urls, { palette = false, duration = 900, mode = 0, keys = true } = {}) {
-      if (urls.length > 4) throw new Error(`scene.models: ${urls.length} given, 4 is the limit (uFigTex0..3)`);
+      if (urls.length > 8) throw new Error(`scene.models: ${urls.length} given, 8 samplers exist`);
       models.length = 0;
       urls.forEach((url, i) => {
         const tex = view.texture(url, i);

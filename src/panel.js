@@ -21,7 +21,7 @@ export const SUN_UNIFORM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand
   wobble:'uWobble', cloth:'uCloth', clothScale:'uClothScale',
   clothShape:'uClothShape', clothMorph:'uClothMorph', clothWeight:'uClothWeight', clothWave:'uClothWave', clothSpeed:'uClothSpeed',
   light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
-  figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift',
+  figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift', figRot:'uFigRot',
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen',
   typeInk:'uTypeInk' };
 
@@ -39,6 +39,7 @@ export const SUN_RANGE = {
   charge:[0,2,0.01], chargeSpd:[0,3,0.01], chargeLen:[1,30,0.1],
   tear:[0,3,0.01], thread:[0.2,3,0.01], figMode:[0,3,1],
   figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figBleed:[-0.4,0.6,0.005],
+  figRot:[-0.35,0.35,0.002],
   coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
 };
 
@@ -78,7 +79,7 @@ export const SUN_NEUTRAL = {
   clothScale: 12, clothShape: 0, clothMorph: 0, clothWave: 0, clothSpeed: 0,
   clothWeight: 0.1, charge: 0, chargeSpd: 0, chargeLen: 10,
   light: 0, rake: 0, sheen: 0, cord: 0,
-  figH: 1, figX: 0, figBleed: 0, figDark: 0, figTint: 0, figLift: 0,
+  figH: 1, figX: 0, figBleed: 0, figRot: 0, figDark: 0, figTint: 0, figLift: 0,
   figMode: 0, tear: 0, thread: 1,        // thread is a divisor: never 0
 };
 
@@ -86,6 +87,8 @@ export const SUN_NEUTRAL = {
 export const SUN_OFF = {
   uLoadCover: 0, uLoad: 0, uEclR: 0, uEclWhite: 0, uEclFill: 0, uEclSeam: 0,
   uFigShow: 0, uFigFade: 0, uFigMix: 0, uFigA: 0, uFigB: 0,
+  uFigTex0: 0, uFigTex1: 1, uFigTex2: 2, uFigTex3: 3,
+  uFigTex4: 4, uFigTex5: 5, uFigTex6: 6, uFigTex7: 7,
   uFlipA: 0, uFlipB: 0, uTypeShow: 0,
   uWave: 0, uWaveAmt: 0,
   uClothFront: -1,                       // hidden is -1, NOT 0
@@ -97,7 +100,7 @@ export const SUN_GROUPS = [
   ['ground',  ['bgFall','bgFloor']],
   ['cloth',   ['cloth','clothScale','clothShape','clothMorph','clothWave','clothSpeed','clothWeight','charge','chargeSpd','chargeLen']],
   ['surface', ['light','rake','sheen','cord']],
-  ['figure',  ['figH','figX','figBleed','figDark','figTint','figLift']],
+  ['figure',  ['figH','figX','figBleed','figRot','figMode','figDark','figTint','figLift']],
   ['grain',   ['grain','grainSize','grainMask']],
   ['type',    ['typeInk']],
 ];
@@ -263,6 +266,8 @@ export function applySun(view, s, opts = {}) {
   view.set('uTime', (opts.time ?? performance.now()) * 0.001);
 
   if (s.figShow !== undefined) view.set('uFigShow', s.figShow ? 1 : 0);
+  // the incoming figure follows the outgoing one's rotation unless given its own
+  view.set('uFigRotB', s.figRotB ?? s.figRot ?? 0);
 
   const a = opts.fig, b = opts.figB;
   if (a && a.ready) {

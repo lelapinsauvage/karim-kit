@@ -41,11 +41,14 @@ s.next(); s.prev(); s.go(-1);        // arrow keys already wired
 
 `palette: true` gives each character its own light, ground and ink, carried
 through the move in HSV so nothing goes grey at the midpoint. Leave it off and
-the colours stay as I set them. `mode`: 0 stamp, 1 plate, 2 page, 3 weave.
+the colours stay as I set them.
 
-**Four models maximum.** The shader has `uFigTex0..3`; a fifth needs a texture
-array, which is a real change and not a bigger number. If I ask for five, say so
-rather than silently dropping one.
+`mode`: 0 stamp, 1 plate, 2 page, 3 weave, **4 slip** — the glitch. It tears
+along the pattern's own cell grid, rows sliding by whole cells and crossing over
+at their own moments. Eight figures.
+
+`figRot` rotates her, radians, about her own middle. Keep it small: past about
+0.2 her feet leave the bottom edge and she stops standing on anything.
 
 Two figures without a slider: `s.figure(url, 1)`, then drive `uFigMix` 0→1.
 
@@ -102,8 +105,16 @@ shaders: never run `npm run dev`, never start vite, never kill it. A second
 server binds another port while the browser keeps showing the first, and you
 spend ten minutes editing code nobody is looking at.
 
-Nobody edits `package.json`. If you are about to touch a file you do not own,
-stop and tell me instead.
+Nobody edits `package.json`.
+
+**If I ask you for something directly, you do it. The ownership table stops you
+wandering into another agent's file on your own — it is not permission to refuse
+me.** If I ask the shaders agent to lay out a page, it lays out the page. Telling
+me it belongs to another agent is telling me a thing I already know and did not
+ask about, and it costs the round trip.
+
+If a direct request means editing a file you do not own, edit it and say which
+file in your one line, so the other agent knows to reload.
 
 ### shaders — `index.html`, `src/main.js`
 
@@ -169,6 +180,13 @@ decorated ones I have to strip.
   colour extractor, image generator. `scene()` is two lines; building is fifty.
 - **Do not summarise this file back to me.** Build, then one line: what you built
   and whether it renders.
+- **No preamble and no commentary.** Never open with your role. Never write "as
+  the shaders agent", "I'll go ahead and", "let me". Never list what you chose
+  not to do. Never suggest a next step or offer me options. Never tell me what to
+  try. I know what I want next; hearing it back costs me the seconds I am on
+  camera. Say what you built. Stop talking.
+- **If something I asked for does not exist, say that in one sentence and build
+  the rest.** Do not stop, do not ask, do not explain the architecture.
 
 ## Things that fail silently
 

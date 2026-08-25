@@ -90,6 +90,10 @@ uniform sampler2D uFigTex0;
 uniform sampler2D uFigTex1;
 uniform sampler2D uFigTex2;
 uniform sampler2D uFigTex3;
+uniform sampler2D uFigTex4;
+uniform sampler2D uFigTex5;
+uniform sampler2D uFigTex6;
+uniform sampler2D uFigTex7;
 uniform int   uFigA;       // which unit the outgoing figure is on
 uniform int   uFigB;       // and the incoming one
 uniform vec4  uFigRectB;
@@ -110,6 +114,10 @@ uniform float uWaveAmt;
 uniform float uClothFront;   // -1 = fully hidden, large = fully shown
 uniform float uFlipA;
 uniform float uFlipB;
+// Rotation, radians, about the figure's own middle. Small amounts only: past
+// about 0.2 the feet leave the bottom edge and she stops standing on anything.
+uniform float uFigRot;
+uniform float uFigRotB;
 // --- loader -----------------------------------------------------------------
 // uLoad runs 0..1 across the whole opening. Two bodies arrive from opposite
 // sides, cross into eclipse, and the occluder withdraws to leave the sun. The
@@ -269,7 +277,9 @@ vec3 edgeOf(vec3 pigment, float k, float w) {
 }
 
 // sampler arrays need a constant index in GLSL ES, so this is a branch rather
-// than a lookup. Four figures is the whole set; more would want a texture array.
+// than a lookup. Eight is the set. WebGL2 guarantees at least sixteen texture
+// units to a fragment shader, so the ceiling here is the branch, not the
+// hardware -- past this it wants a sampler2DArray rather than more cases.
 // A circle whose perimeter is warped by harmonics of the polar angle. A plain
 // expanding disc reads as a wipe; three harmonics at different frequencies make
 // an edge that is organic without ever looking like noise.
@@ -286,18 +296,28 @@ vec4 figSample(int which, vec2 tc) {
   if (which == 0) return texture(uFigTex0, tc);
   if (which == 1) return texture(uFigTex1, tc);
   if (which == 2) return texture(uFigTex2, tc);
-  return texture(uFigTex3, tc);
+  if (which == 3) return texture(uFigTex3, tc);
+  if (which == 4) return texture(uFigTex4, tc);
+  if (which == 5) return texture(uFigTex5, tc);
+  if (which == 6) return texture(uFigTex6, tc);
+  return texture(uFigTex7, tc);
 }
 
 // One figure, sampled through its own rect and placement, bottom-anchored.
 // `flip` mirrors horizontally. Generated figures face whichever way the model
 // decided, and a set where subjects look in different directions has no
 // collective gaze -- they stop being a series and become four unrelated photos.
-vec4 figAt(int which, vec4 rect, vec4 pos, vec2 uv, vec2 res, float shift, float flip) {
+vec4 figAt(int which, vec4 rect, vec4 pos, vec2 uv, vec2 res, float shift, float flip, float rot) {
   float aspect = pos.x, fh = pos.y;
   float frameBottom = -0.5 * res.y / min(res.x, res.y);
   float cy = frameBottom + fh * 0.5 - pos.w;
   vec2  q  = (uv - vec2(pos.z + shift, cy)) / fh;
+  // rotate about her own centre, BEFORE the aspect divide -- after it the
+  // rotation happens in a stretched space and she shears instead of turning
+  if (abs(rot) > 1e-5) {
+    float cr = cos(rot), sr = sin(rot);
+    q = mat2(cr, -sr, sr, cr) * q;
+  }
   vec2  lc = vec2(q.x / aspect + 0.5, 0.5 - q.y);
   if (lc.x < 0.0 || lc.x > 1.0 || lc.y < 0.0 || lc.y > 1.0) return vec4(0.0);
   // mirror in the CONTENT rect, after the bounds test, so the flip cannot push
@@ -550,15 +570,15 @@ void main() {
 
       // the outgoing figure is pushed ahead of the front, the incoming one is
       // still catching up -- they move in opposite directions through the edge
-      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv - push,       uRes, 0.0, uFlipA);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6, uRes, 0.0, uFlipB);
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv - push,       uRes, 0.0, uFlipA, uFigRot);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6, uRes, 0.0, uFlipB, uFigRotB);
 
       // per-channel separation ONLY inside the band, scaled by how fast the edge
       // is moving. dispersion everywhere is an RGB-split filter; dispersion at a
       // moving boundary is refraction.
       float disp = edge * 0.026 * uTear;
-      vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0, uFlipB);
-      vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0, uFlipB);
+      vec4 fbR = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 + grad * disp,       uRes, 0.0, uFlipB, uFigRotB);
+      vec4 fbB = figAt(uFigB, uFigRectB, uFigPosB, uv + push * 0.6 - grad * disp * 1.2, uRes, 0.0, uFlipB, uFigRotB);
       fb.r = fbR.r; fb.b = fbB.b;
 
       // the reveal itself is soft over a comparable distance, or the
@@ -580,10 +600,10 @@ void main() {
       float d   = (1.0 - set) * 0.035 * uTear;
       vec2  ax  = vec2(0.94, 0.34);
 
-      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv, uRes, 0.0, uFlipA);
-      vec4 r  = figAt(uFigB, uFigRectB, uFigPosB, uv + ax * d,        uRes, 0.0, uFlipB);
-      vec4 g  = figAt(uFigB, uFigRectB, uFigPosB, uv,                 uRes, 0.0, uFlipB);
-      vec4 b  = figAt(uFigB, uFigRectB, uFigPosB, uv - ax * d * 1.15, uRes, 0.0, uFlipB);
+      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv, uRes, 0.0, uFlipA, uFigRot);
+      vec4 r  = figAt(uFigB, uFigRectB, uFigPosB, uv + ax * d,        uRes, 0.0, uFlipB, uFigRotB);
+      vec4 g  = figAt(uFigB, uFigRectB, uFigPosB, uv,                 uRes, 0.0, uFlipB, uFigRotB);
+      vec4 b  = figAt(uFigB, uFigRectB, uFigPosB, uv - ax * d * 1.15, uRes, 0.0, uFlipB, uFigRotB);
       vec4 fb = vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
       tex = mix(fa, fb, hit);
 
@@ -593,8 +613,8 @@ void main() {
       // become another.
       float go  = smoothstep(0.0, 0.48, m);
       float in_ = smoothstep(0.40, 1.0, m);
-      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(-0.55 * go, 0.0), uRes, 0.0, uFlipA);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(0.55 * (1.0 - in_), 0.0), uRes, 0.0, uFlipB);
+      vec4 fa = figAt(uFigA, uFigRect,  uFigPos,  uv + vec2(-0.55 * go, 0.0), uRes, 0.0, uFlipA, uFigRot);
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv + vec2(0.55 * (1.0 - in_), 0.0), uRes, 0.0, uFlipB, uFigRotB);
       tex = fb.a > 0.004 ? fb : fa;
 
     } else {
@@ -608,8 +628,9 @@ void main() {
       float keepA  = smoothstep(front - 0.22, front + 0.22, thread * 0.8 + 0.30);
       vec2  pull   = normalize(wf + 1e-5) * (1.0 - thread) * uTear * 0.05 * sin(3.14159 * m);
 
-      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv + pull, uRes, 0.0, uFlipA);
-      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0, uFlipB);
+      vec4 fa = figAt(uFigA, uFigRect, uFigPos, uv + pull, uRes, 0.0, uFlipA, uFigRot);
+      // (weave)
+      vec4 fb = figAt(uFigB, uFigRectB, uFigPosB, uv - pull, uRes, 0.0, uFlipB, uFigRotB);
       vec3 rgb = fa.rgb * fa.a * keepA + fb.rgb * fb.a * (1.0 - keepA);
       float al = fa.a * keepA + fb.a * (1.0 - keepA);
       tex = vec4(al > 0.001 ? rgb / al : vec3(0.0), al);
