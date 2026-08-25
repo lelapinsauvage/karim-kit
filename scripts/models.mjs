@@ -1,144 +1,212 @@
 // Model generation prompts.
 //
-// Rebuilt after the first batch came back reading as AI. Four things caused
-// that, and each has a fix:
+// Rewritten against the reference folders. What was wrong before, in order of
+// how much damage each did:
 //
-//   plastic skin      -> name a FILM STOCK and a focal length, and ask for pores
-//                        explicitly. Naming a stock is the single strongest
-//                        instruction available: it carries a whole tonal
-//                        signature -- grain, contrast curve, skin rendering --
-//                        where adjectives carry almost nothing.
-//   symmetrical faces -> negative constraints. "no beauty retouch, no smooth
-//                        skin filter, no symmetrical face."
-//   poses nobody      -> describe an ACTION, not a pose. "looking away from
-//   shoots               camera", "hand at the jaw", "chin lifted, eyes down".
-//                        Chin-level-shoulders-square is a passport photo.
-//   generic garments  -> describe the SHAPE and the material, not the culture.
-//                        "African-inspired" returns the model's average of
-//                        everything, which is why it looks like nothing.
+//   ETHNOGRAPHIC COSTUME. Barkcloth chest panels, cowrie bibs, raffia tassels.
+//   That is a museum diorama, not a clothing line. The references are
+//   contemporary fashion — wax-print camp collars, knitted jacquard polos,
+//   bandana-paisley puffers, oversized tailoring. African design language on
+//   garments people actually wear.
 //
-// The lighting clause stays identical across every prompt. Figures lit
-// differently cannot share a scene, and by the time you notice you have
-// generated all of them.
+//   MUD PALETTE. Ochre, barkcloth, indigo, olive: every prompt sat in earth
+//   tones. The references are loud — vermilion on cobalt, acid green with
+//   cream, cobalt with ochre yellow, pink against green. Saturated,
+//   complementary, joyful. The colour is the point.
+//
+//   GREY BACKDROP. Every reference shoots against a SATURATED coloured
+//   seamless — oxblood, olive, mint, hot pink, cobalt. The drama is in the
+//   backdrop and the styling, never in the lighting.
+//
+//   BACKLIGHT. A cinematic key behind the subject looked better in isolation
+//   and wrong against the references, which are lit flat, soft and frontal.
+//   That lighting is not a compromise for the shader's benefit — it is what
+//   the look actually is.
+//
+// The references now go to the model as images, not as adjectives. Words select
+// from an average of everything the model has seen; a reference selects from a
+// picture. Pass REFS=~/Desktop/afro\ models,~/Desktop/afro\ clothes
 
 // ---------------------------------------------------------------------------
-// TWO looks. Pass the one you want to prompt().
-//
-//   'flat'   -- even, frontal, relightable. The shader supplies all the drama.
-//   'cinema' -- backlit, deep shadow side, halation. The photograph already has
-//               its own light, and the shader agrees with it.
-//
-// The choice is not cosmetic. Flat front-on soft light IS e-commerce lighting --
-// it is chosen to describe a garment, and describing is the opposite of what a
-// cinematic frame does. But it relights cleanly, which is why it was here first.
+// LOCKED. Identical in every prompt. Figures that differ here cannot share a
+// frame, and by the time that is obvious the whole set is generated.
 // ---------------------------------------------------------------------------
 
-const CAPTURE_FLAT =
-  'Shot on Kodak Portra 400, 85mm lens, Hasselblad. Visible skin pores and '
-  + 'natural skin texture, faint specular sheen on the skin, catchlight in the '
-  + 'eyes, fine film grain, slight asymmetry in the face. '
-  + 'No beauty retouch, no smooth skin filter, no plastic skin, no symmetrical face.';
+// Soft, large, frontal, open. Beauty-dish or big softbox close and slightly
+// above, white bounce underneath. Shadows present but weak. No rim, no hard
+// key, no backlight — every reference is lit this way, and the modelling comes
+// from the size and closeness of the source rather than from contrast.
+const LIGHT =
+  'Lit by one very large soft source close and slightly above the camera, with '
+  + 'a white bounce card just below the chin. Shadows soft, open and weak. Even '
+  + 'across the face. No rim light, no backlight, no hard key, no coloured gels '
+  + 'on the subject. Faint specular sheen on the skin, catchlight in both eyes. '
+  // A saturated backdrop bounces its own colour into hair and shoulder edges,
+  // and the matte keeps every bit of it -- a red fringe round an afro, a green
+  // one down a braid. In a real studio you fix that by walking the subject
+  // forward, so ask for that rather than for the symptom to be absent.
+  + 'Subject standing several metres forward of the backdrop, lit separately '
+  + 'from it, with no colour spill or coloured reflection onto the hair, skin '
+  + 'or shoulders. Clean edge separation between subject and background.';
 
-// Even and frontal, but from a large soft source -- flat enough to relight,
-// with enough shaping that it still reads as a photograph.
-const LIGHT_FLAT =
-  'Lit by one large softbox directly front-on, very soft and even, shadows open '
-  + 'and weak, no rim light, no hard key, neutral white balance, low contrast. '
-  + 'Flat seamless studio backdrop in mid grey, nothing else in frame.';
+// Medium format, moderate tele, stopped down. The references are sharp
+// throughout — this is not a shallow-depth-of-field look, the garment has to
+// read as clearly as the face.
+const CAMERA =
+  'Shot on a Hasselblad with a 100mm lens at f/5.6, everything from the front '
+  + 'of the face to the shoulders in focus. Fine 120 film grain. Natural '
+  + 'colour, neutral white balance, no colour grade, no teal and orange.';
 
-// Cinema. A motion picture stock rather than a portrait negative: Portra is a
-// low-contrast film built to be kind to skin, and kindness is not what this is
-// for. 500T is tungsten-balanced, coarse-grained and haloes around a hot edge.
-// The lens goes wider and closer -- 85mm is a portrait length and it flatters;
-// 40mm at a short distance puts the viewer in the room.
-const CAPTURE_CINEMA =
-  'Shot on Kodak Vision3 500T, 40mm spherical prime, shot wide open. Halation '
-  + 'blooming softly around the brightest edges the way tungsten stock does. '
-  + 'Coarse 35mm grain, filmic highlight rolloff, blacks lifted slightly rather '
-  + 'than crushed. Visible skin pores, faint specular sheen on the skin, slight '
-  + 'asymmetry in the face. No beauty retouch, no smooth skin filter, no plastic '
-  + 'skin, no symmetrical face, no digital sharpening, no HDR.';
+// Skin, and the constraints that keep it off the plastic default.
+const SKIN =
+  'Visible skin pores and natural skin texture, fine facial hair, slight '
+  + 'asymmetry in the face, a real person rather than a composite. No beauty '
+  + 'retouch, no smooth skin filter, no plastic skin, no symmetrical face, no '
+  + 'digital sharpening, no HDR, no wax figure.';
 
-// Backlit, because the figure stands in front of a sun. A frame where the
-// brightest thing is behind the subject and the front falls away is both the
-// cinematic version and the honest one -- the light in the photograph and the
-// light in the composition are the same light.
+// ---------------------------------------------------------------------------
+// TWO POSITIONS. Only two, so the set is a series rather than four unrelated
+// photographs. Both keep the whole head and both shoulders inside the frame
+// with clear air around them: nothing is ever cut by the left or right edge,
+// because the figure gets knocked out and stood in an empty scene, and a
+// shoulder amputated by a frame edge that no longer exists reads as damage.
+// ---------------------------------------------------------------------------
+// Wide enough that the garment survives the knockout. The figure is cut out
+// and stood in an empty scene, so a sleeve severed by an edge that no longer
+// exists reads as damage rather than as a crop -- and a puffer or a wide
+// shoulder eats far more width than a head-and-shoulders crop expects.
+const FRAME =
+  'Framed wide, with a clear margin of empty backdrop on the left and the right '
+  + 'and above the head. Both sleeves and the full width of the shoulders sit '
+  + 'well inside the frame and never touch the left or right edge. '
+  // Sides and top clear, bottom RUNNING OFF. A body that stops inside the frame
+  // has been amputated; a body that continues past the bottom edge has simply
+  // been cropped, and once the figure is knocked out and stood in a scene only
+  // the second one still reads as a person standing there.
+  + 'The body continues down past the bottom edge of the frame and is cropped '
+  + 'by it at the chest, not ending inside the frame.';
+
+export const POSE = {
+  centre:
+    'Head and shoulders, square to camera, chin level, looking straight down '
+    + 'the lens, chin a fraction lifted, jaw set, shoulders dropped and square. '
+    + 'A held, deliberate stance directed by a photographer -- not a snapshot, '
+    + 'not a casual standing pose. Centred, upright. '
+    + FRAME,
+
+  left:
+    'Head and shoulders, body turned a quarter away so the shoulders sit on a '
+    + 'diagonal, face turned back and eyes looking off to the LEFT of frame, '
+    + 'past the camera, chin a fraction lifted, neck long, shoulders dropped '
+    + 'and held. A deliberate stance directed by a photographer -- not a '
+    + 'snapshot, not a casual standing pose. '
+    + FRAME,
+};
+
+// ---------------------------------------------------------------------------
+// The backdrop is a saturated colour, chosen AGAINST the garment. Never grey,
+// never white, never black. The background remover takes it out cleanly at any
+// colour, so this costs nothing and it is most of why the references look like
+// photographs and the old generations looked like inventory.
+// ---------------------------------------------------------------------------
+const GROUND = (colour) =>
+  `Seamless studio paper backdrop in ${colour}, evenly lit, completely plain, `
+  + 'nothing else in frame.';
+
+// ---------------------------------------------------------------------------
+// The set. Each entry: pose, backdrop colour, and the garment.
 //
-// The backdrop stays MID GREY, not black. A dark backdrop behind a rim-lit
-// subject looks better in the raw generation and mattes badly: the cutter takes
-// the haze and the halation with the background, and what is left has a hard
-// bright outline around a hole. Let the shader put the atmosphere back --
-// figLift exists for exactly this.
-const LIGHT_CINEMA =
-  'Lit from behind and slightly to one side by a single hard source, so the '
-  + 'edge of the head and shoulders burns bright and the front of the figure '
-  + 'falls into deep shadow. One weak bounce from the front keeps detail in the '
-  + 'shadow side. Strong contrast, warm key against cool shadow. Flat seamless '
-  + 'studio backdrop in mid grey, nothing else in frame.';
+// Garments are described as GARMENTS — cut, fabric, construction, and the two
+// or three colours in the print. Never as heritage. "Wax-print camp-collar
+// shirt in cobalt and ochre" is a thing a person owns; "African-inspired
+// ceremonial textile" is a thing a model averages into mush.
+// ---------------------------------------------------------------------------
+// WHO. This clause is not optional and removing it was the single worst thing
+// in the previous version: describing only the garment leaves the subject to
+// the model's default, and the default is a racially indeterminate face. The
+// three figures that worked -- n06, n10, a02 -- all name the person first.
+//
+// Naming the hair matters as much as naming the skin. Box braids, coiled locs,
+// a beaded skullcap: these are what make the face read as the person intended
+// rather than as an average.
+const WHO = {
+  w1: 'A dark-skinned Black woman with deep brown skin and West African '
+    + 'features, high cheekbones, freckles across the nose.',
+  w2: 'A dark-skinned Black woman with very deep brown skin, a broad nose and '
+    + 'full mouth, fine raised scarification lines across both cheekbones.',
+  m1: 'A dark-skinned Black man with deep brown skin and West African features, '
+    + 'a strong jaw and heavy brow.',
+  m2: 'A dark-skinned Black man with very deep brown skin, close-shaved head, '
+    + 'sharp cheekbones.',
+};
 
+// STREETWEAR SILHOUETTES CUT FROM HERITAGE TEXTILE -- a plate carrier made of
+// antique kilim, a puffer in bandana paisley, a camp collar in Dutch wax. That
+// is the register in the references, and it is the difference between a
+// clothing line and a costume department. Nothing ceremonial, nothing tribal,
+// nothing "inspired by".
 export const MODELS = [
-  ['n01', 'A dark-skinned woman, head and shoulders, chin lifted and eyes '
-    + 'looking down past the lens, mouth relaxed. Hair sculpted into two tall '
-    + 'twin peaks rising from the crown, matte and dense. Cowrie shells strung '
-    + 'in rows across the brow. Heavy brass hoop at one ear.'],
+  ['a01', POSE.left, 'deep oxblood red', WHO.w1,
+    'Wearing an oversized short-sleeved camp-collar shirt in Dutch wax print, '
+    + 'cobalt blue swirls over acid ochre yellow with black crackle outlines, '
+    + 'open over a plain black ribbed vest. Large thin gold hoops. Long fine '
+    + 'box braids gathered high.'],
 
-  ['n02', 'A dark-skinned man, head and shoulders, turned three-quarters away '
-    + 'and looking back over his shoulder at the lens, jaw set. Close-cropped '
-    + 'hair with a fine parting cut into it. Wearing a stiff triangular chest '
-    + 'panel in tan barkcloth edged with a dense row of cowrie shells, bare '
-    + 'shoulders, raffia tassels at the shoulder points.'],
+  ['a02', POSE.left, 'flat olive green', WHO.w1,
+    'Wearing a heavy knitted jacquard polo, cream and vermilion on grass green, '
+    + 'ribbed contrast collar in solid green, buttons undone. A single carved '
+    + 'bone ear cuff. Long fine box braids gathered high, a few falling loose.'],
 
-  ['n03', 'A dark-skinned woman, head and shoulders, one hand flat against her '
-    + 'jaw, elbow out of frame, eyes to camera. Hair in four large round Bantu '
-    + 'knots. Small gold nose ring, layered fine gold chains at the throat. '
-    + 'Freckles across the nose and cheeks.'],
+  // The vest was worn over a bare chest and read as a costume piece rather than
+  // as an outfit. It goes over a real garment now.
+  ['a03', POSE.left, 'pale mint', WHO.m2,
+    'Wearing a boxy tactical plate-carrier vest cut from an antique red kilim '
+    + 'rug, geometric weave in rust, indigo and gold, webbing straps in solid '
+    + 'red, worn over a heavy cream cotton long-sleeve work shirt buttoned to '
+    + 'the throat. Heavy brass chain over the collar.'],
 
-  ['n04', 'A dark-skinned woman in strict profile facing left, chin raised, '
-    + 'throat exposed, eyes closed. Beaded cap in burnt orange seed beads with '
-    + 'a fringe of cowrie shells across the forehead. Long beaded earring '
-    + 'falling in dense strands to the shoulder.'],
+  ['a04', POSE.left, 'warm cream', WHO.m1,
+    'Wearing an oversized bandana-paisley puffer jacket in one saturated '
+    + 'crimson with white paisley motifs, collar zipped high. Stacked gold '
+    + 'signet rings. Shoulder-length locs.'],
 
-  ['n05', 'A dark-skinned man, head and shoulders, facing camera, head tipped '
-    + 'slightly back, half-smile. Tall flat-topped hair squared off at the '
-    + 'edges. Wearing an oversized mesh jersey printed with dense black adinkra '
-    + 'symbols on rust red, collar open.'],
+  // Printed symbols on mesh came back looking like clip art laid on fabric.
+  // The pattern has to be IN the cloth -- woven, dyed, stitched -- not printed
+  // over it, which is the same reason the shader tiles rather than stamps.
+  ['a05', POSE.centre, 'deep cobalt blue', WHO.w2,
+    'Wearing an oversized boxy jacket in indigo adire cloth, the pattern '
+    + 'resist-dyed into the fabric itself, pale cracked geometric lines on deep '
+    + 'indigo, slightly faded at the folds. Small gold nose ring. Tight coiled '
+    + 'locs in a high sculptural knot.'],
 
-  ['n06', 'A dark-skinned woman, head and shoulders, shoulders turned away and '
-    + 'face toward the lens, gaze level and unbothered. Fine raised scarification '
-    + 'lines across both cheekbones. White cotton veil draped over a beaded '
-    + 'skullcap. Long thin brass earring.'],
+  ['a06', POSE.left, 'burnt terracotta', WHO.w2,
+    'Wearing a cropped raffia-woven shoulder piece in natural straw over a '
+    + 'vermilion ribbed knit, loose threads at the edge. Dense strands of orange '
+    + 'seed beads falling from both ears. Beaded skullcap in burnt orange.'],
 
-  ['n07', 'A dark-skinned woman, head and shoulders, arms crossed low, leaning '
-    + 'slightly forward. Large round afro shaped into a perfect halo. Wearing a '
-    + 'cropped camp-collar shirt in a bold red, black and gold tile print, '
-    + 'buttons open at the throat.'],
+  ['a07', POSE.left, 'pale butter yellow', WHO.m1,
+    'Wearing a boxy double-breasted overcoat in heavy kente-striped wool, bands '
+    + 'of green, gold and black woven through it, worn over a black roll-neck. '
+    + 'Small gold hoop in one ear. Close-cropped hair.'],
 
-  ['n08', 'A dark-skinned man in strict profile facing right, chin down, brow '
-    + 'heavy. Head wrapped in indigo cloth with hand-painted white resist '
-    + 'markings, wrapped tall and flat at the crown. Stacked brass coils at the '
-    + 'neck, bare shoulders.'],
+  ['a08', POSE.centre, 'deep forest green', WHO.w1,
+    'Wearing an oversized bomber jacket in vermilion satin with a bogolanfini '
+    + 'mud-cloth panel across the chest, cream geometric marks on black, ribbed '
+    + 'cuffs and collar. Large brass hoops. High afro puff.'],
 
-  ['n09', 'A dark-skinned woman, head and shoulders, turning into the lens as if '
-    + 'caught mid-movement, hair still swinging. Long thin braids gathered high '
-    + 'and falling loose. Wearing a heavy collar of flat hammered brass discs '
-    + 'over a plain black tank.'],
+  ['a09', POSE.left, 'dusty rose', WHO.m2,
+    'Wearing a cream cotton hooded workwear jacket with indigo shibori-dyed '
+    + 'sleeves, patch pockets, hood down. Layered fine silver chains. '
+    + 'Close-shaved head.'],
 
-  ['n10', 'A dark-skinned woman, head and shoulders, seen from slightly below, '
-    + 'looking off to the right of frame. Hair in tight coiled locs pulled into '
-    + 'a high sculptural knot. Wearing an open-weave raffia shoulder piece in '
-    + 'natural straw, loose threads visible at the edge.'],
+  ['a10', POSE.left, 'slate blue', WHO.w2,
+    'Wearing an oversized rugby shirt in wide bands of acid green and cream '
+    + 'with a white collar, worn under a cropped tan leather utility vest. '
+    + 'Beaded cowrie choker. Long fine box braids falling loose.'],
 ];
 
-const LOOKS = {
-  flat:   { light: LIGHT_FLAT,   capture: CAPTURE_FLAT,   lead: 'Editorial fashion photograph.' },
-  cinema: { light: LIGHT_CINEMA, capture: CAPTURE_CINEMA, lead: 'Film still.' },
-};
-
-// 'Film still' rather than 'editorial photograph' is doing real work in the
-// lead. It changes what the model thinks it is making before a single other
-// word lands -- one implies a shoot, the other implies a scene the camera
-// happened to be present for.
-export const prompt = (body, look = 'flat') => {
-  const L = LOOKS[look] ?? LOOKS.flat;
-  return `${L.lead} ${body} ${L.light} ${L.capture}`;
-};
+// The lead phrase decides what is being made before any other word lands.
+// 'Studio fashion portrait' gets a shoot; 'photograph of a person' gets a
+// snapshot; 'film still' gets a scene. This is a shoot.
+export const prompt = (pose, ground, who, body) =>
+  `Studio fashion portrait. ${who} ${body} ${pose} ${GROUND(ground)} ${LIGHT} ${CAMERA} ${SKIN}`;

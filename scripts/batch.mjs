@@ -1,28 +1,31 @@
 import { MODELS, prompt } from './models.mjs';
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { existsSync } from 'node:fs';
 
-// node scripts/batch.mjs               -> everything, flat
-// node scripts/batch.mjs cinema         -> everything, cinema
-// node scripts/batch.mjs cinema n02 n04 -> just those two, cinema
-const argv = process.argv.slice(2);
-const look = argv[0] === 'cinema' || argv[0] === 'flat' ? argv.shift() : 'flat';
-const only = argv;
+const run = promisify(execFile);
+
+// node scripts/batch.mjs            -> the whole set, all at once
+// node scripts/batch.mjs a01 a03    -> just those
+//
+// Everything fires in parallel. Generation is a minute or two of waiting on
+// someone else's GPU, so doing it one at a time is the single biggest waste
+// available -- and live, nine minutes of it is a third of the clock.
+const only = process.argv.slice(2);
 const list = only.length ? MODELS.filter(([n]) => only.includes(n)) : MODELS;
 
-// The look goes in the FILENAME. Two versions of the same subject under
-// different light are the comparison that decides which look ships, and
-// overwriting one with the other destroys exactly that.
-const out = (n) => (look === 'flat' ? n : `${n}-${look}`);
-
-for (const [name, body] of list) {
-  const file = out(name);
-  if (existsSync(`src/figures/${file}.png`)) { console.log(`${file}: exists, skipping`); continue; }
+const t0 = Date.now();
+const jobs = list.map(async ([name, pose, ground, who, body]) => {
+  if (existsSync(`src/figures/${name}.png`)) return `${name}: exists, skipped`;
   try {
-    execFileSync('node', ['scripts/generate.mjs', file, prompt(body, look)], { stdio: 'inherit' });
-    execFileSync('sips', ['-Z', '1400', `src/figures/${file}.png`, '--out', `src/figures/${file}.png`],
-                 { stdio: 'ignore' });
+    await run('node', ['scripts/generate.mjs', name, prompt(pose, ground, who, body)]);
+    await run('sips', ['-Z', '1400', `src/figures/${name}.png`,
+                       '--out', `src/figures/${name}.png`]);
+    return `${name}: done`;
   } catch (e) {
-    console.log(`${file}: FAILED — ${e.message.split('\n')[0]}`);
+    return `${name}: FAILED - ${String(e.message).split('\n')[0].slice(0, 120)}`;
   }
-}
+});
+
+for (const line of await Promise.all(jobs)) console.log(line);
+console.log(`${list.length} in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
