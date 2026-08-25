@@ -78,7 +78,7 @@ async function start(model, input) {
 
 // the image models rate-limit under load. retry rather than fail the batch --
 // live, this is the difference between a hiccup and a dead minute on stream.
-async function run(model, input, tries = 4) {
+async function run(model, input, tries = 10) {
   for (let i = 1; ; i++) {
     try { return await attempt(model, input); }
     catch (err) {

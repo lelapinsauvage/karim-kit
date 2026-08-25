@@ -35,6 +35,25 @@ carries the four figures with their pigment, ground, ink and provenance.
 
 Placement: `figX` left/right, `figY` up/down, `figScale` size, `figRot` turn.
 
+**Placement is per model, not global.** Figures come back at different scales
+sitting at different heights in their own frame, so one shared set of values
+means fixing model three breaks model one — and the way that shows up is I tune
+one, move on, come back, and the first has moved.
+
+| | |
+|---|---|
+| `s.current()` | which model is in frame, its url, its placement, its colours |
+| `s.place(2)` | read model 2's placement |
+| `s.place(2, {figY:-0.04})` | set it |
+| `s.places()` | every model's, copied to the clipboard as one runnable line |
+
+Dragging a placement slider edits **whichever model is on screen**. Moving to
+the next one saves what I just did and loads that model's own values, so the
+panel always shows the figure I am looking at.
+
+When I ask what a model is set to, run `s.current()` and tell me — do not guess
+from `s.state`, which only mirrors the current one.
+
 `s.state` is the live state object. `s.view` is the raw harness — `s.view.set(u, v)`
 for uniforms with no wrapper (`uFlipA`, `uFigMix`, `uTypeShow`).
 

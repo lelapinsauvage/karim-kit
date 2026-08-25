@@ -38,7 +38,15 @@ export function scene(canvas, opts = {}) {
   let lastURL = null;
 
   // --- the set -------------------------------------------------------------
-  const models = [];          // { url, tex, roles }
+  // { url, tex, roles, place }
+  //
+  // place is PER MODEL. Figures come back from generation at different scales
+  // and sitting at different heights in their own frame, so one shared set of
+  // placement values means fixing model three breaks model one -- and the way
+  // that shows up is you tune a figure, move to the next, come back, and the
+  // first one has moved.
+  const PLACE = ['figScale', 'figX', 'figY', 'figRot'];
+  const models = [];
   let ix = 0, tween = null, loaderStep = null;
 
   // Pigments interpolate in HSV, the short way round the hue circle. An RGB
@@ -233,7 +241,7 @@ export function scene(canvas, opts = {}) {
       urls.forEach((url, i) => {
         const tex = view.texture(url, i);
         view.bind({ ['uFigTex' + i]: tex });
-        models.push({ url, tex, roles: null });
+        models.push({ url, tex, roles: null, place: readPlace() });
       });
       await Promise.all(models.map((m) =>
         m.tex.ready ? null : new Promise((r) => { m.tex.onready = r; })));
@@ -247,6 +255,7 @@ export function scene(canvas, opts = {}) {
       view.set('uFigFade', 1);
       ix = 0;
       if (models[0].roles) api.set(models[0].roles);
+      api.set({ ...models[0].place });
       if (!live.figure) { live.figure = true; buildPanel(); }
 
       if (keys) addEventListener('keydown', (e) => {
@@ -258,10 +267,48 @@ export function scene(canvas, opts = {}) {
       return api;
     },
 
+    /**
+     * Placement for one model, or read it back.
+     *
+     *   s.place(2)                    -> { figScale, figX, figY, figRot }
+     *   s.place(2, { figY: -0.04 })   -> set it
+     *   s.places()                    -> every model's, copied as a runnable line
+     *   s.current()                   -> which one is in frame and what it is set to
+     */
+    place(i, vals) {
+      if (!models[i]) return null;
+      if (!vals) return { ...models[i].place };
+      Object.assign(models[i].place, vals);
+      if (i === ix) api.set({ ...models[i].place });
+      return api;
+    },
+
+    places() {
+      const o = {};
+      models.forEach((m, i) => { o[i] = { ...m.place }; });
+      const txt = `s.setPlaces(${JSON.stringify(o, null, 2)})`;
+      navigator.clipboard?.writeText(txt);
+      console.log(txt);
+      return o;
+    },
+
+    setPlaces(o) {
+      for (const [i, v] of Object.entries(o)) api.place(+i, v);
+      return api;
+    },
+
+    current() {
+      const m = models[ix];
+      return m ? { index: ix, url: m.url, place: { ...m.place }, roles: m.roles } : null;
+    },
+
     /** step through the set. Input during a move is ignored, not queued. */
     go(dir = 1, duration = 1450) {
       if (tween || !models.length || !dir) return api;
       const from = ix;
+      // whatever I have just been dragging belongs to the model I was looking
+      // at, not to the next one
+      models[from].place = readPlace();
       ix = (ix + dir + models.length) % models.length;
       tween = { from, to: ix, t0: null, duration,
                 a: models[from].roles, b: models[ix].roles };
@@ -310,6 +357,12 @@ export function scene(canvas, opts = {}) {
     swatchStrip(host, swatches, (hex) => { api.set('pigment', hex); });
   }
 
+  // state carries the CURRENT model's placement; each model keeps its own copy
+  const readPlace = () => ({
+    figScale: state.figH ?? 1, figX: state.figX ?? 0,
+    figY: -(state.figBleed ?? 0), figRot: state.figRot ?? 0,
+  });
+
   const smooth = (a, b, x) => {
     const t = Math.max(0, Math.min((x - a) / (b - a), 1));
     return t * t * (3 - 2 * t);
@@ -331,7 +384,7 @@ export function scene(canvas, opts = {}) {
           api.set({ pigment:  mixHex(tween.a.pigment,  tween.b.pigment,  m),
                     bg:       mixHex(tween.a.bg,       tween.b.bg,       m),
                     clothInk: mixHex(tween.a.clothInk, tween.b.clothInk, m) });
-        if (raw >= 1) tween = null;
+        if (raw >= 1) { tween = null; api.set({ ...models[ix].place }); }
       }
       fig = models[A].tex; figB = models[B].tex;
       view.set('uFigA', A);
