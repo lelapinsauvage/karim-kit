@@ -127,7 +127,8 @@ the slider and the loader are wired to.
 
 | I say | you run |
 |---|---|
-| "sun", "start" | `scene(canvas)` |
+| "start" | `scene(canvas)` -- white, empty |
+| "sun", "put the light up" | `s.sun()` |
 | "put her in" | `s.figure(url)` |
 | "take the colours from her", "match it to her" | `await s.palette()` |
 | "not that one" | I click a chip in the panel — do nothing |
@@ -182,6 +183,11 @@ file in your one line, so the other agent knows to reload.
 **First move, on being named:** start the dev server, write `index.html` as a
 bare full-bleed canvas and `src/main.js` as `scene(canvas)` and nothing else,
 put `s` on `window`, report the URL. Then stop.
+
+**The first frame is a WHITE, EMPTY canvas.** No sun, no loader, no counter, no
+numbers. `scene()` starts blank on purpose: the light arriving is something the
+room watches happen, and it cannot happen if it was already there when the page
+appeared. Do not call `sun()`, `load()` or anything else until I ask.
 
 The order after that is fixed. Do not run ahead of it.
 

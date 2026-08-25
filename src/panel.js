@@ -54,6 +54,26 @@ export const SUN_RANGE = {
 //
 // Every gate is off, so this renders a flat ground with one light body and
 // nothing else. Bring subsystems up one at a time.
+// Nothing on screen. A white ground and no light body at all.
+//
+// This is where a build starts, because the first frame of a live build should
+// be empty: the sun arriving is a thing the room watches happen, and it cannot
+// happen if it was already there when the canvas appeared.
+export const SUN_BLANK = {
+  pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000',
+  r: 0, edge: 0.2, coreX: 0, coreY: 0, coreSize: 1, rimBand: 0,
+  spread: 0, warmth: 0.5, purity: 0.5, wobble: 0, drift: 0,
+  glow: 0, glowSize: 0.3, glowMode: 0,
+  rimW: 0.05, rimStr: 0, rimIn: 0.05,
+  bgFall: 0, bgFloor: 1, grain: 0, grainSize: 1, grainMask: 1,
+  cloth: 0, typeInk: 0, clothScale: 12, clothShape: 0, clothMorph: 0,
+  clothWave: 0, clothSpeed: 0, clothWeight: 0.1,
+  charge: 0, chargeSpd: 0, chargeLen: 10,
+  light: 0, rake: 0, sheen: 0, cord: 0,
+  figH: 1, figX: 0, figBleed: 0, figRot: 0, figDark: 0, figTint: 0, figLift: 0,
+  figMode: 0, tear: 0, thread: 1,
+};
+
 export const SUN_NEUTRAL = {
   // colour — placeholders, not choices
   pigment: '#FF0000',

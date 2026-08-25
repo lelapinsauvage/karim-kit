@@ -1,0 +1,47 @@
+<!-- Markup skeleton for the furniture in chrome.css. Copy into index.html and
+     re-text it. Keep the class names and the ids: the slider ticker, the prev/
+     next buttons and the loader count are wired to them by id. -->
+
+<div class="frame" id="shell">
+
+  <div class="top">
+    <div class="meta"><span id="r-lot">Lot 01</span> &nbsp;·&nbsp; SS 26</div>
+    <div class="mark">Maison Noir</div>
+    <div class="right">
+      <nav><a href="#">Index</a><a href="#">Pigments</a><a href="#">Access</a></nav>
+      <div class="cart" role="button" tabindex="0">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M3 5h2l1.6 8.2A1.6 1.6 0 0 0 8.2 14.5h6.1a1.6 1.6 0 0 0 1.55-1.2L17.4 7H5.6"/>
+          <circle cx="8.6" cy="17" r="1.05" fill="currentColor" stroke="none"/>
+          <circle cx="14.6" cy="17" r="1.05" fill="currentColor" stroke="none"/>
+        </svg>
+        Cart<sup>0</sup>
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div><dt>Pigment</dt><dd id="r-pig">—</dd></div>
+    <div><dt>Origin</dt><dd id="r-org">—</dd></div>
+    <div><dt>Cloth</dt><dd id="r-cloth">—</dd></div>
+    <div><dt>Edition</dt><dd id="r-ed">Twenty seven of one hundred</dd></div>
+  </div>
+
+  <button class="cta"><span class="dot"></span>See the product</button>
+
+  <div class="slider">
+    <div class="ticker">
+      <span id="s-now">01</span>
+      <span class="bar"><i id="s-bar" style="width:25%"></i></span>
+      <span class="of" id="s-all">04</span>
+    </div>
+    <button class="nb prev" id="s-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+    <button class="nb next" id="s-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
+  </div>
+
+</div>
+
+<!-- The loader's counter. Mount this ONLY when the loader is asked for -- a
+     number in the corner of a page that is not loading is a number with
+     nothing to say. -->
+<!-- <div class="count" id="pct">000</div> -->

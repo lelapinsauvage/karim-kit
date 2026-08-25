@@ -146,36 +146,96 @@ const WHO = {
 // clothing line and a costume department. Nothing ceremonial, nothing tribal,
 // nothing "inspired by".
 export const MODELS = [
-  // MAISON NOIR. Barkcloth, cowrie, raffia, indigo resist, hammered brass --
-  // written as garments a person owns, with the pattern woven or dyed INTO the
-  // cloth, never as a panel and never as ceremony.
-  ['m01', POSE.left, 'deep oxblood red', WHO.w1,
-    'Wearing an oversized boxy chore jacket in indigo adire cloth, the pale '
-    + 'cracked geometry resist-dyed into the fabric itself, deep indigo and '
-    + 'chalk white, slightly faded at the folds, worn open over an acid yellow '
-    + 'ribbed sleeveless tank top. Large hammered brass hoop earrings. Long '
-    + 'fine box braids gathered high.'],
+  ['a01', POSE.left, 'deep oxblood red', WHO.w1,
+    'Wearing an oversized short-sleeved camp-collar shirt in Dutch wax print, '
+    + 'cobalt blue swirls over acid ochre yellow with black crackle outlines, '
+    + 'open over a plain black ribbed sleeveless tank top. Large thin gold hoops. Long fine '
+    + 'box braids gathered high.'],
 
-  ['m02', POSE.left, 'flat olive green', WHO.w2,
-    'Wearing a short-sleeved camp-collar shirt woven from fine raffia yarn, the '
-    + 'open weave visible in the cloth, wide bands of vermilion and natural '
-    + 'straw, worn open over a solid cobalt blue ribbed sleeveless tank top. A '
-    + 'tight beaded cowrie choker at the throat. Tight coiled locs in a high '
-    + 'sculptural knot.'],
+  ['a02', POSE.left, 'flat olive green', WHO.w1,
+    'Wearing a heavy knitted jacquard polo, cream and vermilion on grass green, '
+    + 'ribbed contrast collar in solid green, buttons undone. A single carved '
+    + 'bone ear cuff. Long fine box braids gathered high, a few falling loose.'],
 
-  ['m03', POSE.centre, 'pale mint', WHO.m2,
-    'Wearing a boxy cropped zip jacket cut from heavy beaten barkcloth, the '
-    + 'grain and the beaten fibre texture running through the material, rust '
-    + 'brown streaked with black, worn over a heavy cream cotton long-sleeve '
-    + 'work shirt buttoned to the throat. Heavy hammered brass chain over the '
-    + 'collar. Close-shaved head.'],
+  // The vest was worn over a bare chest and read as a costume piece rather than
+  // as an outfit. It goes over a real garment now.
+  ['a03', POSE.left, 'pale mint', WHO.m2,
+    'Wearing a boxy tactical plate-carrier vest cut from an antique red kilim '
+    + 'rug, geometric weave in rust, indigo and gold, webbing straps in solid '
+    + 'red, worn over a heavy cream cotton long-sleeve work shirt buttoned to '
+    + 'the throat. Heavy brass chain over the collar.'],
 
-  ['m04', POSE.left, 'deep cobalt blue', WHO.m1,
-    'Wearing an oversized rugby shirt in wide woven bands of ochre yellow and '
-    + 'cream with a white collar, worn under a cropped sleeveless vest in '
-    + 'indigo adire, pale resist-dyed geometry in the cloth, hammered brass '
-    + 'buttons down the front. One small brass hoop in the ear. '
-    + 'Shoulder-length locs.'],
+  ['a04', POSE.left, 'warm cream', WHO.m1,
+    'Wearing an oversized bandana-paisley puffer jacket in one saturated '
+    + 'crimson with white paisley motifs, collar zipped high. Stacked gold '
+    + 'signet rings. Shoulder-length locs.'],
+
+  // Printed symbols on mesh came back looking like clip art laid on fabric.
+  // The pattern has to be IN the cloth -- woven, dyed, stitched -- not printed
+  // over it, which is the same reason the shader tiles rather than stamps.
+  ['a05', POSE.centre, 'deep cobalt blue', WHO.w2,
+    'Wearing an oversized boxy jacket in indigo adire cloth, the pattern '
+    + 'resist-dyed into the fabric itself, pale cracked geometric lines on deep '
+    + 'indigo, slightly faded at the folds. Small gold nose ring. Tight coiled '
+    + 'locs in a high sculptural knot.'],
+
+  ['a06', POSE.left, 'burnt terracotta', WHO.w2,
+    'Wearing a cropped raffia-woven shoulder piece in natural straw over a '
+    + 'vermilion ribbed knit, loose threads at the edge. Dense strands of orange '
+    + 'seed beads falling from both ears. Beaded skullcap in burnt orange.'],
+
+  ['a07', POSE.left, 'pale butter yellow', WHO.m1,
+    'Wearing a boxy double-breasted overcoat in heavy kente-striped wool, bands '
+    + 'of green, gold and black woven through it, worn over a black roll-neck. '
+    + 'Small gold hoop in one ear. Close-cropped hair.'],
+
+  ['a08', POSE.centre, 'deep forest green', WHO.w1,
+    'Wearing an oversized bomber jacket in vermilion satin with a bogolanfini '
+    + 'mud-cloth panel across the chest, cream geometric marks on black, ribbed '
+    + 'cuffs and collar. Large brass hoops. High afro puff.'],
+
+  ['a09', POSE.left, 'dusty rose', WHO.m2,
+    'Wearing a cream cotton hooded workwear jacket with indigo shibori-dyed '
+    + 'sleeves, patch pockets, hood down. Layered fine silver chains. '
+    + 'Close-shaved head.'],
+
+  ['a10', POSE.left, 'slate blue', WHO.w2,
+    'Wearing an oversized rugby shirt in wide bands of acid green and cream '
+    + 'with a white collar, worn under a cropped tan leather utility vest. '
+    + 'Beaded cowrie choker. Long fine box braids falling loose.'],
+
+  // ---- summer set --------------------------------------------------------
+  // No outerwear. Short sleeves or none, open necks, the body and the face
+  // readable. The second element is a CONTRAST COLLAR or placket rather than a
+  // jacket -- which is what a02 actually does, and a02 beats everything.
+  ['b01', POSE.left, 'deep plum', WHO.w1,
+    'Wearing a short-sleeved knitted jacquard polo, acid yellow and black on '
+    + 'burnt orange, ribbed contrast collar and placket in solid black, top '
+    + 'buttons undone, fitted at the shoulder. One large gold hoop. Long fine '
+    + 'box braids gathered high.'],
+
+  ['b02', POSE.left, 'deep forest green', WHO.w2,
+    'Wearing a sleeveless knitted tank in handwoven kente bands, green, gold '
+    + 'and vermilion running across the chest, ribbed cream trim at the neck '
+    + 'and arms, bare shoulders and arms. A single carved bone ear cuff. Tight '
+    + 'coiled locs in a high sculptural knot.'],
+
+  ['b03', POSE.centre, 'burnt orange', WHO.w1,
+    'Wearing a short-sleeved camp-collar shirt in indigo adire, pale cracked '
+    + 'geometry resist-dyed into the cloth, worn open over a cream ribbed sleeveless tank top, '
+    + 'collar wide and flat. Small gold nose ring. Long fine box braids falling '
+    + 'loose.'],
+
+  ['b04', POSE.left, 'pale mint', WHO.m1,
+    'Wearing a short-sleeved football jersey in bogolanfini mud cloth, cream '
+    + 'geometric marks worked through deep black, contrast collar and cuffs in '
+    + 'solid vermilion, loose across the chest. Heavy brass chain at the '
+    + 'throat. Close-cropped hair with a fine parting cut into it.'],
+
+  ['b05', POSE.left, 'deep teal', WHO.w2,
+    'Wearing a cropped wrap top in Dutch wax print, hot pink and acid green '
+    + 'swirls with black crackle outlines, tied at the waist, bare shoulders '
+    + 'and midriff. Beaded cowrie choker. Long fine box braids gathered high.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.

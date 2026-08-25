@@ -12,7 +12,7 @@
 // nothing is not something this file knows about.
 
 import { quad } from './gl.js';
-import { panel, applySun, SUN_NEUTRAL, SUN_OFF, SUN_COLOUR, SUN_GROUPS } from './panel.js';
+import { panel, applySun, SUN_BLANK, SUN_NEUTRAL, SUN_OFF, SUN_COLOUR, SUN_GROUPS } from './panel.js';
 import { paletteFrom, swatchStrip, rgb2hsv, hsv2rgb, toHex } from './palette.js';
 import frag from './shaders/sun.frag?raw';
 
@@ -30,7 +30,8 @@ import frag from './shaders/sun.frag?raw';
  */
 export function scene(canvas, opts = {}) {
   const view = quad(canvas, frag);
-  const state = { ...SUN_NEUTRAL, ...(opts.state || {}) };
+  // blank by default: white, empty. sun() brings the body up when asked.
+  const state = { ...SUN_BLANK, ...(opts.state || {}) };
   for (const [k, v] of Object.entries(SUN_OFF)) view.set(k, v);
 
   const slots = new Array(8).fill(null);
