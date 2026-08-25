@@ -82,7 +82,7 @@ async function run(model, input, tries = 4) {
   for (let i = 1; ; i++) {
     try { return await attempt(model, input); }
     catch (err) {
-      if (i >= tries || !/RateLimit|unavailable|high demand|502|503/i.test(String(err))) throw err;
+      if (i >= tries || !/throttled|RateLimit|unavailable|high demand|502|503/i.test(String(err))) throw err;
       const wait = i * 8000;
       console.log(`\n  rate limited, retry ${i}/${tries - 1} in ${wait / 1000}s`);
       await new Promise((r) => setTimeout(r, wait));

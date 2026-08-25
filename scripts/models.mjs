@@ -145,37 +145,127 @@ const WHO = {
 // is the register in the references, and it is the difference between a
 // clothing line and a costume department. Nothing ceremonial, nothing tribal,
 // nothing "inspired by".
-export const MODELS = [
-  // MAISON NOIR. Barkcloth, cowrie, raffia, indigo resist, hammered brass --
-  // written as garments a person owns, with the pattern woven or dyed INTO the
-  // cloth, never as a panel and never as ceremony.
-  ['m01', POSE.left, 'deep oxblood red', WHO.w1,
-    'Wearing an oversized boxy chore jacket in indigo adire cloth, the pale '
-    + 'cracked geometry resist-dyed into the fabric itself, deep indigo and '
-    + 'chalk white, slightly faded at the folds, worn open over an acid yellow '
-    + 'ribbed sleeveless tank top. Large hammered brass hoop earrings. Long '
-    + 'fine box braids gathered high.'],
+// ---------------------------------------------------------------------------
+// JEWELLERY. The product is on the hands and wrists, so the hands have to be
+// in the frame and the crop has to fall below them -- the settled FRAME cuts
+// at the chest, which severs the wrist that the watch is on. Neither pose
+// looks left.
+// ---------------------------------------------------------------------------
+const FRAME_J =
+  'Framed wide enough to hold both raised hands, with a clear margin of empty '
+  + 'backdrop on the left and the right and above the head. Both sleeves, the '
+  + 'full width of the shoulders and both hands sit well inside the frame and '
+  + 'never touch the left or right edge. '
+  + 'The body continues down past the bottom edge of the frame and is cropped '
+  + 'by it below the ribs, not ending inside the frame.';
 
-  ['m02', POSE.left, 'flat olive green', WHO.w2,
-    'Wearing a short-sleeved camp-collar shirt woven from fine raffia yarn, the '
-    + 'open weave visible in the cloth, wide bands of vermilion and natural '
-    + 'straw, worn open over a solid cobalt blue ribbed sleeveless tank top. A '
-    + 'tight beaded cowrie choker at the throat. Tight coiled locs in a high '
+const HANDS =
+  'Both forearms raised into frame, one hand resting at the collarbone and the '
+  + 'other at the jaw, fingers long and relaxed, wrists and knuckles turned '
+  + 'toward the camera and sharply in focus so the jewellery reads clearly. '
+  + 'Sleeves pushed back off the wrist. Hands anatomically correct, five '
+  + 'fingers on each hand.';
+
+const POSE_J = {
+  centre:
+    'Head, shoulders and both hands in frame, square to camera, chin level, '
+    + 'looking straight down the lens, chin a fraction lifted, jaw set, '
+    + 'shoulders dropped and square. Eyes on the lens, never off to the left. '
+    + HANDS
+    + ' A held, deliberate stance directed by a photographer -- not a snapshot, '
+    + 'not a casual standing pose. '
+    + FRAME_J,
+
+  turned:
+    'Head, shoulders and both hands in frame, body turned a quarter away so the '
+    + 'shoulders sit on a diagonal, face turned back to the camera and eyes '
+    + 'looking straight down the lens, never off to the left, chin a fraction '
+    + 'lifted, neck long, shoulders dropped and held. '
+    + HANDS
+    + ' A deliberate stance directed by a photographer -- not a snapshot, not a '
+    + 'casual standing pose. '
+    + FRAME_J,
+};
+
+// The garment is the ground the jewellery sits on: two layers, pattern woven
+// or dyed into the cloth, sleeves short or pushed back. One jewellery type per
+// figure -- watch, rings or bracelets -- worn in quantity so it reads as a line.
+export const MODELS = [
+  ['j01', POSE_J.turned, 'deep oxblood red', WHO.w1,
+    'Wearing a short-sleeved camp-collar shirt in indigo adire, the pale cracked '
+    + 'geometry resist-dyed into the cloth, deep indigo and chalk white, worn '
+    + 'open over an acid yellow ribbed sleeveless tank top. On the raised wrist '
+    + 'a large hammered brass wristwatch, a heavy angular case with a faceted '
+    + 'sculptural bezel and a matte black dial, on a woven indigo strap. No '
+    + 'other jewellery. Long fine box braids gathered high.'],
+
+  ['j02', POSE_J.centre, 'flat olive green', WHO.w2,
+    'Wearing an oversized boxy chore jacket in heavy wax-print cotton, vermilion '
+    + 'and cream geometry printed through the weave, worn open over a cobalt '
+    + 'blue ribbed sleeveless tank top. Wide cast-brass rings on four fingers, '
+    + 'faceted architectural shapes with carved relief, one set with a small '
+    + 'polished cowrie. No other jewellery. Tight coiled locs in a high '
     + 'sculptural knot.'],
 
-  ['m03', POSE.centre, 'pale mint', WHO.m2,
-    'Wearing a boxy cropped zip jacket cut from heavy beaten barkcloth, the '
-    + 'grain and the beaten fibre texture running through the material, rust '
-    + 'brown streaked with black, worn over a heavy cream cotton long-sleeve '
-    + 'work shirt buttoned to the throat. Heavy hammered brass chain over the '
-    + 'collar. Close-shaved head.'],
+  ['j03', POSE_J.turned, 'pale mint', WHO.m2,
+    'Wearing a boxy cropped zip jacket in beaten barkcloth, the grain and fibre '
+    + 'running through the material, rust brown streaked with black, worn over a '
+    + 'cream cotton work shirt with the sleeves pushed back. A stack of four '
+    + 'hammered brass and blackened bronze cuff bracelets up one forearm, wide, '
+    + 'ridged, faceted like machined metal. No other jewellery. Close-shaved '
+    + 'head.'],
 
-  ['m04', POSE.left, 'deep cobalt blue', WHO.m1,
+  ['j04', POSE_J.centre, 'hot pink', WHO.m1,
     'Wearing an oversized rugby shirt in wide woven bands of ochre yellow and '
-    + 'cream with a white collar, worn under a cropped sleeveless vest in '
-    + 'indigo adire, pale resist-dyed geometry in the cloth, hammered brass '
-    + 'buttons down the front. One small brass hoop in the ear. '
+    + 'cream with a white collar, worn under a cropped sleeveless vest in indigo '
+    + 'adire. On the raised wrist an oversized brushed titanium and brass '
+    + 'wristwatch, a broad sculptural case with an exposed skeleton movement and '
+    + 'a bright cobalt dial, on a heavy brass link bracelet. No other jewellery. '
     + 'Shoulder-length locs.'],
+
+  ['j05', POSE_J.turned, 'deep cobalt blue', WHO.w1,
+    'Wearing a knitted jacquard polo shirt, the pattern knitted into the yarn in '
+    + 'ochre yellow and black, contrast cream ribbed collar, worn over a '
+    + 'vermilion ribbed tank top. Heavy cast-bronze signet rings on both hands, '
+    + 'flat carved faces cut with fine geometric relief, one on the thumb. No '
+    + 'other jewellery. Long fine box braids gathered high.'],
+
+  ['j06', POSE_J.centre, 'burnt terracotta', WHO.w2,
+    'Wearing a short-sleeved shirt woven from fine raffia yarn, the open weave '
+    + 'visible in the cloth, wide bands of acid green and natural straw, worn '
+    + 'open over a black ribbed sleeveless tank top. A wide hinged brass cuff '
+    + 'bracelet on each wrist, hammered, ridged, with a raised carved ridge down '
+    + 'the centre, and a slim beaded cowrie band beside one. No other jewellery. '
+    + 'Tight coiled locs in a high sculptural knot.'],
+
+  ['j07', POSE_J.turned, 'flat olive green', WHO.m1,
+    'Wearing a boxy short-sleeved work shirt in indigo adire, the pale resist '
+    + 'geometry dyed into the cloth, worn over a heavy cream long-sleeve thermal '
+    + 'with the sleeves pushed back to the elbow. A blackened brass wristwatch '
+    + 'with a deep octagonal case, a carved bezel and a pale bone-white dial, on '
+    + 'a woven raffia strap. No other jewellery. Short coiled hair, faded at the '
+    + 'sides.'],
+
+  ['j08', POSE_J.centre, 'deep oxblood red', WHO.w2,
+    'Wearing an oversized boxy jacket in woven kilim, the pattern woven through '
+    + 'the cloth in cobalt and ochre, worn open over a cream ribbed sleeveless '
+    + 'tank top. Slim stacked brass rings, three or four to a finger, thin '
+    + 'faceted bands with a single wide carved ring among them. No other '
+    + 'jewellery. Long fine box braids gathered high.'],
+
+  ['j09', POSE_J.turned, 'pale mint', WHO.m2,
+    'Wearing a knitted jacquard polo shirt, the geometry knitted into the yarn '
+    + 'in black and chalk white, worn under a tan leather utility vest. A stack '
+    + 'of hammered brass bangles and one heavy blackened bronze chain bracelet '
+    + 'on the raised wrist, links faceted and machined. No other jewellery. '
+    + 'Close-shaved head.'],
+
+  ['j10', POSE_J.centre, 'deep cobalt blue', WHO.w1,
+    'Wearing a short-sleeved camp-collar shirt in heavy wax-print cotton, acid '
+    + 'green and vermilion geometry through the weave, worn open over a black '
+    + 'ribbed sleeveless tank top. Wide cast-brass architectural rings on both '
+    + 'hands, angular faceted faces with carved relief, one set with a polished '
+    + 'black stone. No other jewellery. Long fine box braids gathered high.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.
