@@ -5,8 +5,15 @@ project, change `LOOKS`, done.
 
     cp templates/piece/index.html   <project>/index.html
     cp templates/piece/sun.js       <project>/src/sun.js
+    cp templates/piece/text.js      <project>/src/text.js
     cp src/gl.js                    <project>/src/gl.js
     cp src/shaders/sun.frag         <project>/src/shaders/
+
+All four files, every time. `sun.js` imports `./gl.js`, `./text.js` and
+`./shaders/sun.frag?raw` by relative path, so it runs with no dependency on the
+kit at all -- which is what lets a finished piece be archived and still work
+after the kit moves underneath it. Miss one and the page dies on a resolve
+error before anything renders.
 
 `LOOKS` is the only thing to edit — four entries, each one a figure and the
 colours that travel with it:

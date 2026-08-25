@@ -102,15 +102,20 @@
      positions with the channels pulled apart and a band of the letterform
      clipped away in each, then it lands. 420ms -- long enough to read as an
      event, short enough that it never becomes the thing you are looking at. */
-  .mark{will-change:transform}
+  .mark{will-change:clip-path}
   .tear .mark{animation:t-tear 420ms steps(1,end) both}
+  /* The mark does not MOVE. It sits in the top row against the nav and the lot
+     number, and a logo that shifts sideways is a logo in the wrong place --
+     the eye reads the displacement as a layout fault rather than as an effect.
+     The tear happens to it: bands of the letterform drop out and the channels
+     pull apart where they do, and it stays exactly where it was put. */
   @keyframes t-tear{
-    0%  {transform:none;text-shadow:none;clip-path:none}
-    12% {transform:translate3d(-.09em,0,0);text-shadow:.05em 0 rgba(255,0,0,.7),-.05em 0 rgba(0,180,255,.7);clip-path:inset(0 0 62% 0)}
-    26% {transform:translate3d(.14em,0,0); text-shadow:-.07em 0 rgba(255,0,0,.8),.07em 0 rgba(0,180,255,.8);clip-path:inset(46% 0 22% 0)}
-    40% {transform:translate3d(-.05em,0,0);text-shadow:.03em 0 rgba(255,0,0,.6),-.03em 0 rgba(0,180,255,.6);clip-path:inset(74% 0 0 0)}
-    58% {transform:translate3d(.03em,0,0); text-shadow:none;clip-path:none}
-    100%{transform:none;text-shadow:none;clip-path:none}
+    0%  {text-shadow:none;clip-path:none}
+    12% {text-shadow:.05em 0 rgba(255,0,0,.7),-.05em 0 rgba(0,180,255,.7);clip-path:inset(0 0 62% 0)}
+    26% {text-shadow:-.07em 0 rgba(255,0,0,.8),.07em 0 rgba(0,180,255,.8);clip-path:inset(46% 0 22% 0)}
+    40% {text-shadow:.03em 0 rgba(255,0,0,.6),-.03em 0 rgba(0,180,255,.6);clip-path:inset(74% 0 0 0)}
+    58% {text-shadow:none;clip-path:none}
+    100%{text-shadow:none;clip-path:none}
   }
 
   body.reveal .slider{
