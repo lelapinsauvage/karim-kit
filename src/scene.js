@@ -11,7 +11,7 @@
 // and a cutout figure. Whether that cutout is wearing clothes, jewellery or
 // nothing is not something this file knows about.
 
-import { quad } from './gl.js';
+import { quad, hexToRgb } from './gl.js';
 import { panel, applySun, SUN_BLANK, SUN_NEUTRAL, SUN_OFF, SUN_COLOUR, SUN_GROUPS } from './panel.js';
 import { paletteFrom, swatchStrip, rgb2hsv, hsv2rgb, toHex } from './palette.js';
 import frag from './shaders/sun.frag?raw';
@@ -154,19 +154,22 @@ export function scene(canvas, opts = {}) {
     fade(v = 1) { view.set('uFigFade', v); return api; },
 
     /**
-     * load(assets, opts) -- the opening. Two bodies cross into eclipse, join,
-     * ignite, and hand the frame over to the scene. Resolves when the reveal is
-     * finished.
+     * load(assets, opts) -- the opening, ported from the finished piece.
      *
-     * Progress is REAL: it is the slower of "every asset has decoded" and a
-     * minimum duration. A loader on a timer alone is a lie and always looks
-     * like one -- it completes while the page is still blank. A loader on
-     * decode alone flashes past on a warm cache.
+     * Two small BLACK bodies drift in, accelerate, merge, ignite, and open into
+     * the scene. Every number here was arrived at by watching it fail.
      *
-     * opts.onProgress(p) fires every frame with 0..1, for a counter in the
-     * corner.
+     * Nothing decelerates. Three separate mechanisms once did, and they
+     * compounded into a pause before contact: a damped follower whose last two
+     * percent took 835ms, an ease-in-out whose slope at the end is zero, and a
+     * held gap in the approach. All shaping lives in ONE curve now, and that
+     * curve accelerates.
+     *
+     * opts.look  the state to reveal INTO -- its r, bg and figTint. Without it
+     *            the frame opens onto whatever was already set, which is the
+     *            loader finishing onto a scene rather than becoming one.
      */
-    load(assets = [], { min = 1500, reveal = 3200, onProgress } = {}) {
+    load(assets = [], { min = 1500, reveal = 3200, onProgress, look = null } = {}) {
       let decoded = 0;
       const total = Math.max(assets.length, 1);
       for (const url of assets) {
@@ -175,51 +178,109 @@ export function scene(canvas, opts = {}) {
         im.src = url;
       }
 
+      const PAPER = '#F5F5F5';
+      const SEED  = 0.085;          // the bodies stay SMALL through the load
+      const START = 0.46;
+      const target = { r: 0.35, bg: '#E2DBD1', figTint: 0, ...(look || {}) };
+
       const t0 = performance.now();
-      let revealT = -1;
-      const seed = state.r ?? 0.30;
+      let p = 0, revealT = -1, announced = false;
+
+      view.set('uPaper', hexToRgb(PAPER));
       view.set('uLoadCover', 1);
       view.set('uClothFront', -1);
       view.set('uFigFade', 0);
-      view.set('uEclR', seed);
 
       return new Promise((done) => {
         loaderStep = (now) => {
+          // Progress is real, and the follower only exists while assets are
+          // still arriving. Once they are in, the clock is already smooth, so
+          // the count runs at constant speed with no lag at all.
+          const real  = assets.length ? decoded / total : 1;
+          const clock = Math.min((now - t0) / min, 1);
+          if (real >= clock) p = clock;
+          else p = Math.min(clock, p + (real - p) * 0.12);
+          if (p > 0.999) p = 1;
+          onProgress?.(p);
+
           if (revealT < 0) {
-            const p = Math.min(decoded / total, (now - t0) / min);
-            onProgress?.(Math.max(0, Math.min(p, 1)));
+            // p^5: they drift at the start and are moving five times average
+            // speed at contact. No hold, no ease-out -- the gap shrinks faster
+            // on every frame right up to the collision, so the merged black
+            // shape is on screen about 60ms and never settles.
+            const close = p ** 5;
+            const seam  = Math.exp(-(((p - 0.985) / 0.018) ** 2));
+            // Ignition starts BEFORE contact, driven by how close they are
+            // rather than by a timer that begins after. Two masses closing
+            // compress and heat, so by the time they touch they are already
+            // becoming the sun and there is nothing to wait for at impact.
+            const heat  = smooth(0.90, 1.00, p);
 
-            // accelerating all the way in. any easing that flattens near the
-            // end puts a plateau right before contact, and a pause before an
-            // impact reads as a stall rather than as anticipation.
-            const close = Math.pow(Math.max(p, 0), 5);
-            view.set('uEclA', [-0.42 * (1 - close), 0]);
-            view.set('uEclB', [ 0.42 * (1 - close), 0]);
-            view.set('uEclR', seed);
+            view.set('uEclA', [-START * (1 - close), 0.02]);
+            view.set('uEclB', [ START * (1 - close), 0.02]);
+            view.set('uEclR', SEED);
+            view.set('uEclSeam', seam * 0.85);
+            view.set('uLoad', p);
+            view.set('uEclWhite', heat ** 1.6);
+            view.set('uEclFill',  heat ** 4);
+            view.set('uLoadCover', 1);
+            view.set('uWave', 0); view.set('uWaveAmt', 0);
 
-            // it ignites BEFORE they touch. light arriving after contact is
-            // light reporting the event; arriving just before, it causes it.
-            const heat = smooth(0.88, 1.0, p);
-            view.set('uEclWhite', heat);
-            view.set('uEclFill',  smooth(0.94, 1.0, p));
-            view.set('uEclSeam',  Math.exp(-Math.pow((p - 0.985) / 0.014, 2)));
+            // the scene's own sun matches the seed exactly, so the handover has
+            // nothing to reveal
+            state.bg = PAPER; state.figTint = 0; state.r = SEED;
 
-            // NO BEAT. A hold here is the single thing that made this feel
-            // like a loading screen rather than an opening shot.
+            // NO BEAT. Contact is the trigger and the reveal starts on the same
+            // frame. A pause here shows the one thing the eye must never settle
+            // on: a lit sun on white paper with the counter reading 100.
             if (p >= 1) revealT = now;
             return;
           }
 
-          const rt = Math.min((now - revealT) / reveal, 1);
-          const seg = (a, b) => Math.max(0, Math.min((rt - a) / (b - a), 1));
-          const expo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -9 * x));
+          const rt  = Math.min((now - revealT) / reveal, 1);
+          const seg = (a2, b2) => Math.max(0, Math.min((rt - a2) / (b2 - a2), 1));
+          const expoOut  = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -9 * x));
+          const quartOut = (x) => 1 - Math.pow(1 - x, 4);
+          const sineOut  = (x) => Math.sin((x * Math.PI) / 2);
 
-          // Each element on its OWN curve at its own offset. One curve across
-          // everything is a single gesture repeated; different curves at
-          // different offsets is choreography.
-          view.set('uLoadCover', 1 - expo(seg(0.00, 0.26)));
-          view.set('uFigFade',       expo(seg(0.10, 0.72)));
+          // Pinned, not re-eased. These reach 1 at contact, and re-easing from
+          // a lower value steps BACKWARDS at the exact moment of impact, which
+          // reads as a stall.
+          view.set('uEclWhite', 1);
+          view.set('uEclFill', 1);
 
+          // the sun opens on expo -- released, not driven. Everything expands
+          // out of the circle, so the circle is the thing that expands.
+          const e = expoOut(seg(0.00, 0.26));
+          state.r = SEED + (target.r - SEED) * e;
+          view.set('uEclR', state.r);
+
+          // The front leaves AT ONCE and then takes its time. An ease-in here
+          // spends its first third barely moving, so the front has not left the
+          // body while the sun is already open -- and that gap is an orange
+          // disc sitting on white paper.
+          const wv = quartOut(seg(0.00, 0.70));
+          view.set('uClothFront', rt >= 1 ? 99.0 : SEED + wv * 2.9);
+          view.set('uWave', wv);
+          view.set('uWaveAmt', Math.pow(Math.sin(Math.PI * wv), 0.55));
+
+          // She is the slowest thing on screen and the last to finish. A 240ms
+          // beat before she starts, then a long tail: everything else is
+          // already moving, so she arrives INTO a scene rather than alongside
+          // its parts. Everything else can be seen arriving; she should only be
+          // seen to have arrived.
+          view.set('uFigFade', expoOut(seg(0.115, 0.78)));
+
+          // ~55ms. The loader's job ended on contact and every extra frame is
+          // white paper still under a sun that has already ignited.
+          view.set('uLoadCover', 1 - smooth(0.0, 0.017, rt));
+
+          // the ground travels WITH the sun. Anything easing in here leaves the
+          // frame white underneath an already-open sun.
+          state.bg = mixHex(PAPER, target.bg, expoOut(seg(0.00, 0.30)));
+          state.figTint = (target.figTint ?? 0) * sineOut(seg(0.135, 0.80));
+
+          if (!announced) { announced = true; opts.onReveal?.(); }
           if (rt >= 1) { loaderStep = null; done(api); }
         };
       });
@@ -428,7 +489,7 @@ export function scene(canvas, opts = {}) {
       // everything else, so the whole move is one gesture rather than several
       // arriving on their own clocks. Grain is deliberately NOT on this list --
       // grain on a moving edge is noise laid over the thing you are watching.
-      view.set('uTear', (state.tear ?? 1) * (1 + 3.4 * k));
+      view.set('uTear', (state.tear ?? 1) * (1 + 3.4 * k));   // applySun set the base; this rides it
     } else {
       view.set('uWave', 0);
       view.set('uWaveAmt', 0);

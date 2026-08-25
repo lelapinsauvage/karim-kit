@@ -23,7 +23,14 @@ export const SUN_UNIFORM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand
   light:'uLight', rake:'uRake', sheen:'uSheen', cord:'uCord',
   figDark:'uFigDark', figTint:'uFigTint', figLift:'uFigLift', figRot:'uFigRot',
   charge:'uCharge', chargeSpd:'uChargeSpd', chargeLen:'uChargeLen',
-  typeInk:'uTypeInk' };
+  typeInk:'uTypeInk',
+  // Missing these made every transition a crossfade. uTear scales the
+  // displacement that pushes her out of shape, so at 0 there is no
+  // displacement and modes 0..4 all degrade to the same plain fade. uThread is
+  // a DIVISOR on the weave's tile lookup and was defaulting to zero. And
+  // uFigMode was only ever set once inside models(), so changing it on the
+  // panel did nothing at all.
+  tear:'uTear', thread:'uThread', figMode:'uFigMode' };
 
 export const SUN_RANGE = {
   r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
@@ -71,7 +78,7 @@ export const SUN_BLANK = {
   charge: 0, chargeSpd: 0, chargeLen: 10,
   light: 0, rake: 0, sheen: 0, cord: 0,
   figH: 1, figX: 0, figBleed: 0, figRot: 0, figDark: 0, figTint: 0, figLift: 0,
-  figMode: 0, tear: 0, thread: 1,
+  figMode: 0, tear: 1, thread: 0.7,
 };
 
 export const SUN_NEUTRAL = {
@@ -100,7 +107,7 @@ export const SUN_NEUTRAL = {
   clothWeight: 0.1, charge: 0, chargeSpd: 0, chargeLen: 10,
   light: 0, rake: 0, sheen: 0, cord: 0,
   figH: 1, figX: 0, figBleed: 0, figRot: 0, figDark: 0, figTint: 0, figLift: 0,
-  figMode: 0, tear: 0, thread: 1,        // thread is a divisor: never 0
+  figMode: 0, tear: 1, thread: 0.7,      // thread is a divisor: never 0
 };
 
 // uniforms with no slider that still have to be set, and their safe "off" value
