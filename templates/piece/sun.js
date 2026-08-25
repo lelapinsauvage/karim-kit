@@ -167,9 +167,8 @@ export function setLockup(name, num) {
     const inkX  = (n) => pad + typeCtx.measureText(NAME.slice(0, n)).actualBoundingBoxRight;
     const split = (n) => (inkX(n) + penX(n)) / 2;
 
-    const top  = nameY - size * 1.15;
     const over = size * 0.035;          // round glyphs sit below the baseline
-    const band = size * 1.15 + over;
+    const top  = nameY - size * 1.25;
 
     for (let i = 0; i < NAME.length; i++) {
       if (NAME[i] === ' ') continue;
@@ -181,13 +180,21 @@ export function setLockup(name, num) {
       const x0 = i === 0 ? 0 : split(i);
       const x1 = i === NAME.length - 1 ? w : split(i + 1);
       const dy = (1 - e) * size * 0.72;
-      // only the part that still lands above the baseline is copied, which is
-      // what makes the letter climb OUT of the line instead of across it
-      const srcH = band - dy;
-      if (srcH <= 0) continue;
 
+      // Clip the destination, then draw the whole rasterised word shifted down.
+      //
+      // The previous version computed a source rectangle whose height shrank as
+      // the letter rose. That arithmetic is where the blocks came from: get the
+      // height slightly wrong and the strip carries a band of the glyph above
+      // or below the one it belongs to. A clip cannot be off by anything -- it
+      // states where drawing is allowed and the browser does the rest.
+      typeCtx.save();
+      typeCtx.beginPath();
+      typeCtx.rect(x0, top, x1 - x0, (nameY + over) - top);
+      typeCtx.clip();
       typeCtx.globalAlpha = e;
-      typeCtx.drawImage(riseCv, x0, top, x1 - x0, srcH, x0, top + dy, x1 - x0, srcH);
+      typeCtx.drawImage(riseCv, 0, dy);
+      typeCtx.restore();
     }
     typeCtx.globalAlpha = 1;
   }
