@@ -105,7 +105,6 @@ let typeTex = null;
 // for a switch, where the word is being replaced, and wrong for the opening,
 // where it is arriving for the first time.
 let lockRise = 1;
-let riseCv = null, riseCtx = null;
 export function setRise(v) { lockRise = v; }
 
 export function setLockup(name, num) {
@@ -138,66 +137,46 @@ export function setLockup(name, num) {
   const NAME = name.toUpperCase();
   const nameY = h * 0.29 + size * 0.78;
 
-  if (lockRise >= 1) {
-    typeCtx.fillText(NAME, pad, nameY);
-  } else {
-    // The word is rasterised ONCE, kerned, into an offscreen canvas. The reveal
-    // then only COPIES PIXELS out of it, one column per letter, shifted down.
-    //
-    // Rasterising the string again for every letter is what produced the
-    // fragments: each pass lays the text out afresh at a different sub-pixel
-    // offset, and the hinting and antialiasing land differently, so the strips
-    // no longer agree at their seams. Copying cannot disagree with itself.
-    if (!riseCv) { riseCv = document.createElement('canvas'); riseCtx = riseCv.getContext('2d'); }
-    if (riseCv.width !== w || riseCv.height !== h) { riseCv.width = w; riseCv.height = h; }
-    riseCtx.setTransform(1, 0, 0, 1, 0, 0);
-    riseCtx.clearRect(0, 0, w, h);
-    riseCtx.fillStyle = '#fff';
-    riseCtx.textBaseline = 'alphabetic';
-    riseCtx.textAlign = 'left';
-    riseCtx.letterSpacing = '-0.04em';
-    riseCtx.font = `${size}px Disp, Impact, sans-serif`;
-    riseCtx.fillText(NAME, pad, nameY);
+  // ONE GLYPH AT A TIME, always -- during the reveal and at rest.
+  //
+  // Everything before this sliced a rendering of the whole word into columns,
+  // and that cannot work here. The lockup is set at -4% tracking, and negative
+  // letter-spacing makes glyphs OVERLAP: any vertical boundary between two
+  // letters cuts through ink belonging to its neighbour. That orphaned sliver
+  // then rides the wrong letter's clock, which is why thin lines appeared to
+  // reveal on their own schedule, and only between the pairs that overlap.
+  //
+  // Drawing a single glyph leaves no neighbour ink to cut, so no horizontal
+  // boundary is needed at all. The only clip left is the baseline.
+  //
+  // Pen positions come from prefix advances, which kern internally. The one
+  // kern not accounted for is between the prefix and the glyph being placed,
+  // and at this tracking it is far below a pixel -- and it is applied
+  // identically at rest, so there is no layout to hand over to.
+  const penX = (i) => pad + (i ? typeCtx.measureText(NAME.slice(0, i)).width : 0);
+  const over = size * 0.035;           // round glyphs sit below the baseline
 
-    // Column edges in the GAP between glyphs, never on the ink. The pen
-    // position before a letter and the ink edge after the previous one bracket
-    // that gap; the midpoint sits safely inside it even where the pair kerns
-    // tightly.
-    const penX  = (n) => pad + (n ? typeCtx.measureText(NAME.slice(0, n)).width : 0);
-    const inkX  = (n) => pad + typeCtx.measureText(NAME.slice(0, n)).actualBoundingBoxRight;
-    const split = (n) => (inkX(n) + penX(n)) / 2;
+  for (let i = 0; i < NAME.length; i++) {
+    if (NAME[i] === ' ') continue;
+    const x = penX(i);
 
-    const over = size * 0.035;          // round glyphs sit below the baseline
-    const top  = nameY - size * 1.25;
+    if (lockRise >= 1) { typeCtx.fillText(NAME[i], x, nameY); continue; }
 
-    for (let i = 0; i < NAME.length; i++) {
-      if (NAME[i] === ' ') continue;
-      const start = (i / NAME.length) * 0.5;
-      const t = Math.max(0, Math.min((lockRise - start) / 0.5, 1));
-      const e = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t);
-      if (e <= 0) continue;
+    const start = (i / NAME.length) * 0.5;
+    const t = Math.max(0, Math.min((lockRise - start) / 0.5, 1));
+    const e = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t);
+    if (e <= 0) continue;
 
-      const x0 = i === 0 ? 0 : split(i);
-      const x1 = i === NAME.length - 1 ? w : split(i + 1);
-      const dy = (1 - e) * size * 0.72;
-
-      // Clip the destination, then draw the whole rasterised word shifted down.
-      //
-      // The previous version computed a source rectangle whose height shrank as
-      // the letter rose. That arithmetic is where the blocks came from: get the
-      // height slightly wrong and the strip carries a band of the glyph above
-      // or below the one it belongs to. A clip cannot be off by anything -- it
-      // states where drawing is allowed and the browser does the rest.
-      typeCtx.save();
-      typeCtx.beginPath();
-      typeCtx.rect(x0, top, x1 - x0, (nameY + over) - top);
-      typeCtx.clip();
-      typeCtx.globalAlpha = e;
-      typeCtx.drawImage(riseCv, 0, dy);
-      typeCtx.restore();
-    }
-    typeCtx.globalAlpha = 1;
+    typeCtx.save();
+    typeCtx.beginPath();
+    // full width, cut only at the baseline: the letter climbs out of the line
+    typeCtx.rect(0, nameY - size * 1.4, w, size * 1.4 + over);
+    typeCtx.clip();
+    typeCtx.globalAlpha = e;
+    typeCtx.fillText(NAME[i], x, nameY + (1 - e) * size * 0.72);
+    typeCtx.restore();
   }
+  typeCtx.globalAlpha = 1;
 
   // right block, low -- deliberately off the left block's baseline
   const numTxt = 'NUM';
