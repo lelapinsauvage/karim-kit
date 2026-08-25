@@ -467,6 +467,30 @@ export function scene(canvas, opts = {}) {
                     clothInk: mixHex(tween.a.clothInk, tween.b.clothInk, m) });
         if (raw >= 1) { tween = null; api.set({ ...models[ix].place }); }
       }
+      // Direction matters and it flips.
+      //
+      // At rest the PANEL owns placement: whatever I just dragged is the truth,
+      // and it is recorded against the figure on screen. Pushing the stored
+      // place into state here instead would overwrite every drag on the next
+      // frame, so the sliders look dead and the position only ever changes when
+      // a move ends.
+      //
+      // During a move the RECORD owns it, both sides independently, so two
+      // differently-framed figures do not shove each other through the wrong
+      // position on the way past.
+      if (!tween) {
+        models[ix].place = readPlace();
+        const p0 = models[ix].place;
+        state.figHB = p0.figScale; state.figXB = p0.figX;
+        state.figBleedB = -p0.figY; state.figRotB = p0.figRot;
+      } else {
+        const pa = models[A].place, pb = models[B].place;
+        state.figH  = pa.figScale; state.figX  = pa.figX;
+        state.figBleed = -pa.figY; state.figRot = pa.figRot;
+        state.figHB = pb.figScale; state.figXB = pb.figX;
+        state.figBleedB = -pb.figY; state.figRotB = pb.figRot;
+      }
+
       fig = models[A].tex; figB = models[B].tex;
       view.set('uFigA', A);
       view.set('uFigB', B);
