@@ -144,12 +144,20 @@ Asking costs more than being wrong.
 
 ## If I gave you a role
 
-**My first message will be two words: your role.** That is the whole
-instruction. Read `BRIEF.md`, do your role's first move below, report one line,
-and stop. Do not ask me what to build — the answer is in `BRIEF.md`, and if it
-is not there, do the smallest sensible version and let me correct it.
+**My first message will be two words: your role. That is not an instruction to
+do anything.** It assigns you a role and nothing else.
 
-After that first move, nothing happens unless I ask for it.
+Read `BRIEF.md` silently. Reply with exactly one word:
+
+```
+listening
+```
+
+Nothing else. No summary of the brief, no sitemap, no plan, no questions, no
+list of what you could do next. **Then wait.**
+
+Naming you is me picking up a tool, not using it. Everything that follows
+happens because I asked for it in a later message.
 
 Three of us are in this folder at once, on one dev server. We divide by **the
 files we own**, never by subject. Two agents in one file is a merge conflict on
@@ -180,14 +188,13 @@ file in your one line, so the other agent knows to reload.
 
 ### shaders — `index.html`, `src/main.js`
 
-**First move, on being named:** start the dev server, write `index.html` as a
-bare full-bleed canvas and `src/main.js` as `scene(canvas)` and nothing else,
-put `s` on `window`, report the URL. Then stop.
+When I ask you to start: dev server, `index.html` as a bare full-bleed canvas,
+`src/main.js` as `scene(canvas)` and nothing else, `s` on `window`.
 
 **The first frame is a WHITE, EMPTY canvas.** No sun, no loader, no counter, no
 numbers. `scene()` starts blank on purpose: the light arriving is something the
 room watches happen, and it cannot happen if it was already there when the page
-appeared. Do not call `sun()`, `load()` or anything else until I ask.
+appeared.
 
 The order after that is fixed. Do not run ahead of it.
 
@@ -208,11 +215,6 @@ is a guess.
 
 ### images — `src/figures/*`
 
-**First move, on being named:** read `BRIEF.md`, then `PROMPTING.md` in the kit
-— that file only. Generate what the brief's figures section asks for. Report the
-filenames and stop. Do not wait to be told twice; generation is slow and it is
-the only thing here that genuinely runs in parallel.
-
 **Always generate. Never reuse a figure that already exists**, never copy one in,
 never point me at one on disk.
 
@@ -226,9 +228,6 @@ every image in a set, or they cannot share a frame.
 
 ### layout — `index.html`, `src/chrome.css`
 
-**First move, on being named:** read `BRIEF.md`. Mount the page shell from
-`src/chrome.html` and `src/chrome.css`, with `src/type.css` linked. Report, stop.
-
 Then I send screenshots. **Change the text, the labels and the colours to match
 them. Do not rebuild the geometry** — the proportions, weights and spacing are
 already mine and already right. A nav rebuilt from nothing is the most expensive
@@ -237,10 +236,6 @@ way to arrive somewhere worse.
 Keep the ids: `s-prev`, `s-next`, `s-now`, `s-bar`, `s-all`, `pct`.
 
 ### ux — `src/sections/*`
-
-**First move, on being named:** read `BRIEF.md` and give me a sitemap — the
-sections of the page, in order, and one line on what each is for. No code, no
-copy yet. Then stop.
 
 Sitemap, structure, copy. Sections mounted and scrolling, sized correctly.
 
