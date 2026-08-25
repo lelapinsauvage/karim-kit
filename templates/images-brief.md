@@ -68,11 +68,56 @@ photographs. Both carry "a held, deliberate stance directed by a photographer" �
 without it the model returns something that looks like a phone snap of someone
 standing there.
 
-## The standard
+## The standard, and why
 
-`a02` is the one that is right. Match it: three-quarter turn, olive seamless,
-knitted jacquard polo, box braids, soft even light, freckles, real skin. When
-something is wrong, it is wrong relative to `a02`.
+Kept: **a01, a02, a03, a05, a10.** `a02` is the best of them and `a05` the
+second. Passable: `a04`. The rest missed. They were all generated in one run,
+under the same light, on the same two poses — so the difference is entirely in
+how the garment was written.
+
+**The five that worked, and the four that did not, split on four things.**
+
+**1. A real garment type, named.**
+Camp-collar shirt. Knitted jacquard polo. Plate-carrier vest. Boxy jacket.
+Rugby shirt. Every keeper is a garment you could buy. The misses include a
+"cropped raffia-woven shoulder piece" — which is not a garment, it is a prop,
+and it comes back looking like one.
+
+**2. The pattern runs through the cloth, not across a part of it.**
+Wax print, jacquard knit, woven kilim, resist-dyed adire, woven rugby bands —
+in every keeper the pattern IS the textile. The misses applied it: a mud-cloth
+*panel across the chest*, shibori *sleeves*, a kente *stripe*. A panel is
+decoration stuck onto a blank, and it reads as exactly that.
+
+**3. Two layers, visibly.**
+Wax shirt open over a black ribbed vest. Kilim vest over a cream work shirt.
+Rugby shirt under a tan leather utility vest. Polo with a contrast ribbed
+collar. The eye needs one garment interrupting another; a single garment on
+a body is a product shot.
+
+**4. One accessory. One.**
+Gold hoops. A carved bone ear cuff. A brass chain. A gold nose ring. A cowrie
+choker. The worst of the set had dense seed-bead strands at both ears *and* a
+beaded skullcap — two accessories is styling, three is costume.
+
+Colour, across all five keepers: **two or three colours in the garment, all
+saturated, and a backdrop that opposes them.** Cobalt-and-ochre on oxblood.
+Cream-and-vermilion-on-green against olive. Acid green against slate.
+
+## The template
+
+Fill this in. Change the garment and the colours; leave everything else.
+
+```
+['aNN', POSE.left, '<saturated backdrop, opposing the garment>', WHO.w1,
+  'Wearing <a real garment type> in <textile with the pattern woven or dyed
+   into it>, <two or three saturated colours>, <worn over / under a second
+   garment>. <One accessory, metal or shell.> <Hair.>'],
+```
+
+Three of the five keepers are women in long fine box braids. That is not a rule,
+but if you are choosing and have no reason to prefer something else, choose
+that.
 
 ## What you edit
 
