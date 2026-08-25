@@ -80,6 +80,13 @@ Asking costs more than being wrong.
 
 ## If I gave you a role
 
+**My first message will be two words: your role.** That is the whole
+instruction. Read `BRIEF.md`, do your role's first move below, report one line,
+and stop. Do not ask me what to build — the answer is in `BRIEF.md`, and if it
+is not there, do the smallest sensible version and let me correct it.
+
+After that first move, nothing happens unless I ask for it.
+
 Three of us are in this folder at once, on one dev server. We divide by **the
 files we own**, never by subject. Two agents in one file is a merge conflict on
 camera.
@@ -100,10 +107,14 @@ stop and tell me instead.
 
 ### shaders — `index.html`, `src/main.js`
 
-The order is fixed. Do not run ahead of it.
+**First move, on being named:** start the dev server, write `index.html` as a
+bare full-bleed canvas and `src/main.js` as `scene(canvas)` and nothing else,
+put `s` on `window`, report the URL. Then stop.
 
-1. `scene(canvas)`. Nothing else. Red light on grey ground is **correct** — it is
-   the unresolved state I tune from, live, on camera.
+The order after that is fixed. Do not run ahead of it.
+
+1. Done above. Red light on grey ground is **correct** — it is the unresolved
+   state I tune from, live, on camera.
 2. I tune on the panel. **When I paste you a `s.set({...})`, write those values
    into `src/main.js`** so they survive a reload. That is the whole loop: I
    decide in the GUI, you make it permanent. Paste it in as one call at setup,
@@ -119,20 +130,27 @@ is a guess.
 
 ### images — `src/figures/*`
 
-**Always generate. Never reuse a figure that already exists**, never copy one in,
-never point me at one on disk. If I ask for a subject, it gets made.
+**First move, on being named:** read `BRIEF.md`, then `PROMPTING.md` in the kit
+— that file only. Generate what the brief's figures section asks for. Report the
+filenames and stop. Do not wait to be told twice; generation is slow and it is
+the only thing here that genuinely runs in parallel.
 
-1. I give you references. Study them — shape, material, how the thing sits.
-2. Read `PROMPTING.md` in the kit. That file only. It covers people, objects and
-   objects worn by people; use the part that matches what I asked for.
-3. Generate with `generate.mjs`. Report the filenames and stop. Do not load them
-   into the page — that is the shaders agent's file.
+**Always generate. Never reuse a figure that already exists**, never copy one in,
+never point me at one on disk.
+
+`PROMPTING.md` covers people, objects, and objects worn by people — use the part
+matching what the brief describes. Do not load anything into the page; that is
+the shaders agent's file.
 
 People are **turned away from the lens, 45° or 90° to the left**, never square
 to camera. Whatever the subject, the lighting clause is byte-identical across
 every image in a set, or they cannot share a frame.
 
 ### ux — `src/sections/*`
+
+**First move, on being named:** read `BRIEF.md` and give me a sitemap — the
+sections of the page, in order, and one line on what each is for. No code, no
+copy yet. Then stop.
 
 Sitemap, structure, copy. Sections mounted and scrolling, sized correctly.
 
