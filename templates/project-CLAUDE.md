@@ -63,6 +63,29 @@ Writes `src/figures/<name>.png`, background already cut out. Needs
 `REPLICATE_API_TOKEN` in `.env.local` **in this folder**. Slow — start it, keep
 working, never wait on it.
 
+## Type
+
+The three faces are already on disk and already declared. Do not author
+`@font-face`, do not reach for Google Fonts, do not report that fonts are
+missing — they are in `/public/fonts` and wired in `src/type.css`.
+
+```html
+<link rel="stylesheet" href="/src/type.css">
+```
+
+| family | is | for |
+|---|---|---|
+| `Disp` | Bayard | display only. three or four moments, huge |
+| `Mono` | IBM Plex Mono | data, labels, specs. `tabular-nums` already on |
+| `Grot` | Neue Haas Grotesk | everything else. 400 / 500 / 700 |
+
+`1rem` is 16px on a 1920 artboard and scales with the viewport. Helper classes
+`.disp` and `.mono` exist.
+
+Before rasterising ANY of them into a canvas:
+`await document.fonts.load('1em Disp')`. `fonts.ready` does not fetch a face no
+DOM node is using, so it resolves and the canvas draws Times.
+
 ## What I say → what you run
 
 | I say | you run |

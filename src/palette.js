@@ -138,46 +138,48 @@ export async function paletteFrom(src, opts = {}) {
 }
 
 /**
- * The proposal. Only the pigment's hue and saturation come from the image; every
- * lightness is retargeted, and the other two colours are derived.
+ * The proposal. The image gives the HUE. Saturation and lightness are set to
+ * pigment values, not read off the photograph.
  *
- * Extracting three independent colours from one photograph gives three colours
- * that merely co-occurred -- skin, denim and a shadow are not a palette, they
- * are an accident of what the model wore. Deriving the other two from the
- * pigment's own hue puts the whole frame in one family, so the light looks like
- * it is lighting the room rather than sitting in front of it.
+ * That distinction is the whole thing. A photograph of a dyed cloth under a
+ * soft studio source is always muted -- measured on these figures, the warm
+ * clusters come back at s 0.50-0.64 and v 0.26-0.46. The pigments actually
+ * chosen for this work sit at s 0.56-0.82 and v 0.40-0.66 at the SAME hues.
+ * Sampling S and V from the photograph hands back the lighting rather than the
+ * dye, and every figure returns a darker, deader version of itself.
  *
- * The target ranges are measured off the kit's four presets rather than picked:
+ * So: find the hue that is alive in the image, then state it as a pigment.
  *
- *   pigment   v 0.40-0.66   s 0.10-0.82
- *   ground    v 0.86-0.89   s 0.02-0.08   pigment's hue
- *   ink       v 0.52-0.59   s about half the pigment's, pigment's hue
+ * Targets, measured off the four presets:
  *
- * Two of those are worth stating out loud, because the obvious guess is wrong
- * in both cases. A pigment is not bright: it drives a light BODY, and a
- * photograph's darkest chromatic region lands near v 0.25, which renders as a
- * brown hole rather than as a light. And the ink is not black -- it is a
- * mid-tone carrying the pigment's hue, so pattern sits on the ground as a tone
- * instead of cutting into it.
+ *   pigment   hue from image, s 0.58-0.85, v 0.44-0.70
+ *   ground    pigment's hue, s under 0.08, v 0.87-0.89
+ *   ink       pigment's hue, s about half, v 0.55
  */
 export function rolesFrom(swatches, medianLum = 0.5) {
-  // The light wants the garment, not the skin. Skin dominates coverage in
-  // almost every figure, so weight alone picks it every time; chroma is what
-  // separates a dyed cloth from a body. Weight still breaks ties, damped so a
-  // large dull region cannot outvote a small vivid one.
-  const score = (s) => s.hsv[1] ** 1.6 * (0.30 + 0.70 * Math.sqrt(s.weight)) * (s.hsv[2] > 0.18 ? 1 : 0.15);
-  const pick = swatches.slice().sort((a, b) => score(b) - score(a))[0] ?? swatches[0];
+  // Near-blacks and near-greys are thrown out, not merely penalised. In a
+  // studio photograph the largest cluster is almost always an unlit fold or
+  // dark hair -- it carries no hue worth having, and letting it compete means
+  // the frame gets lit by a shadow.
+  const alive = swatches.filter((s) => s.hsv[2] > 0.18 && s.hsv[1] > 0.18);
+  const pool = alive.length ? alive : swatches;
+
+  // Chroma decides, area only breaks ties. Skin dominates coverage in nearly
+  // every figure, so weight alone picks it every time; a small vivid garment is
+  // the thing worth taking.
+  const score = (s) => s.hsv[1] ** 2 * Math.sqrt(s.hsv[2]) * (0.35 + 0.65 * Math.sqrt(s.weight));
+  const pick = pool.slice().sort((a, b) => score(b) - score(a))[0];
   const [h, s0, v0] = pick.hsv;
 
-  const sat = Math.min(s0, 0.85);
-  // Compressed, not clamped, so a vivid figure still reads brighter than a
-  // muted one instead of both landing on the same value.
-  const v = 0.38 + 0.30 * v0;
+  // Stated as a dye. Lifted, but still ordered -- a muted figure stays quieter
+  // than a vivid one instead of both arriving at the same place.
+  const sat = Math.min(Math.max(s0 * 1.25, 0.58), 0.85);
+  const val = Math.min(0.46 + 0.28 * v0, 0.70);
 
   return {
-    pigment:  toHex(hsv2rgb(h, sat, v)),
-    bg:       toHex(hsv2rgb(h, Math.min(sat * 0.10, 0.08), medianLum < 0.42 ? 0.89 : 0.87)),
-    clothInk: toHex(hsv2rgb(h, sat * 0.50, 0.55)),
+    pigment:  toHex(hsv2rgb(h, sat, val)),
+    bg:       toHex(hsv2rgb(h, Math.min(sat * 0.09, 0.08), medianLum < 0.42 ? 0.89 : 0.87)),
+    clothInk: toHex(hsv2rgb(h, sat * 0.52, 0.56)),
   };
 }
 
