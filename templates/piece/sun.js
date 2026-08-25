@@ -149,21 +149,39 @@ export function setLockup(name, num) {
   if (lockRise >= 1) {
     typeCtx.fillText(NAME, pad, nameY);
   } else {
-    const edge = (i) => pad + (i ? typeCtx.measureText(NAME.slice(0, i)).width : 0);
+    // Column edges from the INK of the kerned string, not from advance widths.
+    //
+    // measureText(prefix).width is the advance and it does not include the kern
+    // between the prefix's last glyph and the next one -- so a column built
+    // from advances lands a few pixels off where the glyph actually sits, and
+    // catches a sliver of its neighbour. That sliver is at a different height
+    // mid-reveal, which is what shows up as fragments inside the letters.
+    //
+    // actualBoundingBoxRight is where the ink of that prefix really ends, in
+    // the string as it is actually laid out. The gap between one letter's ink
+    // and the next one's start belongs to nobody and is empty either way.
+    const inkRight = (n) => pad + typeCtx.measureText(NAME.slice(0, n)).actualBoundingBoxRight;
     for (let i = 0; i < NAME.length; i++) {
+      // A space has no ink, so its column collapses and inkRight stops
+      // advancing across it. Nothing to draw and nothing to measure.
+      if (NAME[i] === ' ') continue;
       const start = (i / NAME.length) * 0.5;
       const t = Math.max(0, Math.min((lockRise - start) / 0.5, 1));
       const e = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t);
       if (e <= 0) continue;
 
-      const x0 = edge(i);
-      const x1 = i === NAME.length - 1 ? x0 + size * 2 : edge(i + 1);
+      const x0 = i === 0 ? pad - size * 0.25 : inkRight(i);
+      const x1 = i === NAME.length - 1 ? inkRight(NAME.length) + size * 0.25
+                                       : inkRight(i + 1);
 
       typeCtx.save();
       typeCtx.beginPath();
-      // the column, and a clip that stops ON the baseline so the letter climbs
-      // out of the line rather than sliding past it
-      typeCtx.rect(x0, nameY - size * 1.15, x1 - x0, size * 1.15);
+      // The clip stops just BELOW the baseline, not on it. Round glyphs
+      // overshoot the baseline by a percent or two so they look the same
+      // height as the flat ones -- clip exactly at the baseline and every O, C,
+      // S and U loses its bottom curve.
+      const over = size * 0.035;
+      typeCtx.rect(x0, nameY - size * 1.15, x1 - x0, size * 1.15 + over);
       typeCtx.clip();
       typeCtx.globalAlpha = e;
       typeCtx.fillText(NAME, pad, nameY + (1 - e) * size * 0.72);
@@ -187,7 +205,7 @@ export function setLockup(name, num) {
   const numY = h * 0.52 + size * 0.78;
   typeCtx.save();
   typeCtx.beginPath();
-  typeCtx.rect(0, numY - size * 1.05, w, size * 1.05);
+  typeCtx.rect(0, numY - size * 1.05, w, size * 1.05 + size * 0.035);
   typeCtx.clip();
   typeCtx.globalAlpha = ne;
   typeCtx.fillText(supTxt, w - pad, h * 0.52 + supSize * 0.9 + (1 - ne) * size * 0.72);
