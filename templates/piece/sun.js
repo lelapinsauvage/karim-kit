@@ -331,6 +331,7 @@ const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0, lookIxPrev = 0;
 let loaderArmed = !COLD;
 let coldSet = false;
+const EDITS = {};   // what I changed, per look, and nothing else
 let figuresUp = !COLD, sliderUp = !COLD, typeUp = !COLD, chromeUp = !COLD;
 // WHAT IS UP SURVIVES A RELOAD.
 //
@@ -489,10 +490,15 @@ function buildPanel() {
   // Edits persist into the ACTIVE look, not just into the live state. Otherwise
   // placing one figure and switching away throws the work out, which is exactly
   // the thing that forces you to copy values by hand.
+  // Every edit is recorded against the look it was made on, separately from
+  // PRESETS. PRESETS carries the cold placeholders as well, and those must
+  // never reach the clipboard.
   const commit = (k, v) => {
     state[k] = v;
-    const look = PRESETS[ORDER[lookIx]];
+    const id = ORDER[lookIx];
+    const look = PRESETS[id];
     if (look) look[k] = v;
+    (EDITS[id] ??= {})[k] = v;
   };
   for (const k of ALLNUM) {
     const i = document.getElementById('p-' + k); if (!i) continue;
@@ -526,9 +532,23 @@ function buildPanel() {
     // and hitting copy produced a block that silently did not contain the sun.
     const KEEP = ['id', 'name', 'fig', 'pig', 'origin', 'material',
                   ...COLKEYS, ...GROUPS.flatMap(([, k]) => k)];
+    // The ORIGINAL look plus what I actually changed. Never PRESETS.
+    //
+    // PRESETS is BASE + LOOKS + COLD_LOOK, and cold zeroes r, glow, drift and
+    // the rest. Every one of those differs from BASE, so dumping PRESETS
+    // exported the cold state as though it were the design -- three looks came
+    // out with r:0 and glow:0, and pasting that back would have killed them
+    // permanently. The clipboard must only ever carry decisions.
     const out = ORDER.map((id) => {
-      const l = PRESETS[id], o = {};
-      for (const k of KEEP) if (l[k] !== undefined && l[k] !== BASE[k]) o[k] = l[k];
+      const src = LOOKS.find((l) => l.id === id) ?? {};
+      const merged = { ...src, ...(EDITS[id] ?? {}) };
+      const o = {};
+      for (const k of KEEP) {
+        if (merged[k] === undefined) continue;
+        // identity always travels; values only if they say something
+        const identity = ['id', 'name', 'fig', 'pig', 'origin', 'material'].includes(k);
+        if (identity || merged[k] !== BASE[k]) o[k] = merged[k];
+      }
       return o;
     });
     const txt = 'const LOOKS = ' + JSON.stringify(out, null, 2) + ';';
