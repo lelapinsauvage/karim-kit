@@ -10,3 +10,9 @@ public/fonts/
 
 # generated figures: brief-specific and heavy
 src/figures/
+
+# Reference boards — other people's photographs, gathered for study. Local only.
+refs/
+
+# Generated figures kept for comparison between runs.
+archive/

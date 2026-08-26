@@ -10,7 +10,7 @@ on a thirty-minute clock that difference is the difference between having models
 and not.
 
 ```bash
-REFS="$HOME/Desktop/afro models,$HOME/Desktop/afro clothes" node scripts/batch.mjs
+REFS="$HOME/Desktop/karim-kit/refs/models,$HOME/Desktop/karim-kit/refs/clothes" node scripts/batch.mjs
 ```
 
 Never generate one to check it first. Generate all ten, hand me the filenames,

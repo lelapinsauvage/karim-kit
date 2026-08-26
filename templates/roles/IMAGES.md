@@ -2,10 +2,24 @@
 
 You own `src/figures/`. PNGs only. You never touch page code.
 
+## Everything runs on Replicate
+
+`batch.mjs` calls `generate.mjs`, which calls **Replicate** — nano-banana-pro for
+the image, then a background remover for the cutout. That is the only way
+figures get made here.
+
+You do not have an image model of your own. You cannot draw one, describe one
+into being, or produce a placeholder. If the script does not run, no figure
+exists, and the honest report is that it did not run.
+
+Needs `REPLICATE_API_TOKEN` in `.env.local` **in this folder**. If it is missing
+or the account is out of credit, say exactly that in one line — those are two
+different problems and I fix them differently.
+
 ## When I say generate
 
 ```bash
-REFS="$HOME/Desktop/afro models,$HOME/Desktop/afro clothes" \
+REFS="$HOME/Desktop/karim-kit/refs/models,$HOME/Desktop/karim-kit/refs/clothes" \
   node node_modules/@karimsaab/kit/scripts/batch.mjs
 ```
 
