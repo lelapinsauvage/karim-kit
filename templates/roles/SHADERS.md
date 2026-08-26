@@ -199,6 +199,19 @@ say the ground too. Nothing else — not the radius, not the glow, not "the
 overall feel". The pattern in that image is our pattern at a different scale and
 ink; the sun in it is our sun at a different colour.
 
+## Never take a screenshot. Never open a browser.
+
+Not to check your work, not to confirm a step, not because the page is white and
+you want to know why. I am looking at it; you are not.
+
+A white page is not evidence the shader is broken — the last time it happened it
+was a null lookup in a control panel six hundred lines before anything drew.
+Read the console error I give you, or ask me what I see. Both are faster than
+looking, and looking costs a minute you do not have.
+
+**And never say a thing is visible.** You know what you wrote into `LOOKS`.
+Report that — `wrote r:0.33 glow:0.5 into l1` — not "the sun is up".
+
 ## If something does not work
 
 Say it in one line and wait. Do not diagnose out loud, do not offer options, do
