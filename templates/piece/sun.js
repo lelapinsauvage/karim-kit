@@ -336,7 +336,16 @@ const shown = new Set(COLD ? [] : ['sun', 'cloth', 'figures', 'type']);
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
 // sync -- a hand-written panel drifts the moment a uniform is renamed.
-if (!HAS_PANEL) buildPanel();
+// The panel is a TOOL. It must never be able to take the page with it.
+//
+// buildPanel runs six hundred lines before up() is defined, so anything it
+// throws kills the module and every command with it -- and the symptom is a
+// white page and `up is not defined`, which reads as the shader being broken
+// and sends you hunting through GL state. It is never the shader.
+if (!HAS_PANEL) {
+  try { buildPanel(); }
+  catch (e) { console.error('panel failed to build — everything else still works:', e); }
+}
 
 // Rebuilt whenever a subsystem comes up, so the panel is always exactly the
 // controls for what is on screen -- no more, and never one that does nothing.
@@ -454,7 +463,13 @@ function buildPanel() {
     }
   };
   window.__syncPanel = sync;
-  window.__rebuildPanel = () => { if (!HAS_PANEL) buildPanel(); };
+  // Rebuilt on every step, and guarded: a panel that cannot draw must not stop
+  // the step that asked for it.
+  window.__rebuildPanel = () => {
+    if (HAS_PANEL) return;
+    try { buildPanel(); }
+    catch (e) { console.error('panel rebuild failed — the step still applied:', e); }
+  };
 
   // Edits persist into the ACTIVE look, not just into the live state. Otherwise
   // placing one figure and switching away throws the work out, which is exactly

@@ -37,10 +37,12 @@
 // key, no backlight — every reference is lit this way, and the modelling comes
 // from the size and closeness of the source rather than from contrast.
 const LIGHT =
-  'Lit by one very large soft source close and slightly above the camera, with '
-  + 'a white bounce card just below the chin. Shadows soft, open and weak. Even '
-  + 'across the face. No rim light, no backlight, no hard key, no coloured gels '
-  + 'on the subject. Faint specular sheen on the skin, catchlight in both eyes. '
+  'Cinematic editorial studio lighting. One hard directional key set high and '
+  + 'to one side, throwing a defined shadow down the far side of the face and '
+  + 'along the jaw, with a single weak bounce holding that shadow open. Deep '
+  + 'contrast, sculpted falloff, strong dramatic modelling. A narrow rim of '
+  + 'light catching the top edge of the shoulder and the cheekbone. Rich '
+  + 'specular sheen on the skin, catchlight in both eyes. '
   // A saturated backdrop bounces its own colour into hair and shoulder edges,
   // and the matte keeps every bit of it -- a red fringe round an afro, a green
   // one down a braid. In a real studio you fix that by walking the subject
@@ -59,7 +61,7 @@ const CAMERA =
 
 // Skin, and the constraints that keep it off the plastic default.
 const SKIN =
-  'Visible skin pores and natural skin texture, fine facial hair, slight '
+  'Clear, healthy, luminous skin. Visible skin pores and natural skin texture, fine facial hair, slight '
   + 'asymmetry in the face, a real person rather than a composite. No beauty '
   + 'retouch, no smooth skin filter, no plastic skin, no symmetrical face, no '
   + 'digital sharpening, no HDR, no wax figure.';
@@ -148,29 +150,28 @@ const GROUND = (colour) =>
 // in the teeth, a heavy brow, freckles, a shaved head are what make a face a
 // person rather than a composite.
 const WHO = {
-  p01: 'A dark-skinned Black woman in her early twenties, deep brown skin, '
-    + 'round face, wide-set eyes, a scatter of freckles across the nose and '
-    + 'cheeks, a small gap between her front teeth.',
-  p02: 'A dark-skinned Black woman in her thirties, very deep brown skin, long '
-    + 'neck, high angular cheekbones, a broad nose and full mouth, fine raised '
+  p01: 'A Black woman in her early twenties, deep blue-black skin, round face, '
+    + 'wide-set eyes, a scatter of freckles across the nose and cheeks, a small '
+    + 'gap between her front teeth.',
+  p02: 'A Black woman in her thirties, warm russet-brown skin, long neck, high '
+    + 'angular cheekbones, a broad nose and full mouth, fine raised '
     + 'scarification lines across both cheekbones.',
-  p03: 'A dark-skinned Black man in his late twenties, deep brown skin, square '
+  p03: 'A Black man in his late twenties, deep chocolate-brown skin, square '
     + 'jaw, heavy brow, a fine scar through one eyebrow, close-cropped hair.',
-  p04: 'A dark-skinned Black woman in her forties, deep brown skin, softer '
-    + 'face, laughter lines at the eyes, a small mole above the lip, greying '
-    + 'at the temples.',
-  p05: 'A dark-skinned Black man in his early twenties, very deep brown skin, '
-    + 'narrow face, sharp cheekbones, a wide mouth, shaved head.',
-  p06: 'A dark-skinned Black woman in her late twenties, warm deep brown skin, '
-    + 'strong straight nose, deep-set eyes, a birthmark on one temple.',
-  p07: 'A dark-skinned Black man in his thirties, deep brown skin, full beard '
-    + 'kept short, broad forehead, a chipped front tooth.',
-  p08: 'A dark-skinned Black woman in her early thirties, very deep brown skin, '
-    + 'oval face, long lashes, a beauty spot on one cheek, arched brows.',
-  p09: 'A dark-skinned Black man in his forties, deep brown skin, lined '
-    + 'forehead, a wide flat nose, grey coming through at the temples.',
-  p10: 'A dark-skinned Black woman in her twenties, deep brown skin, heart-'
-    + 'shaped face, small chin, a nose ring hole without the ring, freckled '
+  p04: 'A Black woman in her forties, golden-brown skin, softer face, laughter '
+    + 'lines at the eyes, a small mole above the lip, greying at the temples.',
+  p05: 'A Black man in his early twenties, very deep brown-black skin, narrow '
+    + 'face, sharp cheekbones, a wide mouth, shaved head.',
+  p06: 'A Black woman in her late twenties, copper-brown skin, strong straight '
+    + 'nose, deep-set eyes, a birthmark on one temple.',
+  p07: 'A Black man in his thirties, dark bronze skin, full beard kept short, '
+    + 'broad forehead, a chipped front tooth.',
+  p08: 'A Black woman in her early thirties, light amber-brown skin, oval face, '
+    + 'long lashes, a beauty spot on one cheek, arched brows.',
+  p09: 'A Black man in his forties, deep umber skin with a reddish undertone, '
+    + 'lined forehead, a wide flat nose, grey coming through at the temples.',
+  p10: 'A Black woman in her twenties, medium warm brown skin, heart-shaped '
+    + 'face, small chin, a nose ring hole without the ring, freckled '
     + 'shoulders.',
 };
 
@@ -239,71 +240,73 @@ const POSE_J = {
 // the face clear.
 export const MODELS = [
   ['a01', POSE.left, 'deep cobalt blue', WHO.p01,
-    'Wearing a boxy short-sleeved camp-collar shirt in heavy Dutch wax cotton, '
-    + 'the geometry printed through the weave in vermilion, ochre yellow and '
-    + 'cream, blunt squared shoulders, worn open over a black ribbed sleeveless '
-    + 'tank top. Large hammered brass hoop earrings. Long fine box braids '
-    + 'gathered high off the ears.'],
+    'Wearing a boxy short-sleeved Cuban-collar guayabera in heavy cotton, twin '
+    + 'rows of vertical pintuck alforzas running down the front, Havana '
+    + 'hydraulic floor-tile geometry woven through the cloth in vermilion, '
+    + 'ochre yellow and cream, blunt squared shoulders, worn open over a black '
+    + 'ribbed sleeveless tank top. Large hammered brass hoop earrings. Long '
+    + 'fine box braids gathered high off the ears.'],
 
   ['a02', POSE.left, 'burnt terracotta', WHO.p02,
-    'Wearing a short-sleeved knitted jacquard polo shirt, the diamond geometry '
-    + 'knitted into the yarn in cobalt blue and acid yellow, contrast cream '
-    + 'ribbed collar, open at the throat. A flat cast brass collar at the neck. '
-    + 'Short coiled hair, faded at the sides.'],
+    'Wearing a short-sleeved knitted jacquard polo shirt, a Cuban mosaic-tile '
+    + 'quatrefoil repeat knitted into the yarn in cobalt blue and acid yellow, '
+    + 'contrast cream ribbed collar, open at the throat. A flat cast brass '
+    + 'collar at the neck. Short coiled hair, faded at the sides.'],
 
   ['a03', POSE.left, 'hot pink', WHO.p03,
-    'Wearing a sleeveless kente tank top, the bands woven through the cloth in '
-    + 'ochre yellow, emerald green and black, blunt squared armholes, high '
-    + 'straight neckline. A tight cowrie shell choker at the throat. Tight '
-    + 'coiled locs in a high sculptural knot.'],
+    'Wearing a sleeveless tank top, Afro-Cuban bead-stripe geometry woven '
+    + 'through the cloth in ochre yellow, emerald green and black, blunt '
+    + 'squared armholes, high straight neckline. A tight cowrie shell choker at '
+    + 'the throat. Tight coiled locs in a high sculptural knot.'],
 
   ['a04', POSE.left, 'acid green', WHO.p04,
-    'Wearing a blunt boxy short-sleeved work shirt in indigo adire, the pale '
-    + 'cracked resist geometry dyed into the cloth in deep indigo and chalk '
-    + 'white, worn open over a vermilion ribbed sleeveless tank top. A single '
-    + 'heavy brass cuff earring wrapping the upper ear. Close-shaved head.'],
+    'Wearing a blunt boxy short-sleeved camp shirt in indigo-dyed cotton, '
+    + 'cracked resist Cuban tile medallions dyed into the cloth in deep indigo '
+    + 'and chalk white, worn open over a vermilion ribbed sleeveless tank top. '
+    + 'A single heavy brass cuff earring wrapping the upper ear. Close-shaved '
+    + 'head.'],
 
   ['a05', POSE.left, 'deep oxblood red', WHO.p05,
-    'Wearing a short-sleeved shirt woven from fine raffia yarn, the open weave '
-    + 'visible in the cloth, wide bands of acid green and natural straw, blunt '
-    + 'squared shoulders, worn open over a cobalt blue ribbed sleeveless tank '
-    + 'top. Long hammered brass ear drops, tapered blades. Long fine box braids '
-    + 'gathered high off the ears.'],
+    'Wearing a short-sleeved shirt in open-weave cotton gauze, the weave '
+    + 'visible in the cloth, wide bands of acid green and natural straw with '
+    + 'Cuban domino-dot geometry woven in, blunt squared shoulders, worn open '
+    + 'over a cobalt blue ribbed sleeveless tank top. Long hammered brass ear '
+    + 'drops, tapered blades. Long fine box braids gathered high off the ears.'],
 
   ['a06', POSE.left, 'pale mint', WHO.p06,
-    'Wearing an oversized short-sleeved camp-collar shirt in heavy wax-print '
-    + 'cotton, the geometry through the weave in cobalt blue, ochre yellow and '
-    + 'black, hard squared slab shoulders, worn open over a cream ribbed '
-    + 'sleeveless tank top. A wide hammered brass cuff high on one forearm. '
-    + 'Shoulder-length locs pushed back off the ears.'],
+    'Wearing an oversized short-sleeved Cuban-collar shirt in heavy cotton, a '
+    + 'hydraulic-tile starburst repeat through the weave in cobalt blue, ochre '
+    + 'yellow and black, hard squared slab shoulders, worn open over a cream '
+    + 'ribbed sleeveless tank top. A wide hammered brass cuff high on one '
+    + 'forearm. Shoulder-length locs pushed back off the ears.'],
 
   ['a07', POSE.left, 'flat olive green', WHO.p07,
-    'Wearing a short-sleeved knitted jacquard polo shirt, the stepped geometry '
-    + 'knitted into the yarn in vermilion and chalk cream, contrast black '
+    'Wearing a short-sleeved knitted jacquard polo shirt, a stepped Cuban tile '
+    + 'fret knitted into the yarn in vermilion and chalk cream, contrast black '
     + 'ribbed collar, worn over an acid yellow ribbed tank top. Wide flat brass '
     + 'disc earrings, edge-worn bright. Tight coiled locs in a high sculptural '
     + 'knot.'],
 
   ['a08', POSE.left, 'bright tangerine', WHO.p08,
-    'Wearing a sleeveless kente tank top, the bands woven through the cloth in '
-    + 'hot pink, emerald green and cream, blunt squared armholes, worn under a '
-    + 'cropped sleeveless vest in black waxed cotton with squared slab '
+    'Wearing a sleeveless tank top, a Cuban carnival stripe woven through the '
+    + 'cloth in hot pink, emerald green and cream, blunt squared armholes, worn '
+    + 'under a cropped sleeveless vest in black waxed cotton with squared slab '
     + 'shoulders. A short blackened bronze chain at the throat. Close-shaved '
     + 'head.'],
 
   ['a09', POSE.left, 'warm mustard yellow', WHO.p09,
-    'Wearing a slab-cut short-sleeved shirt in indigo adire, the pale cracked '
-    + 'geometry resist-dyed into the cloth in deep indigo, rust brown and chalk '
-    + 'white, squared blunt shoulders, worn open over a cream ribbed sleeveless '
-    + 'tank top. A row of cowrie shells strung tight at the throat. Long fine '
-    + 'box braids gathered high off the ears.'],
+    'Wearing a slab-cut short-sleeved guayabera, pintuck alforzas and a Cuban '
+    + 'cigar-band lithograph geometry woven into the cloth in deep indigo, rust '
+    + 'brown and chalk white, squared blunt shoulders, worn open over a cream '
+    + 'ribbed sleeveless tank top. A row of cowrie shells strung tight at the '
+    + 'throat. Long fine box braids gathered high off the ears.'],
 
   ['a10', POSE.left, 'deep teal', WHO.p10,
-    'Wearing an oversized boxy short-sleeved shirt in woven kilim, the pattern '
-    + 'woven through the cloth in vermilion, chalk white and black, squared slab '
-    + 'shoulders, worn open over an emerald green ribbed sleeveless tank top. '
-    + 'Heavy square brass ear studs, carved and stepped. Short coiled hair, '
-    + 'faded at the sides.'],
+    'Wearing an oversized boxy short-sleeved shirt in woven cotton jacquard, a '
+    + 'Cuban tile lattice woven through the cloth in vermilion, chalk white and '
+    + 'black, squared slab shoulders, worn open over an emerald green ribbed '
+    + 'sleeveless tank top. Heavy square brass ear studs, carved and stepped. '
+    + 'Short coiled hair, faded at the sides.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.
