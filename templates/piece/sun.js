@@ -334,8 +334,13 @@ if (!HAS_PANEL) buildPanel();
 // Rebuilt whenever a subsystem comes up, so the panel is always exactly the
 // controls for what is on screen -- no more, and never one that does nothing.
 function buildPanel() {
-  const wasOpen = document.getElementById('sun-panel')?.style.display !== 'none';
-  document.getElementById('sun-panel')?.remove();
+  // Hidden unless it was already open. On the first build there is no panel to
+  // ask, and `undefined !== 'none'` is true -- which is why it came up showing
+  // an empty box before anything had been asked for. The panel is a tool; the
+  // frame has to be judged without it in shot.
+  const existing = document.getElementById('sun-panel');
+  const wasOpen = existing ? existing.style.display !== 'none' : false;
+  existing?.remove();
   const RANGE = {
     r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
     rimBand:[0,1,0.01], drift:[0,4,0.01], glow:[0,2,0.01], glowSize:[0.02,1.2,0.005],
@@ -496,12 +501,22 @@ function buildPanel() {
     setTimeout(() => document.getElementById('p-copy').textContent = 'copy settings', 1200);
   };
 
-  addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'h')
-      el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-  });
   queueMicrotask(sync);
 }
+
+// Bound ONCE, outside buildPanel, and it finds the panel by id each time.
+//
+// Inside, every rebuild added another listener pointing at the element that
+// build had created -- so after three steps H was toggling four panels, three
+// of them detached from the document and invisible. The visible one ended up
+// out of phase with the key.
+if (!HAS_PANEL) addEventListener('keydown', (e) => {
+  // typing a hex into a colour field must not toggle the panel out from under it
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+  if (e.key.toLowerCase() !== 'h') return;
+  const el = document.getElementById('sun-panel');
+  if (el) el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+});
 
 // Live placement without a panel. In the console:
 //   fig({ h: 1.05, x: 0.14, bleed: 0.06 })
