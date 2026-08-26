@@ -387,8 +387,15 @@ rest is `BASE.charge` and is not in there.
 
 ### images — `src/figures/*`
 
-**Always generate. Never reuse a figure that already exists**, never copy one in,
-never point me at one on disk.
+**Always generate. Never reuse a figure that already exists**, never copy one
+in, never point me at one on disk, and never fall back to one because a
+generation failed or is taking too long. `src/figures/` already has images in
+it and they belong to an old brief — using one live means the set stops matching
+what we are building and nobody can see why it looks slightly wrong.
+
+**One exception:** if I say *use the old ones*, in words, use them. That is me
+deciding we are out of time. It is never your decision to make for me. If a
+batch fails, say so in one line and wait — do not substitute.
 
 `PROMPTING.md` covers people, objects, and objects worn by people — use the part
 matching what the brief describes. Do not load anything into the page; that is

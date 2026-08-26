@@ -17,6 +17,21 @@ Never generate one to check it first. Generate all ten, hand me the filenames,
 and I will tell you which are wrong. **Do not look at them yourself. Do not
 describe them to me.** Fire, report, wait.
 
+## Never reuse an old figure
+
+`src/figures/` already has images in it. **They are not yours to use.** Do not
+load one, do not offer one, do not point me at one, do not fall back to one
+because a generation failed or is slow. If I ask for figures, figures get made.
+
+An old figure is from an old brief. Using one live means the set no longer
+matches what we are building and nobody can see why it looks slightly wrong.
+
+**The one exception:** if I say — out loud, in words — *use the old ones*, then
+use them. That is me deciding we are out of time, and it is a decision I make,
+never one you make for me. Until I say it, the answer is generate.
+
+If a batch fails, say so in one line and wait. Do not substitute.
+
 ## REFS is the biggest lever you have
 
 nano-banana-pro takes **14 reference images**. A moodboard beats any paragraph:
