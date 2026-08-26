@@ -57,85 +57,57 @@ loader's curves, the transition envelope, the scramble's stagger — cannot be
 re-derived at speed, so they are there. The look — colour, radius, pattern
 scale, placement — is the work, and work that arrives already done is not work.
 
+## The vocabulary is CLOSED
+
+Everything I ask for is already built. There is nothing to invent, nothing to
+write from scratch, and no situation where a new file is the answer.
+
+Whatever I call it, it maps to one of these:
+
+| what I might say | you run |
+|---|---|
+| sun · halo · light · the disc · the circle · the body · the glow | `up('sun')` |
+| patterns · afro patterns · african patterns · kuba · cloth · the weave · texture · the tiling | `up('cloth')` |
+| models · characters · figures · the girls · the people · her | `up('figures')` |
+| slider · carousel · the switch · transition · arrows | `up('slider')` |
+| loader · intro · opening · the eclipse · preloader | `up('loader')` |
+| word · title · wordmark · type · the big text · lockup | `up('type')` |
+| nav · chrome · the page · furniture · rail · header | `up('chrome')` |
+
+Say it in any tense, any language, half a sentence, with a swear in it — if it
+points at one of those seven things, run that call.
+
+**If what I said does not point at any of them, do not build anything.** Say so
+in one line and give me the two closest:
+
+    not on the list — sun or cloth?
+
+Asking costs three seconds. Inventing costs the segment.
+
+## NEVER create a file
+
+No new `.frag`. No new `.js`. No second shader, no second harness, no helper
+module, no "cleaner version alongside".
+
+It has happened: asked for a *halo sun*, the build got an 81-line `halo.frag`
+and a 155-line `halo.js` that nothing loaded. The word was not on the list, so a
+whole second sun was written and sat in the folder doing nothing.
+
+You may edit exactly three files: `index.html`, `src/sun.js`, `src/main.js`.
+That is all. If something seems to need a new file, it does not — say what you
+were about to make and stop.
+
+## A reference is values, never code
+
+When I hand you an image — for the sun, the pattern, anything — it changes
+**numbers and colours on the existing thing.** Read what it needs, set it,
+report it.
+
+It never means write a new shader. It never means a new approach. The pattern in
+that image is the pattern we already have at a different scale, weight and ink;
+the sun in that image is our sun at a different colour and radius.
+
 ## One step, one thing
-
-| I say | you run |
-|---|---|
-| "sun" | `up('sun')` |
-| "patterns", "the African pattern" | `up('cloth')` |
-| "the word", "type" | `up('type')` |
-| "put the models in" | `up('figures')` |
-| "slider", "transition" | `up('slider')` |
-| "the page", "chrome", "nav" | `up('chrome')` |
-| "loader" | `up('loader')`, then I reload |
-
-`up('sun')` puts a light on an empty ground and **nothing else**. If the word or
-the nav or a counter arrives with it, that is a bug — one line, and stop.
-
-**Never run `up('all')` unless I say those words.** It ends the build.
-
-`up()` invents nothing. It restores values already in the file and decides only
-when they are allowed on screen. Everything it brings up is on the panel
-afterwards.
-
-## After every step, read the value back
-
-You cannot see the screen, but you can see what reached the shader. Run this
-after every `up()` and after applying any values I paste:
-
-```js
-await check()
-// { cloth: 0.205, front: 99, figFade: 1, type: 1, pigment: '#C97A24', shown: [...] }
-```
-
-It waits a frame and then reads the uniforms out of the GPU program, which is
-the only place that tells the truth. Setting a value and having something else
-put it back before the next draw is the failure this build keeps producing, and
-it is invisible everywhere else: no error, no warning, correct code.
-
-**What the numbers mean when a step "did nothing":**
-
-| you see | it means |
-|---|---|
-| `front: -1` | the pattern is hidden however high `cloth` is |
-| `figFade: 0` | she is loaded and fully transparent |
-| `type: 0` | the lockup is drawn and not composited |
-| the value is not what you set | something is re-setting it every frame — say so |
-
-That last row is the important one. If `check()` disagrees with what you just
-set, **do not set it again.** Say which value, what you set, and what came back.
-Something in the file is fighting you, and running the same call twice cannot win.
-
-## You cannot see the screen. Never say a thing is visible.
-
-You know what you ran and what the state object says. You do not know what came
-out the other end — a value can be set correctly and the thing still not be on
-screen, because a gate somewhere else is closed.
-
-That has happened: `up('cloth')` restored the pattern's density while the front
-that uncovers it sat at the origin. Every value was right, nothing was visible,
-and *"pattern's up"* was a false report made in good faith.
-
-So report the **fact**, not the outcome:
-
-    ran up('cloth')
-
-not *"the African pattern is up"*. If I say it is not there, you have not made a
-mistake — something in the file is wrong, and we go and find it. Do not
-apologise and re-run the same call.
-
-## A reference changes the colour. Nothing else.
-
-When I send you an image and say make the sun like this: **read the colour off
-it and set the colour.** `pigment`, and `bg` if I say the ground too.
-
-Not the radius. Not the glow, the rim, the spread, the warmth, the position.
-Not "matching the overall feel". The reference is a colour reference unless I
-say otherwise, and every other value in that frame is one I already set by hand
-or am about to.
-
-If the reference makes you want to change something else, say which in one line
-and leave it alone.
 
 ## The panel is only what is on screen
 
