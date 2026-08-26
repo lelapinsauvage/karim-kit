@@ -322,7 +322,7 @@ addEventListener('resize', () => { if (wm.to) setLockup(wm.to, wm.num ?? '°01')
 const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0, lookIxPrev = 0;
 let loaderArmed = !COLD;
-let figuresUp = !COLD, sliderUp = !COLD;
+let figuresUp = !COLD, sliderUp = !COLD, typeUp = !COLD, chromeUp = !COLD;
 
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
@@ -374,10 +374,7 @@ if (!HAS_PANEL) {
 
   el.innerHTML =
     `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">` +
-    ORDER.map((n) => `<button data-look="${n}" style="background:#ffffff10;
-      border:1px solid #ffffff1f;color:#eee;font:9px ui-monospace,monospace;
-      letter-spacing:.12em;text-transform:uppercase;padding:6px 2px;cursor:pointer">
-      ${n}</button>`).join('') + `</div>` +
+    '' + `</div>` +
     GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
     head('colour') +
     COLKEYS.map((k) => `<div style="display:grid;
@@ -806,12 +803,10 @@ function paintCopy(name) {
     el.value = v;
     const hx = $(k + '-hex'); if (hx) hx.value = v;
   }
-  for (const b of document.querySelectorAll('.preset'))
-    b.setAttribute('aria-current', String(b.dataset.k === name));
+
   push();
 }
-for (const b of document.querySelectorAll('.preset'))
-  b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.k); apply(b.dataset.k); };
+
 // ONE navigation entry point. The logic used to live inline inside the keydown
 // listener, so the slider buttons had nothing to call -- every new control would
 // have had to reimplement the guard and the wrap.
@@ -868,6 +863,11 @@ window.up = (what) => {
   if (what === 'sun' || what === 'all') take(UP.sun);
   if (what === 'cloth' || what === 'all') take(UP.cloth);
   if (what === 'figures' || what === 'all') { figuresUp = true; view.set('uFigFade', 1); }
+  if (what === 'type' || what === 'all') {
+    typeUp = true; state.typeInk = tuned.typeInk;
+    setRise(1); setLockup(LOOKS[lookIx].name.toUpperCase(), '°01');
+  }
+  if (what === 'chrome' || what === 'all') { chromeUp = true; document.body.classList.add('reveal'); }
   if (what === 'slider' || what === 'all') { sliderUp = true; }
   if (what === 'loader') { loaderArmed = true; revealT = -1; load = 0; bootAt = performance.now(); return 'loader armed — reload to watch it'; }
   if (what === 'all') { Object.assign(state, tuned); }
@@ -879,6 +879,9 @@ window.up = (what) => {
 
 apply(LOOKS[0].id);
 if (COLD) { view.set('uFigFade', 0); send(state); }
+
+// asked for on camera: the light body only. everything else stays cold.
+if (COLD) window.up('sun');
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A
@@ -927,9 +930,14 @@ function stepLoader(now) {
   // Cold, there is nothing to open onto. Hand over on the first frame and let
   // the sun be asked for instead.
   if (COLD && !loaderArmed) {
+    // Cold there is nothing to open onto, so the loader stands down -- but it
+    // must not run its reveal either. The reveal adds body.reveal, which brings
+    // the entire page chrome in on its own, and paints the lockup: two things
+    // arriving that nobody asked for.
     view.set('uLoadCover', 0);
     view.set('uFigFade', 0);
-    if (revealT < 0) { revealT = now - REVEAL_MS; load = 1; }
+    view.set('uTypeShow', 0);
+    load = 1;
     return;
   }
   // NOTHING here may decelerate. Three separate mechanisms used to, and they
@@ -1045,7 +1053,8 @@ function stepLoader(now) {
 
   if (!revealed) {
     revealed = true;
-    document.body.classList.add('reveal');
+    if (chromeUp || !COLD) document.body.classList.add('reveal');
+    typeUp = true;
     // NOT scrambleTo here. The opening is the word arriving for the first
     // time, and a shuffle says it is being replaced.
     setRise(0);
@@ -1152,7 +1161,7 @@ function frame(t) {
   view.set('uFigMode', Math.round(state.figMode ?? 0));
   if (!tween) { view.set('uWave', 0); view.set('uWaveAmt', 0); }
 
-  if (typeTex) {
+  if (typeTex && typeUp) {
     gl0.activeTexture(gl0.TEXTURE0 + 3);
     gl0.bindTexture(gl0.TEXTURE_2D, typeTex.tex);
     view.set('uType', 3);

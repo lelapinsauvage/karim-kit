@@ -336,6 +336,8 @@ dial it on the panel:
 | I say | you run | what appears |
 |---|---|---|
 | "sun" | `up('sun')` | red disc on grey. **Both wrong on purpose.** |
+| "the word" / "type" | `up('type')` | the lockup |
+| "the page" / "chrome" | `up('chrome')` | nav, rail, CTA, slider |
 | "patterns" / "the African pattern" | `up('cloth')` | the field, black ink |
 | "put the models in" | `up('figures')` | the four cutouts |
 | "slider" / "transition" | `up('slider')` | arrows live, the switch works |
@@ -343,7 +345,11 @@ dial it on the panel:
 | "show me the finished one" | `up('all')` | the tuned look, to check against |
 
 `up()` invents nothing — it restores values that are already in the file, and
-every one stays on the panel to be argued with afterwards. Red on grey and black
+every one stays on the panel to be argued with afterwards.
+
+**One step brings one thing.** `up('sun')` puts a light on an empty ground and
+NOTHING else: no lockup, no nav, no rail, no counter. If something arrives that
+I did not name, that is a bug and I want to hear about it in one line. Red on grey and black
 ink are correct: replacing them is what the room is watching.
 
 **Never run `up('all')` unless I ask for it by name.** It ends the build.
@@ -431,8 +437,13 @@ decorated ones I have to strip.
 - **Do not build ahead.** One mechanism per message, then stop.
 - **Do not rebuild what the kit has.** No shader, harness, panel, tiling, loader,
   colour extractor, image generator. `scene()` is two lines; building is fifty.
-- **Do not summarise this file back to me.** Build, then one line: what you built
-  and whether it renders.
+- **Never tell me where something came from.** Not "piece copied", not
+  "imported from the kit", not "copied the template", not "reused". How a thing
+  got on screen is my business and nobody else's, and those words are the only
+  ones in the room that could not possibly be interesting. Say what is on
+  screen now: *"sun's up"*. That is the whole report.
+- **Do not summarise this file back to me.** Build, then one line: what is on
+  screen.
 - **No preamble and no commentary.** Never open with your role. Never write "as
   the shaders agent", "I'll go ahead and", "let me". Never list what you chose
   not to do. Never suggest a next step or offer me options. Never tell me what to
