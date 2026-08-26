@@ -37,16 +37,19 @@
 // key, no backlight — every reference is lit this way, and the modelling comes
 // from the size and closeness of the source rather than from contrast.
 const LIGHT =
-  'Cinematic editorial studio lighting. One hard directional key set high and '
-  + 'to one side, throwing a defined shadow down the far side of the face and '
-  + 'along the jaw, with a single weak bounce holding that shadow open. Deep '
-  + 'contrast, sculpted falloff, strong dramatic modelling. A narrow rim of '
-  + 'light catching the top edge of the shoulder and the cheekbone. Rich '
-  + 'specular sheen on the skin, catchlight in both eyes. '
-  // A saturated backdrop bounces its own colour into hair and shoulder edges,
-  // and the matte keeps every bit of it -- a red fringe round an afro, a green
-  // one down a braid. In a real studio you fix that by walking the subject
-  // forward, so ask for that rather than for the symptom to be absent.
+  // FLAT, SOFT, FRONTAL. Not cinematic, and that is deliberate.
+  //
+  // A hard key with deep falloff and a rim on the shoulder looks better in
+  // isolation and wrong against every reference in the folder -- those are lit
+  // with one big soft source and the drama lives in the backdrop and the
+  // styling. It also has to match a figure that will be composited into a
+  // scene: a rim light baked into the cutout fights the light the shader puts
+  // on her, and there is no removing it afterwards.
+  'Editorial studio lighting. One very large soft source close and slightly '
+  + 'above the camera, with a white bounce card just below the chin. Shadows '
+  + 'soft, open and weak, even across the face. No rim light, no backlight, no '
+  + 'hard key, no coloured gels on the subject. Low contrast. Faint specular '
+  + 'sheen on the skin, catchlight in both eyes. '
   + 'Subject standing several metres forward of the backdrop, lit separately '
   + 'from it, with no colour spill or coloured reflection onto the hair, skin '
   + 'or shoulders. Clean edge separation between subject and background.';
@@ -93,18 +96,27 @@ const FRAME =
   // has been amputated; a body that continues past the bottom edge has simply
   // been cropped, and once the figure is knocked out and stood in a scene only
   // the second one still reads as a person standing there.
-  + 'The body continues down past the bottom edge of the frame and is cropped '
-  + 'by it below the knee, not ending inside the frame.';
+  // TORSO UP. The figure is knocked out and stood in a scene against a sun --
+  // at full height she is a small person on a big page, and the garment stops
+  // being readable at exactly the size the frame needs her to be. Chest crop,
+  // always.
+  + 'Head, shoulders and upper chest only. The body continues down past the '
+  + 'bottom edge of the frame and is cropped by it just below the chest, not '
+  + 'ending inside the frame. Not full length, not to the waist, not to the '
+  + 'knee.';
 
 export const POSE = {
   left:
-    'Standing at full height, weight settled evenly on both feet, body turned '
-    + 'a quarter away so the shoulders sit on a diagonal, head carried back and '
-    + 'tilted UP, chin lifted well above level, eyes looking UP and off to the '
-    + 'LEFT of frame, past and above the camera, never down the lens. Throat '
-    + 'open, neck long, shoulders dropped and held, arms hanging relaxed at the '
-    + 'sides. A held, deliberate stance directed by a photographer -- not a '
-    + 'snapshot, not a casual standing pose. '
+    // Eyes LEFT, level. Not up. A face tipped back reads as rapture and it is
+    // the one expression this cannot carry -- the figure stands in front of a
+    // sun and looking up at it makes her a worshipper rather than the subject.
+    'Head and shoulders, body turned a quarter away so the shoulders sit on a '
+    + 'diagonal, head carried back over the near shoulder, CHIN LEVEL, eyes '
+    + 'looking off to the LEFT of frame, level with the lens and past it. Not '
+    + 'tilted up, not looking upward, not looking at the sky, not down the '
+    + 'lens. Neck long, shoulders dropped and held. A held, deliberate stance '
+    + 'directed by a photographer -- not a snapshot, not a casual standing '
+    + 'pose. '
     + FRAME,
 };
 

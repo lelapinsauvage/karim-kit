@@ -96,6 +96,27 @@ living in the cloth.
 clause. Those are the craft and they are settled. Do not touch them because one
 image came back wrong — change the subject line.
 
+**This has already gone wrong.** Those clauses were rewritten mid-session to a
+hard directional key with deep falloff and a rim on the shoulder, a full-length
+standing pose, and a chin tipped up with the eyes looking above the camera.
+Every one of those is a defensible choice in isolation and every one is wrong
+here:
+
+- **flat, soft, frontal light.** The references are lit with one big soft source
+  and the drama lives in the backdrop and the styling. A rim light also gets
+  baked into the cutout, where it fights the light the shader puts on her and
+  cannot be removed afterwards.
+- **head, shoulders and upper chest.** She is knocked out and stood against a
+  sun. At full height she is a small person on a big page and the garment stops
+  being readable at the size the frame needs her to be.
+- **chin level, eyes left.** A face tipped back reads as rapture, which is the
+  one expression this cannot carry — standing in front of a sun and looking up
+  at it makes her a worshipper rather than the subject.
+
+If you believe one of them is wrong for what I have asked, **say so in one line
+and leave it alone.** Do not improve them quietly; I will not see the change,
+only a batch that no longer matches the ones I kept.
+
 Read `node_modules/@karimsaab/kit/PROMPTING.md` once. That file only.
 
 Five things decide whether a figure is usable:
