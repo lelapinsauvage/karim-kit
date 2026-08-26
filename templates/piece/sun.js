@@ -331,7 +331,21 @@ let lookIx = 0, lookIxPrev = 0;
 let loaderArmed = !COLD;
 let coldSet = false;
 let figuresUp = !COLD, sliderUp = !COLD, typeUp = !COLD, chromeUp = !COLD;
-const shown = new Set(COLD ? [] : ['sun', 'cloth', 'figures', 'type']);
+// WHAT IS UP SURVIVES A RELOAD.
+//
+// Saving values into this file makes vite reload the page, and the page came
+// back cold every time: red sun, no pattern, nothing on. So handing back a
+// tuned look and having it written down LOOKED exactly like the values being
+// thrown away -- the sun went red at the moment of saving, which is the worst
+// possible moment for it to happen.
+//
+// The values were never lost. The steps were. Both are kept now.
+const SHOWN_KEY = 'sun.shown';
+const restored = (() => {
+  try { return JSON.parse(sessionStorage.getItem(SHOWN_KEY) || '[]'); }
+  catch { return []; }
+})();
+const shown = new Set(COLD ? restored : ['sun', 'cloth', 'figures', 'type']);
 
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
@@ -982,6 +996,7 @@ window.up = (what) => {
 
   if (what === 'all') ['sun','cloth','figures','type'].forEach((k) => shown.add(k));
   else if (SHOWN_KEYS.includes(what)) shown.add(what);
+  try { sessionStorage.setItem(SHOWN_KEY, JSON.stringify([...shown])); } catch {}
   window.__rebuildPanel?.();
   send(state);
   window.__syncPanel?.();
@@ -990,6 +1005,19 @@ window.up = (what) => {
 
 apply(LOOKS[0].id);
 if (COLD) { view.set('uFigFade', 0); send(state); }
+
+// Put back whatever was up before the reload. Same calls, same order, so a save
+// lands you exactly where you were rather than back at an empty page.
+if (COLD && restored.length) {
+  for (const k of ['sun', 'cloth', 'figures', 'type']) if (restored.includes(k)) window.up(k);
+  console.log('restored:', restored.join(' '));
+}
+
+// back to nothing, on purpose
+window.reset = () => {
+  try { sessionStorage.removeItem(SHOWN_KEY); } catch {}
+  location.reload();
+};
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A

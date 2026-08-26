@@ -146,6 +146,17 @@ the next reload — by which time I cannot remember what it was.
 
 Then say `saved`. One word.
 
+**Writing the file reloads the page.** That is vite, it is unavoidable, and it
+used to undo every step — the sun went red and the pattern vanished at the exact
+moment of saving, which looked precisely like the values being thrown away.
+
+They never were. What is up now survives the reload and comes back by itself, so
+after `saved` the frame is where I left it. If it is NOT — if the sun comes back
+red or the pattern is gone — say so in one line. That is a bug, not me needing
+to ask for it again.
+
+`reset()` in the console goes deliberately back to an empty page.
+
 If the block will not paste cleanly — a key you do not recognise, a shape that
 does not match — **say so and paste nothing.** A half-applied block is worse
 than none, because the frame then disagrees with the panel and neither of us
