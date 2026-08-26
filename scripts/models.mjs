@@ -76,30 +76,36 @@ const SKIN =
 // exists reads as damage rather than as a crop -- and a puffer or a wide
 // shoulder eats far more width than a head-and-shoulders crop expects.
 const FRAME =
-  'Framed wide, with a clear margin of empty backdrop on the left and the right '
-  + 'and above the head. Both sleeves and the full width of the shoulders sit '
-  + 'well inside the frame and never touch the left or right edge. '
-  // Sides and top clear, bottom RUNNING OFF. A body that stops inside the frame
-  // has been amputated; a body that continues past the bottom edge has simply
-  // been cropped, and once the figure is knocked out and stood in a scene only
-  // the second one still reads as a person standing there.
-  + 'The body continues down past the bottom edge of the frame and is cropped '
-  + 'by it at the chest, not ending inside the frame.';
+  // ONE clause about the crop. Not four.
+  //
+  // The frame is a PORTRAIT: head, shoulders, upper chest, and the bottom edge
+  // cuts across the chest. Not the waist, not the knee, not full length -- the
+  // figure is knocked out and stood against a sun, and at full height she is a
+  // small person on a big page with the garment unreadable.
+  'A tight head-and-shoulders portrait. The top of the head has clear empty '
+  + 'backdrop above it and is never cut. Both shoulders sit well inside the '
+  + 'frame with backdrop beyond them on each side and never touch either edge. '
+  + 'The bottom edge of the frame cuts across the CHEST, so the body runs off '
+  + 'the bottom rather than ending inside the picture. No waist, no hips, no '
+  + 'legs, no full-length figure.';
 
 export const POSE = {
-  centre:
-    'Head and shoulders, square to camera, chin level, looking straight down '
-    + 'the lens, chin a fraction lifted, jaw set, shoulders dropped and square. '
-    + 'A held, deliberate stance directed by a photographer -- not a snapshot, '
-    + 'not a casual standing pose. Centred, upright. '
-    + FRAME,
-
   left:
-    'Head and shoulders, body turned a quarter away so the shoulders sit on a '
-    + 'diagonal, face turned back and eyes looking off to the LEFT of frame, '
-    + 'past the camera, chin a fraction lifted, neck long, shoulders dropped '
-    + 'and held. A deliberate stance directed by a photographer -- not a '
-    + 'snapshot, not a casual standing pose. '
+    // WHICH WAY SHE TURNS.
+    //
+    // "turned a quarter away" says nothing about direction, so half the set
+    // came back facing right while the eyes went left -- a body pointing one
+    // way and a gaze the other reads as a person being called from off-camera,
+    // not as a figure standing in a frame. Direction is named now, and named
+    // twice.
+    'Head and shoulders, STANDING UPRIGHT, never seated. The body is turned a '
+    + 'quarter to the LEFT so the left shoulder is nearer the camera and the '
+    + 'right shoulder further away, the head carried back over the near '
+    + 'shoulder, CHIN LEVEL, eyes looking off to the LEFT of frame past the '
+    + 'camera. Turned left, looking left. Not turned to the right, not facing '
+    + 'right, not tilted up, not looking upward, not down the lens. Neck long, '
+    + 'shoulders dropped and held. A deliberate stance directed by a '
+    + 'photographer -- not a snapshot, not a casual standing pose. '
     + FRAME,
 };
 
@@ -129,47 +135,43 @@ const GROUND = (colour) =>
 // Naming the hair matters as much as naming the skin. Box braids, coiled locs,
 // a beaded skullcap: these are what make the face read as the person intended
 // rather than as an average.
+// TEN PEOPLE. Twenties and thirties, all of them.
+//
+// No ageing markers at all -- no grey, no lines, no weathering, no hooded eyes.
+// They read as character in a description and as age in a photograph, and this
+// is a clothing line: the face has to be someone who could be wearing it now.
+//
+// Each carries something the others do not, because reusing a sentence returns
+// the same face. Specific, not flattering: a gap in the teeth, a broad nose, a
+// birthmark are what make a face a person rather than a composite.
+//
+// The expression is fixed and it is the same for all of them: level, mouth
+// closed, unreadable. No smile, no reaction, no warmth toward the lens.
+const FACE = 'Expression level and composed, mouth closed, unreadable. '
+  + 'Not smiling, not laughing, no reaction, not friendly toward the camera.';
+
 const WHO = {
-  f01: 'A Black American woman in her early twenties, deep blue-black skin, '
-    + 'round full face, wide-set eyes, a dense scatter of freckles across the '
-    + 'nose and cheeks, a small gap between her front teeth. Openly amused, '
-    + 'caught on the edge of a laugh, mouth just parted and the gap showing.',
-  f02: 'A Black American woman in her thirties, warm russet-brown skin, long '
-    + 'neck, high angular cheekbones, a broad nose and full mouth, a raised '
-    + 'beauty mark beside the right eye. Composed and level, mouth closed, '
-    + 'the expression withheld and unreadable.',
-  f03: 'A Black American woman in her forties, light golden-amber skin, soft '
-    + 'square face, deep laughter lines at the eyes, a small mole above the '
-    + 'lip, grey coming through at the temples. Dry and wry, one eyebrow '
-    + 'lifted, the corner of the mouth barely up.',
-  f04: 'A Black American woman in her late twenties, dark umber skin, narrow '
-    + 'face, sharp pointed chin, heavy straight brows, pale vitiligo patches '
-    + 'across one cheek and down the side of the throat. Cool and defiant, '
-    + 'jaw set hard, mouth closed, entirely unsmiling.',
-  f05: 'A Black American woman in her fifties, deep espresso skin, strong '
-    + 'square jaw, broad forehead, a deep vertical furrow between the brows, '
-    + 'a silver-white streak at the front hairline. Bright and startled open, '
-    + 'brows lifted, eyes wide, the breath caught.',
-  m01: 'A Black American man in his late twenties, deep chocolate-brown skin, '
-    + 'square heavy jaw, thick low brow, a fine scar cutting through one '
-    + 'eyebrow, a wide mouth. Guarded and wary, brows drawn slightly '
-    + 'together, mouth flat and closed.',
-  m02: 'A Black American man in his forties, dark bronze skin with a reddish '
-    + 'undertone, lined forehead, a wide flat nose, a chipped front tooth, a '
-    + 'short beard with grey coming through it. Warm and easy, a broad open '
-    + 'smile, the chipped tooth showing.',
-  m03: 'A Black American man in his early twenties, very dark skin, lean '
-    + 'angular face, high forehead, deep-set eyes, a raised keloid mark along '
-    + 'the jawline, no facial hair. Bored and heavy-lidded, eyes half closed, '
-    + 'entirely unimpressed.',
-  m04: 'A Black American man in his thirties, medium tan-brown skin, broad '
-    + 'round face, thick moustache, a gold-capped upper tooth, freckles across '
-    + 'both cheeks. Solemn and grave, mouth closed and still, weight behind '
-    + 'the eyes.',
-  m05: 'A Black American man in his fifties, dark walnut skin, hooded eyes, a '
-    + 'heavy drooping moustache going grey, deep lines running from nose to '
-    + 'mouth, a smooth burn scar across the left temple. Intent and '
-    + 'concentrating, brows low, jaw carried slightly forward.',
+  p01: 'A Black woman in her early twenties, deep blue-black skin, round full '
+    + 'face, wide-set eyes, a dense scatter of freckles across the nose and '
+    + 'cheeks. ' + FACE,
+  p02: 'A Black woman in her thirties, warm russet-brown skin, long neck, high '
+    + 'angular cheekbones, a broad nose and full mouth. ' + FACE,
+  p03: 'A Black woman in her mid twenties, golden-amber skin, oval face, a '
+    + 'small beauty mark beside the right eye, arched brows. ' + FACE,
+  p04: 'A Black woman in her late twenties, dark umber skin, narrow face, '
+    + 'sharp jaw, a small gap between the front teeth. ' + FACE,
+  p05: 'A Black man in his late twenties, deep chocolate-brown skin, square '
+    + 'jaw, heavy brow, a fine scar through one eyebrow. ' + FACE,
+  p06: 'A Black man in his early thirties, dark bronze skin with a reddish '
+    + 'cast, broad forehead, wide flat nose. ' + FACE,
+  p07: 'A Black man in his early twenties, very dark skin, lean face, sharp '
+    + 'cheekbones, a wide mouth. ' + FACE,
+  p08: 'A Black man in his thirties, medium tan-brown skin, broad face, full '
+    + 'beard kept very short, a chipped front tooth. ' + FACE,
+  p09: 'A Black woman in her late twenties, deep espresso skin, strong straight '
+    + 'nose, deep-set eyes, a birthmark on one temple. ' + FACE,
+  p10: 'A Black man in his early thirties, dark walnut skin, clean-shaven, '
+    + 'heavy jaw, a smooth scar across the left temple. ' + FACE,
 };
 
 // STREETWEAR SILHOUETTES CUT FROM HERITAGE TEXTILE -- a plate carrier made of
@@ -178,71 +180,65 @@ const WHO = {
 // clothing line and a costume department. Nothing ceremonial, nothing tribal,
 // nothing "inspired by".
 export const MODELS = [
-  ['a01', POSE.left, 'deep cobalt blue', WHO.f01,
+  ['a01', POSE.left, 'deep cobalt blue', WHO.p01,
     'Wearing a boxy short-sleeved camp-collar shirt in heavy cotton, a '
-    + 'wax-print concentric-disc repeat dyed into the cloth in vermilion, ochre '
-    + 'yellow and cream, blunt squared shoulders, open at the throat over a '
+    + 'wax-print concentric-disc repeat dyed into the cloth in vermilion and ochre yellow and cream, blunt squared shoulders, open at the throat over a '
     + 'black ribbed sleeveless tank top. Large hammered brass hoop earrings. Coiled twists '
     + 'gathered high off the crown into a tall standing pineapple.'],
 
-  ['a02', POSE.left, 'burnt terracotta', WHO.f02,
+  ['a02', POSE.left, 'burnt terracotta', WHO.p02,
     'Wearing a short-sleeved knitted jacquard polo shirt, a mosaic quatrefoil '
-    + 'repeat knitted into the yarn in cobalt blue and acid yellow, contrast '
+    + 'repeat knitted into the yarn in cobalt blue and acid yellow and cream, contrast '
     + 'cream ribbed collar, open at the throat. A flat cast brass collar at the neck. A big round afro picked '
     + 'out full and even.'],
 
-  ['a03', POSE.left, 'hot pink', WHO.f03,
+  ['a03', POSE.left, 'hot pink', WHO.p03,
     'Wearing a sleeveless tank top, kente strip-weave banding woven through '
     + 'the cloth in emerald green, ochre yellow and black, blunt squared '
     + 'armholes, high straight neckline. A tight cowrie shell choker at the throat. Natural '
     + 'hair cropped close and tapered to the skin at the sides.'],
 
-  ['a04', POSE.left, 'acid green', WHO.f04,
-    'Wearing a blunt boxy short-sleeved shirt in indigo-dyed cotton, cracked '
-    + 'adire resist medallions dyed into the cloth in deep indigo and chalk '
-    + 'white, worn open over a vermilion ribbed sleeveless tank top. A single heavy brass cuff earring '
-    + 'wrapping the upper ear. A big round afro picked out wide and even.'],
+  ['a04', POSE.left, 'acid green', WHO.p04,
+    'Wearing a blunt boxy short-sleeved shirt in cotton, cracked adire resist '
+    + 'medallions dyed into the cloth in hot pink and tangerine orange, blunt '
+    + 'squared shoulders, open at the throat. A single flat brass ear cuff. '
+    + 'Long fine box braids gathered high.'],
 
-  ['a05', POSE.left, 'deep oxblood red', WHO.m01,
+  ['a05', POSE.left, 'deep oxblood red', WHO.p05,
     'Wearing a short-sleeved shirt in open-weave cotton gauze, the weave '
-    + 'visible in the cloth, wide bands of acid green and natural straw with '
-    + 'domino-dot geometry woven in, blunt squared shoulders, worn open over a '
+    + 'visible in the cloth, wide bands of mustard yellow and deep brown, blunt squared shoulders,  open over a '
     + 'cobalt blue ribbed sleeveless tank top. Long hammered brass ear drops, tapered blades. Cornrows '
     + 'braided flat in tight arcs across the scalp, falling into short locs at '
     + 'the nape.'],
 
-  ['a06', POSE.left, 'marigold yellow', WHO.m02,
+  ['a06', POSE.left, 'marigold yellow', WHO.p06,
     'Wearing a sleeveless kente tank top, strip-weave bands woven through the '
     + 'cloth in cobalt blue, emerald green and black, blunt squared armholes, '
     + 'high straight neckline. A heavy hammered brass cuff on one wrist. A short flat-topped '
     + 'afro, faded to the skin at the sides.'],
 
-  ['a07', POSE.left, 'violet purple', WHO.m03,
+  ['a07', POSE.left, 'violet purple', WHO.p07,
     'Wearing a boxy short-sleeved knitted polo shirt, a bogolan mud-cloth '
-    + 'lattice knitted into the yarn in tangerine orange, chalk white and '
-    + 'black, contrast black ribbed collar, open at the throat. A single flat brass disc '
+    + 'lattice knitted into the yarn in scarlet and forest green, contrast black ribbed collar, open at the throat. A single flat brass disc '
     + 'pendant on a short chain. A high flat-top fade with sharp squared '
     + 'edges.'],
 
-  ['a08', POSE.left, 'mint green', WHO.m04,
+  ['a08', POSE.left, 'pale mint', WHO.p08,
     'Wearing a short-sleeved camp-collar shirt in heavy cotton, a wax-print '
-    + 'broken-record spiral repeat dyed into the cloth in vermilion, cream and '
-    + 'black, blunt squared shoulders, open at the throat over a cream ribbed '
+    + 'broken-record spiral repeat dyed into the cloth in turquoise and burnt sienna, blunt squared shoulders, open at the throat over a cream ribbed '
     + 'sleeveless tank top. A '
     + 'row of cowrie shells strung tight at the throat. Shoulder-length '
     + 'free-form locs, thick and uneven, tied back off the face.'],
-  ['a09', POSE.left, 'deep teal', WHO.f05,
+  ['a09', POSE.left, 'deep teal', WHO.p09,
     'Wearing a sleeveless boxy tank top in aso-oke strip-weave cotton, narrow '
-    + 'warp stripes and lozenge float-weave figures woven into the cloth in '
-    + 'vermilion, cream and black, blunt squared armholes, high straight '
+    + 'warp stripes and lozenge float-weave figures woven into the cloth in magenta and lime green, blunt squared armholes, high straight '
     + 'neckline. A heavy cast '
     + 'brass torque at the throat. Bantu knots set in even rows across the '
     + 'scalp.'],
 
-  ['a10', POSE.left, 'saffron orange', WHO.m05,
+  ['a10', POSE.left, 'saffron orange', WHO.p10,
     'Wearing a short-sleeved camp-collar shirt in heavy cotton, a wax-print '
-    + 'cowrie-and-spiral repeat dyed into the cloth in cobalt blue, chalk '
-    + 'white and black, blunt squared shoulders, open at the throat over a '
+    + 'cowrie-and-spiral repeat dyed into the cloth in ochre and midnight blue, blunt squared shoulders, open at the throat over a '
     + 'cobalt blue ribbed sleeveless tank top. One large flat hammered brass disc earring. '
     + 'Natural hair shaved close and tapered to the skin all over.'],
 ];

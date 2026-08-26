@@ -192,6 +192,31 @@ REFS="..." nohup node node_modules/@karimsaab/kit/scripts/batch.mjs j02 j06 j08 
 **Never regenerate the whole set to fix three.** The good ones are good, they
 cost money, and a rerun rolls a different face.
 
+## The five things that get a figure rejected
+
+Every one of these has come back and been thrown away. They are settled.
+
+**Nobody old.** Twenties and thirties. No grey, no lines, no weathering, no
+hooded eyes — those read as character in a sentence and as age in a photograph,
+and this is a clothing line.
+
+**Nobody smiling.** Level, mouth closed, unreadable. No reaction, no warmth
+toward the lens. A smile makes it an advert.
+
+**Standing, never seated.** And head-and-shoulders: the bottom edge cuts across
+the chest. No waist, no legs, no full-length figure — she is knocked out and
+stood against a sun, and at full height she is a small person on a big page.
+
+**Turned LEFT and looking LEFT.** Both, named. "Turned a quarter away" says
+nothing about direction, so half a set came back facing right with the eyes
+going left — a body pointing one way and a gaze the other reads as someone being
+called from off-camera.
+
+**A different colour for every figure.** Ten backdrops, ten garment pairings,
+no repeats. The set is a lookbook: ten photographs that share a light and share
+nothing else. Two figures in the same colours look like one figure
+photographed twice.
+
 ## The prompt gets WORSE as it gets longer
 
 The figures that got kept came from a 2100-character prompt. By the time they
