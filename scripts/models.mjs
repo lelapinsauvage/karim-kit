@@ -144,15 +144,43 @@ const GROUND = (colour) =>
 // Naming the hair matters as much as naming the skin. Box braids, coiled locs,
 // a beaded skullcap: these are what make the face read as the person intended
 // rather than as an average.
+// TEN PEOPLE, not four descriptions used twice each.
+//
+// Four WHO blocks across ten figures meant three of them opened with the same
+// sentence word for word -- and the same sentence returns the same face, because
+// a description with nothing specific in it resolves to the model's average of
+// that description. The set then reads as one person photographed ten times in
+// different clothes, which is what a lookbook must never look like.
+//
+// So: one per figure, and each carries something the others do not. Age,
+// the shape of the face, a mark, the hair. Specific beats flattering -- a gap
+// in the teeth, a heavy brow, freckles, a shaved head are what make a face a
+// person rather than a composite.
 const WHO = {
-  w1: 'A dark-skinned Black woman with deep brown skin and West African '
-    + 'features, high cheekbones, freckles across the nose.',
-  w2: 'A dark-skinned Black woman with very deep brown skin, a broad nose and '
-    + 'full mouth, fine raised scarification lines across both cheekbones.',
-  m1: 'A dark-skinned Black man with deep brown skin and West African features, '
-    + 'a strong jaw and heavy brow.',
-  m2: 'A dark-skinned Black man with very deep brown skin, close-shaved head, '
-    + 'sharp cheekbones.',
+  p01: 'A dark-skinned Black woman in her early twenties, deep brown skin, '
+    + 'round face, wide-set eyes, a scatter of freckles across the nose and '
+    + 'cheeks, a small gap between her front teeth.',
+  p02: 'A dark-skinned Black woman in her thirties, very deep brown skin, long '
+    + 'neck, high angular cheekbones, a broad nose and full mouth, fine raised '
+    + 'scarification lines across both cheekbones.',
+  p03: 'A dark-skinned Black man in his late twenties, deep brown skin, square '
+    + 'jaw, heavy brow, a fine scar through one eyebrow, close-cropped hair.',
+  p04: 'A dark-skinned Black woman in her forties, deep brown skin, softer '
+    + 'face, laughter lines at the eyes, a small mole above the lip, greying '
+    + 'at the temples.',
+  p05: 'A dark-skinned Black man in his early twenties, very deep brown skin, '
+    + 'narrow face, sharp cheekbones, a wide mouth, shaved head.',
+  p06: 'A dark-skinned Black woman in her late twenties, warm deep brown skin, '
+    + 'strong straight nose, deep-set eyes, a birthmark on one temple.',
+  p07: 'A dark-skinned Black man in his thirties, deep brown skin, full beard '
+    + 'kept short, broad forehead, a chipped front tooth.',
+  p08: 'A dark-skinned Black woman in her early thirties, very deep brown skin, '
+    + 'oval face, long lashes, a beauty spot on one cheek, arched brows.',
+  p09: 'A dark-skinned Black man in his forties, deep brown skin, lined '
+    + 'forehead, a wide flat nose, grey coming through at the temples.',
+  p10: 'A dark-skinned Black woman in her twenties, deep brown skin, heart-'
+    + 'shaped face, small chin, a nose ring hole without the ring, freckled '
+    + 'shoulders.',
 };
 
 // STREETWEAR SILHOUETTES CUT FROM HERITAGE TEXTILE -- a plate carrier made of
@@ -219,67 +247,67 @@ const POSE_J = {
 // so it reads as a line. Half the set wears the sculpted visor; the rest keep
 // the face clear.
 export const MODELS = [
-  ['a01', POSE.left, 'deep cobalt blue', WHO.w1,
+  ['a01', POSE.left, 'deep cobalt blue', WHO.p01,
     'Wearing a boxy short-sleeved camp-collar shirt in heavy Dutch wax cotton, '
     + 'the geometry printed through the weave in vermilion, ochre yellow and '
     + 'cream, blunt squared shoulders, worn open over a black ribbed sleeveless '
     + 'tank top. Large hammered brass hoop earrings. Long fine box braids '
     + 'gathered high off the ears.'],
 
-  ['a02', POSE.left, 'burnt terracotta', WHO.m1,
+  ['a02', POSE.left, 'burnt terracotta', WHO.p02,
     'Wearing a short-sleeved knitted jacquard polo shirt, the diamond geometry '
     + 'knitted into the yarn in cobalt blue and acid yellow, contrast cream '
     + 'ribbed collar, open at the throat. A flat cast brass collar at the neck. '
     + 'Short coiled hair, faded at the sides.'],
 
-  ['a03', POSE.left, 'hot pink', WHO.w2,
+  ['a03', POSE.left, 'hot pink', WHO.p03,
     'Wearing a sleeveless kente tank top, the bands woven through the cloth in '
     + 'ochre yellow, emerald green and black, blunt squared armholes, high '
     + 'straight neckline. A tight cowrie shell choker at the throat. Tight '
     + 'coiled locs in a high sculptural knot.'],
 
-  ['a04', POSE.left, 'acid green', WHO.m2,
+  ['a04', POSE.left, 'acid green', WHO.p04,
     'Wearing a blunt boxy short-sleeved work shirt in indigo adire, the pale '
     + 'cracked resist geometry dyed into the cloth in deep indigo and chalk '
     + 'white, worn open over a vermilion ribbed sleeveless tank top. A single '
     + 'heavy brass cuff earring wrapping the upper ear. Close-shaved head.'],
 
-  ['a05', POSE.left, 'deep oxblood red', WHO.w1,
+  ['a05', POSE.left, 'deep oxblood red', WHO.p05,
     'Wearing a short-sleeved shirt woven from fine raffia yarn, the open weave '
     + 'visible in the cloth, wide bands of acid green and natural straw, blunt '
     + 'squared shoulders, worn open over a cobalt blue ribbed sleeveless tank '
     + 'top. Long hammered brass ear drops, tapered blades. Long fine box braids '
     + 'gathered high off the ears.'],
 
-  ['a06', POSE.left, 'pale mint', WHO.m1,
+  ['a06', POSE.left, 'pale mint', WHO.p06,
     'Wearing an oversized short-sleeved camp-collar shirt in heavy wax-print '
     + 'cotton, the geometry through the weave in cobalt blue, ochre yellow and '
     + 'black, hard squared slab shoulders, worn open over a cream ribbed '
     + 'sleeveless tank top. A wide hammered brass cuff high on one forearm. '
     + 'Shoulder-length locs pushed back off the ears.'],
 
-  ['a07', POSE.left, 'flat olive green', WHO.w2,
+  ['a07', POSE.left, 'flat olive green', WHO.p07,
     'Wearing a short-sleeved knitted jacquard polo shirt, the stepped geometry '
     + 'knitted into the yarn in vermilion and chalk cream, contrast black '
     + 'ribbed collar, worn over an acid yellow ribbed tank top. Wide flat brass '
     + 'disc earrings, edge-worn bright. Tight coiled locs in a high sculptural '
     + 'knot.'],
 
-  ['a08', POSE.left, 'bright tangerine', WHO.m2,
+  ['a08', POSE.left, 'bright tangerine', WHO.p08,
     'Wearing a sleeveless kente tank top, the bands woven through the cloth in '
     + 'hot pink, emerald green and cream, blunt squared armholes, worn under a '
     + 'cropped sleeveless vest in black waxed cotton with squared slab '
     + 'shoulders. A short blackened bronze chain at the throat. Close-shaved '
     + 'head.'],
 
-  ['a09', POSE.left, 'warm mustard yellow', WHO.w1,
+  ['a09', POSE.left, 'warm mustard yellow', WHO.p09,
     'Wearing a slab-cut short-sleeved shirt in indigo adire, the pale cracked '
     + 'geometry resist-dyed into the cloth in deep indigo, rust brown and chalk '
     + 'white, squared blunt shoulders, worn open over a cream ribbed sleeveless '
     + 'tank top. A row of cowrie shells strung tight at the throat. Long fine '
     + 'box braids gathered high off the ears.'],
 
-  ['a10', POSE.left, 'deep teal', WHO.m1,
+  ['a10', POSE.left, 'deep teal', WHO.p10,
     'Wearing an oversized boxy short-sleeved shirt in woven kilim, the pattern '
     + 'woven through the cloth in vermilion, chalk white and black, squared slab '
     + 'shoulders, worn open over an emerald green ribbed sleeveless tank top. '

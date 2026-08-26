@@ -100,8 +100,17 @@ Read `node_modules/@karimsaab/kit/PROMPTING.md` once. That file only.
 
 Five things decide whether a figure is usable:
 
-1. **Name the person before the garment.** Skip it and the face comes back
-   racially indeterminate.
+1. **Name the person before the garment — a DIFFERENT person each time.**
+   Skip it and the face comes back racially indeterminate. Reuse the same
+   sentence and you get the same face, because a description with nothing
+   specific in it resolves to the model's average of that description. Four
+   descriptions across ten figures meant three of them opened identically and
+   the set read as one person photographed ten times in different clothes.
+
+   One person per figure, each carrying something the others do not: age, the
+   shape of the face, a mark, the hair. **Specific beats flattering** — a gap in
+   the teeth, a heavy brow, grey at the temples, a birthmark are what make a
+   face a person rather than a composite.
 2. **Flat, soft, frontal light.** No backlight. Looks less impressive alone and
    it is what the references are.
 3. **A saturated coloured seamless**, never grey. The drama is the backdrop and
