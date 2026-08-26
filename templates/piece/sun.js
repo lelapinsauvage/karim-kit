@@ -919,6 +919,7 @@ let revealT = -1;
 const REVEAL_MS = 3200;
 
 function stepLoader(now) {
+  document.body.classList.add('loading');
   // NOTHING here may decelerate. Three separate mechanisms used to, and they
   // compounded into the pause before contact:
   //

@@ -30,7 +30,17 @@ there either.
 You never do anything to the panel. It is built from `LOOKS` every time the page
 reloads, which is every time you write a value.
 
-If anything is on that screen at the start, say so in one line and stop.
+**Everything in `index.html` is hidden by CSS until the thing that owns it
+arrives.** The nav, rail, CTA and slider wait for `body.reveal`; the counter
+waits for `body.loading`, which only the loader adds. Nothing is removed from
+the markup and nothing needs to be.
+
+So if something IS on that screen at the start, it is a missing CSS rule, not
+something to delete. Say which element in one line and stop — deleting it from
+the page would hide the bug and take it out of the reveal it belongs to.
+
+That has happened: the counter had no rule and sat in the corner of an empty
+page reading `000`.
 
 ## There is ONE mechanism
 
