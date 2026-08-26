@@ -19,7 +19,18 @@ Report: `up on 5173`. Nothing else. Not what you copied, not what is available,
 not what I might want next.
 
 **What I must see: a white, empty page.** No sun, no word, no nav, no counter,
-no loader. If anything is on that screen, say so in one line and stop.
+no loader, and **an empty panel** behind `H`.
+
+The panel grows on its own. It shows controls only for what is actually on
+screen: bring the sun up and body, light, ground, grain and the two colours
+appear; bring the cloth up and its group and the ink appear. A control for
+something that is not there reads as broken the moment I drag it, so it is not
+there either.
+
+You never do anything to the panel. It is built from `LOOKS` every time the page
+reloads, which is every time you write a value.
+
+If anything is on that screen at the start, say so in one line and stop.
 
 ## There is ONE mechanism
 
@@ -45,7 +56,9 @@ const LOOKS = [
 | word · title · wordmark · type · the big text | `typeInk: 0.07` |
 | the colours · take them off her · match it to her | run the palette, write the three hex values |
 
-Nav, rail and slider are `layout`'s. The loader plays on load once figures exist.
+Nav, rail, the ticker and the counter belong to `layout`. **The lockup and the
+loader are not yours to bring up either** — the big word arrives with the
+opening, and the opening is asked for by name, last.
 
 **If what I said is not one of those, do not build anything.** Say so in one
 line and name the two closest:

@@ -36,6 +36,14 @@ const HAS_PANEL = !!document.getElementById('r');
 //   the word -> typeInk
 const BLANK = true;
 
+// Handed over once, at init, instead of by a loader that is not running.
+// Anything set per-frame here fights every value I write into LOOKS.
+function blankFrame() {
+  view.set('uLoadCover', 0);
+  view.set('uClothFront', 99);
+  view.set('uTypeShow', 0);
+}
+
 const BLANK_LOOK = BLANK ? {
   r: 0, glow: 0, rimStr: 0, cloth: 0, charge: 0, typeInk: 0,
   pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000',
@@ -313,6 +321,19 @@ if (!HAS_PANEL) {
     tear:[0,3,0.01], thread:[0.2,3,0.01], figMode:[0,3,1], figH:[0.4,2.5,0.005], figX:[-0.8,0.8,0.005], figBleed:[-0.4,0.6,0.005],
     coreX:[-1,1,0.005], coreY:[-1,1,0.005], typeInk:[0,1,0.01],
   };
+  // Which groups are worth showing, read off the look itself.
+  //
+  // A control for something not on screen reads as broken when dragging it does
+  // nothing. Writing a value into LOOKS reloads the page, so the panel grows on
+  // its own as things arrive -- no rebuilding, no tracking, nothing to fall out
+  // of sync with the frame.
+  const L0 = { ...BASE, ...BLANK_LOOK, ...(LOOKS[lookIx] ?? {}) };
+  const LIVE = new Set(['body', 'light', 'ground', 'grain']
+    .filter(() => (L0.r ?? 0) > 0)
+    .concat((L0.cloth ?? 0) > 0 ? ['cloth', 'surface'] : [])
+    .concat(L0.figShow ? ['figure'] : [])
+    .concat((L0.typeInk ?? 0) > 0 ? ['type'] : []));
+
   const GROUPS = [
     ['body',   ['r','edge','coreX','coreY','coreSize','rimBand','drift','wobble']],
     ['light',  ['glow','glowSize','glowMode','rimW','rimStr','rimIn','spread','warmth','purity']],
@@ -323,7 +344,11 @@ if (!HAS_PANEL) {
     ['grain',  ['grain','grainSize','grainMask']],
     ['type',   ['typeInk']],
   ];
-  const COLKEYS = ['pigment','bg','clothInk'];
+  // pigment and bg belong to the sun; ink belongs to the cloth. Same rule.
+  const COLKEYS = [
+    ...(LIVE.has('body') ? ['pigment', 'bg'] : []),
+    ...(LIVE.has('cloth') ? ['clothInk'] : []),
+  ];
 
   const el = document.createElement('aside');
   el.style.cssText = `position:fixed;top:0;right:0;bottom:0;z-index:40;width:236px;
@@ -348,7 +373,8 @@ if (!HAS_PANEL) {
       border:1px solid #ffffff1f;color:#eee;font:9px ui-monospace,monospace;
       letter-spacing:.12em;text-transform:uppercase;padding:6px 2px;cursor:pointer">
       ${n}</button>`).join('') + `</div>` +
-    GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
+    GROUPS.filter(([t]) => LIVE.has(t))
+          .map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
     head('colour') +
     COLKEYS.map((k) => `<div style="display:grid;
       grid-template-columns:48px 26px 1fr;gap:6px;align-items:center;margin-bottom:6px">
@@ -368,7 +394,7 @@ if (!HAS_PANEL) {
   el.style.display = 'none';
   document.body.appendChild(el);
 
-  const ALLNUM = GROUPS.flatMap(([, k]) => k);
+  const ALLNUM = GROUPS.filter(([t]) => LIVE.has(t)).flatMap(([, k]) => k);
   const sync = () => {
     for (const k of ALLNUM) {
       const i = document.getElementById('p-' + k); if (!i) continue;
@@ -376,8 +402,11 @@ if (!HAS_PANEL) {
       document.getElementById('v-' + k).textContent = (+(state[k] ?? 0)).toFixed(3);
     }
     for (const k of COLKEYS) {
-      document.getElementById('c-' + k).value = state[k] ?? '';
-      document.getElementById('s-' + k).value = state[k] ?? '#000000';
+      const hex = document.getElementById('c-' + k);
+      const sw  = document.getElementById('s-' + k);
+      if (!hex || !sw) continue;
+      hex.value = state[k] ?? '';
+      sw.value  = state[k] ?? '#000000';
     }
   };
   window.__syncPanel = sync;
@@ -404,6 +433,8 @@ if (!HAS_PANEL) {
   for (const k of COLKEYS) {
     const hex = document.getElementById('c-' + k);
     const sw  = document.getElementById('s-' + k);
+    // a missing control must never take the page down with it
+    if (!hex || !sw) continue;
     const set = (v) => { commit(k, v); hex.value = v; sw.value = v; send(state); };
     sw.addEventListener('input', () => set(sw.value));
     hex.addEventListener('input', () => {
@@ -842,6 +873,7 @@ if (HAS_PANEL) $('copy').onclick = () => {
 };
 
 apply(LOOKS[0].id);
+if (BLANK) blankFrame();
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A
@@ -1072,7 +1104,10 @@ function stepLoader(now) {
 }
 
 function frame(t) {
-  stepLoader(performance.now());
+  // BLANK skips the opening entirely. The loader is what adds body.reveal and
+  // paints the lockup, so leaving it running was why a page with nothing
+  // decided still arrived with the chrome and the word on it.
+  if (!BLANK) stepLoader(performance.now());
 
   stepTween(t);
   stepWordmark(t);
