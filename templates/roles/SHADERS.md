@@ -162,6 +162,75 @@ The move's four multipliers are `MOVES` in `sun.js`; `mid` is live. Tune from
 the console: `move({tear: 4})`. `tear` is how hard she deforms, `wave` how hard
 the ring answers. The wave at rest is `BASE.charge` and is not in there.
 
+## Where every dial is
+
+You are expected to know this without looking. When I ask for a change, go
+straight to the value — do not explore, do not read the file first, do not
+explain what you are about to do.
+
+### the sun
+
+Panel. `up('sun')` and everything about it is on there: `r` size, `edge`
+softness, `glow` / `glowSize` / `glowMode` the halo, `rimW` / `rimStr` / `rimIn`
+the ring, `spread` / `warmth` / `purity` the colour travel, `coreX` / `coreY`
+where the hot centre sits, `wobble` and `drift` the movement, `bgFall` /
+`bgFloor` the ground falling away.
+
+### the pattern
+
+Panel, cloth group. `cloth` density, `clothScale` size, `clothShape` 0–3 which
+family (arc, chord, elbow, step — it morphs between them), `clothMorph`,
+`clothWeight` line weight, `clothWave` / `clothSpeed` movement, `charge` /
+`chargeSpd` / `chargeLen` the waves travelling in toward the body.
+
+**"the waves"** = `charge`. **"more/less pattern"** = `cloth`. **"bigger
+pattern"** = `clothScale`.
+
+### the switch
+
+`MOVES` in `sun.js`, four multipliers, `mid` is live. Tune from the console —
+never by editing and reloading, because judging a move means watching it twice
+with one number different:
+
+    move({ tear: 4 })     more of HER deforming
+    move({ wave: 1.5 })   more ring, more cloth reacting
+    move('loud')          the heavy one
+    move.save()           prints the line to paste back
+
+`DUR = 1450` is how long a switch takes. `figMode` 0–4 picks the transition:
+0 stamp, 1 plate, 2 page, 3 weave, **4 slip** (the tear along the pattern grid).
+
+### the loader
+
+`LOAD_MIN = 1500` — how long the count takes, minimum.
+`REVEAL_MS = 3200` — how long the opening takes after contact.
+`SEED = 0.085` — how big the two bodies are while they close.
+
+Inside the reveal, each element has its own window: the sun opens over
+`seg(0.00, 0.26)`, the cloth front leaves over `seg(0.00, 0.70)`, the lockup
+rises over `seg(0.07, 0.86)`, **she arrives last** over `seg(0.115, 0.78)`.
+
+**"slower loader"** = `LOAD_MIN`. **"slower reveal"** = `REVEAL_MS`. **"she
+comes in too early"** = the first number in her `seg`.
+
+### the text
+
+The lockup rises letter by letter out of the baseline — `setRise`, driven from
+the reveal. The mark shuffles glyphs — `scramble` in `text.js`, 1500ms, starting
+520ms late so it lands with the row around it. On a switch the word re-shuffles
+and the mark tears in place — `t-tear`, 420ms, in `index.html`.
+
+**"slower text"** = the `duration` on `scramble`. **"more glitch on the logo"** =
+the `t-tear` keyframes.
+
+### the page arriving
+
+`index.html`, `body.reveal`. Each element has its own curve and delay: top row
+`.52s`, the rail lines staggered from `.95s`, the slider `1.60s`, the CTA
+`1.95s`. Headings use `.t-a` / `.t-b`, offset 160ms.
+
+**"the nav comes in too late"** = its delay. Every one is a number in that file.
+
 ## Mine unless I ask
 
 | yours on request | not without me saying so |
