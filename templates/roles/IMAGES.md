@@ -97,3 +97,43 @@ Five things decide whether a figure is usable:
    looking like clip art on fabric.
 
 `a02` is the standard. When something is wrong, it is wrong relative to `a02`.
+
+## When something is clipped, name the OUTERMOST thing
+
+This is the mistake that keeps costing a batch, and it is always the same shape.
+
+The frame clause required both hands inside the frame. They were — resting at
+the collarbone, nowhere near an edge. Both arms were still cut clean off at the
+sides, because raising a forearm to show a watch puts the **elbow** further out
+than anything else in the picture, and nothing in the prompt had ever mentioned
+an elbow.
+
+**A frame set to the second-outermost point crops the outermost one.**
+
+So when I say something is clipped:
+
+1. Look at the image and find **what is actually touching the edge.** Not what
+   the subject is; what the geometry is. Elbow, hair, an earring, a sleeve, a
+   raised heel.
+2. Check whether the prompt names that thing. It usually does not — it names
+   the thing you were thinking about instead.
+3. Add it, **outermost first**, and say it is the widest thing in the picture.
+4. Finish with an instruction, not a description: *"pull the camera back until
+   this is true."* A described state gets averaged into the result; an
+   instruction gets acted on.
+
+Then regenerate only the ones that were wrong:
+
+```bash
+REFS="..." nohup node node_modules/@karimsaab/kit/scripts/batch.mjs j02 j06 j08 \
+  > /tmp/gen.log 2>&1 &
+```
+
+**Never regenerate the whole set to fix three.** The good ones are good, they
+cost money, and a rerun rolls a different face.
+
+## Never widen a rule you have not tested
+
+If a fix does not work twice, the clause is aimed at the wrong thing — say so
+and let me look at the image. Do not keep adding sentences. A prompt with four
+clauses about framing is a prompt where none of them is doing the work.
