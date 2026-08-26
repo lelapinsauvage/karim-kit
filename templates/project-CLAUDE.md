@@ -321,16 +321,42 @@ monkey-patch the kit, do not shadow its functions, do not reimplement its
 maths. A bug I know about takes minutes. A bug wearing a workaround takes an
 evening.
 
+#### The piece starts COLD
+
+Copying it does not put a finished frame on screen. `COLD = true` in `sun.js`
+means every mechanism is present and correct while nothing is resolved: white
+ground, no light, no cloth, no figure, no loader.
+
+That split is the whole point. The mechanisms cannot be re-derived at speed, so
+they are copied. The look is the work, so it is not.
+
+Each subsystem comes up when I ask, at obviously-placeholder values, and then I
+dial it on the panel:
+
+| I say | you run | what appears |
+|---|---|---|
+| "sun" | `up('sun')` | red disc on grey. **Both wrong on purpose.** |
+| "patterns" / "the African pattern" | `up('cloth')` | the field, black ink |
+| "put the models in" | `up('figures')` | the four cutouts |
+| "slider" / "transition" | `up('slider')` | arrows live, the switch works |
+| "loader" | `up('loader')` then reload | the opening, replayed |
+| "show me the finished one" | `up('all')` | the tuned look, to check against |
+
+`up()` invents nothing — it restores values that are already in the file, and
+every one stays on the panel to be argued with afterwards. Red on grey and black
+ink are correct: replacing them is what the room is watching.
+
+**Never run `up('all')` unless I ask for it by name.** It ends the build.
+
 #### Live
 
 Naming you does nothing. Everything below happens because I asked for it.
 
 | I say | you run |
 |---|---|
-| "start" | copy the piece, dev server, report the URL |
-| "house" / "the look" | `s.set(HOUSE)` — 46 tuned values |
-| "sun" | `s.sun()` — grey ground, red disc, **both correct** |
-| "patterns" / "cloth" | `s.cloth(1)` — ink starts black, **correct** |
+| "start" | copy the piece, dev server, report the URL — **white and empty** |
+| "sun" | `up('sun')` |
+| "patterns" / "cloth" | `up('cloth')` |
 | "put her in" | `s.figure(url)`, only a file I name |
 | "take the colours from her" | `await s.palette()` — **only when I say this** |
 | "slider with these" | `s.models(urls, { looks, mode, intensity, onSwitch })` |

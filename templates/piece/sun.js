@@ -19,6 +19,36 @@ const HAS_PANEL = !!document.getElementById('r');
 // The treatment is shared: light ground, glow TINTING rather than adding (you
 // cannot brighten paper), the rim doing the emitting, and the figure left almost
 // undarkened so she stays a photograph rather than a silhouette.
+// COLD START.
+//
+// The piece copied whole puts a finished frame on screen the moment the page
+// loads, and then there is nothing to watch anyone do. The MECHANISMS have to
+// be copied -- the loader's curves, the transition envelope, the scramble's
+// stagger are not derivable at speed -- but the LOOK must not be. Colour,
+// radius, pattern scale and placement are the decisions, and a decision that
+// arrives already made is not a decision.
+//
+// So: everything correct, nothing resolved. White ground, no light, no cloth,
+// no figure, no loader. Each subsystem comes up when it is asked for, at
+// obviously-placeholder values, and gets dialled on the panel.
+//
+//   up('sun')      the light body, red on grey
+//   up('cloth')    the pattern field, black ink
+//   up('figures')  the four cutouts
+//   up('slider')   arrows and the switch
+//   up('loader')   the opening, replayed
+//   up('all')      the finished look, for checking against
+//
+// Set COLD = false to open on the finished piece instead.
+const COLD = true;
+
+const COLD_LOOK = {
+  r: 0, glow: 0, rimStr: 0, spread: 0, bgFall: 0, bgFloor: 1,
+  cloth: 0, charge: 0, light: 0, rake: 0, sheen: 0, grain: 0,
+  wobble: 0, drift: 0, typeInk: 0,
+  pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000',
+};
+
 const BASE = {
   r:0.350, edge:0.146, coreSize:0.99, rimBand:0.75, drift:1.18,
   glow:0.22, glowSize:0.34, glowMode:1, rimW:0.045, rimStr:0.9, rimIn:0.06,
@@ -70,7 +100,17 @@ const LOOKS = [
     material:'Barkcloth on wire' },
 ];
 
-const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id, { ...BASE, ...l }]));
+const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id,
+  COLD ? { ...BASE, ...l, ...COLD_LOOK } : { ...BASE, ...l }]));
+
+// what each step restores, taken from the tuned values so nothing is invented
+const UP = {
+  sun:     ['r', 'glow', 'rimStr', 'spread', 'bgFall', 'bgFloor', 'wobble', 'drift'],
+  cloth:   ['cloth', 'charge', 'light', 'rake', 'sheen'],
+  figures: [],
+  slider:  [],
+  loader:  [],
+};
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', glowMode:'uGlowMode',
@@ -281,6 +321,8 @@ addEventListener('resize', () => { if (wm.to) setLockup(wm.to, wm.num ?? '°01')
 // plain keypress never reaches them.
 const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0, lookIxPrev = 0;
+let loaderArmed = !COLD;
+let figuresUp = !COLD, sliderUp = !COLD;
 
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
@@ -785,6 +827,7 @@ function tear() {
 }
 
 export function go(dir) {
+  if (!sliderUp) return;                // the slider is asked for, like everything else
   if (tween || !dir) return;            // ignore input mid-move
   tear();
   lookIxPrev = lookIx;
@@ -815,7 +858,27 @@ if (HAS_PANEL) $('copy').onclick = () => {
   setTimeout(() => $('copy').textContent = 'copy settings', 900);
 };
 
+// Each step restores its own group of values from the tuned set. Nothing is
+// invented here -- 'up' is a reveal of what was always there, and everything it
+// restores is still on the panel to be argued with afterwards.
+window.up = (what) => {
+  const tuned = { ...BASE, ...LOOKS[lookIx] };
+  const take = (keys) => { for (const k of keys) state[k] = tuned[k]; };
+
+  if (what === 'sun' || what === 'all') take(UP.sun);
+  if (what === 'cloth' || what === 'all') take(UP.cloth);
+  if (what === 'figures' || what === 'all') { figuresUp = true; view.set('uFigFade', 1); }
+  if (what === 'slider' || what === 'all') { sliderUp = true; }
+  if (what === 'loader') { loaderArmed = true; revealT = -1; load = 0; bootAt = performance.now(); return 'loader armed — reload to watch it'; }
+  if (what === 'all') { Object.assign(state, tuned); }
+
+  send(state);
+  window.__syncPanel?.();
+  return what;
+};
+
 apply(LOOKS[0].id);
+if (COLD) { view.set('uFigFade', 0); send(state); }
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A
@@ -831,7 +894,7 @@ for (const f of ASSETS) {
 }
 
 const LOAD_MIN = 1500;      // the count is brisk; the reveal is not              // the opening is a shot, not a wait
-const bootAt = performance.now();
+let bootAt = performance.now();   // reset by up('loader') to replay the opening
 let load = 0, loadDone = false, revealed = false;
 
 const easeIO = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
@@ -861,6 +924,14 @@ let revealT = -1;
 const REVEAL_MS = 3200;
 
 function stepLoader(now) {
+  // Cold, there is nothing to open onto. Hand over on the first frame and let
+  // the sun be asked for instead.
+  if (COLD && !loaderArmed) {
+    view.set('uLoadCover', 0);
+    view.set('uFigFade', 0);
+    if (revealT < 0) { revealT = now - REVEAL_MS; load = 1; }
+    return;
+  }
   // NOTHING here may decelerate. Three separate mechanisms used to, and they
   // compounded into the pause before contact:
   //
