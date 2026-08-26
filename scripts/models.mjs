@@ -194,78 +194,105 @@ export const MODELS = [
   ['j01', POSE_J.turned, 'deep oxblood red', WHO.w1,
     'Wearing a short-sleeved camp-collar shirt in indigo adire, the pale cracked '
     + 'geometry resist-dyed into the cloth, deep indigo and chalk white, worn '
-    + 'open over an acid yellow ribbed sleeveless tank top. On the raised wrist '
-    + 'a large hammered brass wristwatch, a heavy angular case with a faceted '
-    + 'sculptural bezel and a matte black dial, on a woven indigo strap. No '
-    + 'other jewellery. Long fine box braids gathered high.'],
+    + 'open over an acid yellow ribbed sleeveless tank top. Wearing wraparound '
+    + 'single-lens visor sunglasses, a glossy white sculpted frame with one '
+    + 'continuous narrow mirrored black lens across both eyes, curved to the '
+    + 'face, no nose bridge visible. On the raised wrist a large hammered brass '
+    + 'wristwatch, a heavy angular case with a faceted sculptural bezel and a '
+    + 'matte black dial, on a woven indigo strap. No other jewellery. Long fine '
+    + 'box braids gathered high.'],
 
   ['j02', POSE_J.centre, 'flat olive green', WHO.w2,
     'Wearing an oversized boxy chore jacket in heavy wax-print cotton, vermilion '
     + 'and cream geometry printed through the weave, worn open over a cobalt '
-    + 'blue ribbed sleeveless tank top. Wide cast-brass rings on four fingers, '
-    + 'faceted architectural shapes with carved relief, one set with a small '
-    + 'polished cowrie. No other jewellery. Tight coiled locs in a high '
-    + 'sculptural knot.'],
+    + 'blue ribbed sleeveless tank top. Wearing wraparound single-lens visor '
+    + 'sunglasses, a chrome silver sculpted frame with one continuous narrow '
+    + 'mirrored blue lens across both eyes, curved to the face. On the raised '
+    + 'wrist an oversized brushed steel and brass wristwatch, a broad squared '
+    + 'case with a stepped bezel and a vermilion dial, on a heavy brass link '
+    + 'bracelet. No other jewellery. Tight coiled locs in a high sculptural '
+    + 'knot.'],
 
   ['j03', POSE_J.turned, 'pale mint', WHO.m2,
     'Wearing a boxy cropped zip jacket in beaten barkcloth, the grain and fibre '
     + 'running through the material, rust brown streaked with black, worn over a '
-    + 'cream cotton work shirt with the sleeves pushed back. A stack of four '
-    + 'hammered brass and blackened bronze cuff bracelets up one forearm, wide, '
-    + 'ridged, faceted like machined metal. No other jewellery. Close-shaved '
-    + 'head.'],
+    + 'cream cotton work shirt with the sleeves pushed back. Wearing wraparound '
+    + 'single-lens visor sunglasses, a matte black sculpted frame with one '
+    + 'continuous narrow mirrored orange lens across both eyes, curved to the '
+    + 'face. A stack of four hammered brass and blackened bronze cuff bracelets '
+    + 'up one forearm, wide, ridged, faceted like machined metal. No other '
+    + 'jewellery. Close-shaved head.'],
 
   ['j04', POSE_J.centre, 'hot pink', WHO.m1,
     'Wearing an oversized rugby shirt in wide woven bands of ochre yellow and '
     + 'cream with a white collar, worn under a cropped sleeveless vest in indigo '
-    + 'adire. On the raised wrist an oversized brushed titanium and brass '
-    + 'wristwatch, a broad sculptural case with an exposed skeleton movement and '
-    + 'a bright cobalt dial, on a heavy brass link bracelet. No other jewellery. '
-    + 'Shoulder-length locs.'],
+    + 'adire. Wearing wraparound single-lens visor sunglasses, a glossy white '
+    + 'sculpted frame with one continuous narrow mirrored black lens across both '
+    + 'eyes, curved to the face, no nose bridge visible. On the raised wrist an '
+    + 'oversized brushed titanium and brass wristwatch, a broad sculptural case '
+    + 'with an exposed skeleton movement and a bright cobalt dial, on a heavy '
+    + 'brass link bracelet. No other jewellery. Shoulder-length locs.'],
 
   ['j05', POSE_J.turned, 'deep cobalt blue', WHO.w1,
     'Wearing a knitted jacquard polo shirt, the pattern knitted into the yarn in '
     + 'ochre yellow and black, contrast cream ribbed collar, worn over a '
-    + 'vermilion ribbed tank top. Heavy cast-bronze signet rings on both hands, '
-    + 'flat carved faces cut with fine geometric relief, one on the thumb. No '
-    + 'other jewellery. Long fine box braids gathered high.'],
+    + 'vermilion ribbed tank top. Wearing wraparound single-lens visor '
+    + 'sunglasses, a translucent amber sculpted frame with one continuous narrow '
+    + 'mirrored bronze lens across both eyes, curved to the face. On the raised '
+    + 'wrist a heavy cast-bronze wristwatch, a round case with a deeply carved '
+    + 'geometric bezel and a cream enamel dial, on a black woven strap. No other '
+    + 'jewellery. Long fine box braids gathered high.'],
 
   ['j06', POSE_J.centre, 'burnt terracotta', WHO.w2,
     'Wearing a short-sleeved shirt woven from fine raffia yarn, the open weave '
     + 'visible in the cloth, wide bands of acid green and natural straw, worn '
-    + 'open over a black ribbed sleeveless tank top. A wide hinged brass cuff '
-    + 'bracelet on each wrist, hammered, ridged, with a raised carved ridge down '
-    + 'the centre, and a slim beaded cowrie band beside one. No other jewellery. '
-    + 'Tight coiled locs in a high sculptural knot.'],
+    + 'open over a black ribbed sleeveless tank top. Wearing wraparound '
+    + 'single-lens visor sunglasses, a glossy acid green sculpted frame with one '
+    + 'continuous narrow mirrored silver lens across both eyes, curved to the '
+    + 'face. A wide hinged brass cuff bracelet on each wrist, hammered, ridged, '
+    + 'with a raised carved ridge down the centre, and a slim beaded cowrie band '
+    + 'beside one. No other jewellery. Tight coiled locs in a high sculptural '
+    + 'knot.'],
 
   ['j07', POSE_J.turned, 'flat olive green', WHO.m1,
     'Wearing a boxy short-sleeved work shirt in indigo adire, the pale resist '
     + 'geometry dyed into the cloth, worn over a heavy cream long-sleeve thermal '
-    + 'with the sleeves pushed back to the elbow. A blackened brass wristwatch '
-    + 'with a deep octagonal case, a carved bezel and a pale bone-white dial, on '
-    + 'a woven raffia strap. No other jewellery. Short coiled hair, faded at the '
-    + 'sides.'],
+    + 'with the sleeves pushed back to the elbow. Wearing wraparound single-lens '
+    + 'visor sunglasses, a chrome silver sculpted frame with one continuous '
+    + 'narrow mirrored black lens across both eyes, curved to the face. A '
+    + 'blackened brass wristwatch with a deep octagonal case, a carved bezel and '
+    + 'a pale bone-white dial, on a woven raffia strap. No other jewellery. '
+    + 'Short coiled hair, faded at the sides.'],
 
-  ['j08', POSE_J.centre, 'deep oxblood red', WHO.w2,
-    'Wearing an oversized boxy jacket in woven kilim, the pattern woven through '
-    + 'the cloth in cobalt and ochre, worn open over a cream ribbed sleeveless '
-    + 'tank top. Slim stacked brass rings, three or four to a finger, thin '
-    + 'faceted bands with a single wide carved ring among them. No other '
-    + 'jewellery. Long fine box braids gathered high.'],
+  ['j08', POSE_J.centre, 'deep oxblood red', WHO.m1,
+    'Wearing an oversized boxy short-sleeved shirt in woven kilim, the pattern '
+    + 'woven through the cloth in cobalt and ochre, worn open over a cream '
+    + 'ribbed sleeveless tank top. Wearing wraparound single-lens visor '
+    + 'sunglasses, a glossy white sculpted frame with one continuous narrow '
+    + 'mirrored gold lens across both eyes, curved to the face. On the raised '
+    + 'wrist a wide polished brass wristwatch, a cushion case with a fluted '
+    + 'bezel and a deep green dial, on a stiff cobalt woven strap. No other '
+    + 'jewellery. Short coiled hair, faded at the sides.'],
 
   ['j09', POSE_J.turned, 'pale mint', WHO.m2,
     'Wearing a knitted jacquard polo shirt, the geometry knitted into the yarn '
-    + 'in black and chalk white, worn under a tan leather utility vest. A stack '
-    + 'of hammered brass bangles and one heavy blackened bronze chain bracelet '
-    + 'on the raised wrist, links faceted and machined. No other jewellery. '
-    + 'Close-shaved head.'],
+    + 'in black and chalk white, worn under a tan leather utility vest. Wearing '
+    + 'wraparound single-lens visor sunglasses, a matte black sculpted frame '
+    + 'with one continuous narrow mirrored green lens across both eyes, curved '
+    + 'to the face. A stack of hammered brass bangles and one heavy blackened '
+    + 'bronze chain bracelet on the raised wrist, links faceted and machined. No '
+    + 'other jewellery. Close-shaved head.'],
 
   ['j10', POSE_J.centre, 'deep cobalt blue', WHO.w1,
     'Wearing a short-sleeved camp-collar shirt in heavy wax-print cotton, acid '
     + 'green and vermilion geometry through the weave, worn open over a black '
-    + 'ribbed sleeveless tank top. Wide cast-brass architectural rings on both '
-    + 'hands, angular faceted faces with carved relief, one set with a polished '
-    + 'black stone. No other jewellery. Long fine box braids gathered high.'],
+    + 'ribbed sleeveless tank top. Wearing wraparound single-lens visor '
+    + 'sunglasses, a glossy hot pink sculpted frame with one continuous narrow '
+    + 'mirrored black lens across both eyes, curved to the face, no nose bridge '
+    + 'visible. On the raised wrist a large hammered brass wristwatch, an '
+    + 'oversized angular case with a faceted sculptural bezel and a pale bone '
+    + 'dial, on a black woven strap. No other jewellery. Long fine box braids '
+    + 'gathered high.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.

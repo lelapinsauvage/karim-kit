@@ -104,6 +104,7 @@ const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id,
   COLD ? { ...BASE, ...l, ...COLD_LOOK } : { ...BASE, ...l }]));
 
 // what each step restores, taken from the tuned values so nothing is invented
+const SHOWN_KEYS = ['sun', 'cloth', 'figures', 'type'];
 const UP = {
   sun:     ['r', 'glow', 'rimStr', 'spread', 'bgFall', 'bgFloor', 'wobble', 'drift'],
   cloth:   ['cloth', 'charge', 'light', 'rake', 'sheen'],
@@ -323,11 +324,18 @@ const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0, lookIxPrev = 0;
 let loaderArmed = !COLD;
 let figuresUp = !COLD, sliderUp = !COLD, typeUp = !COLD, chromeUp = !COLD;
+const shown = new Set(COLD ? [] : ['sun', 'cloth', 'figures', 'type']);
 
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
 // sync -- a hand-written panel drifts the moment a uniform is renamed.
-if (!HAS_PANEL) {
+if (!HAS_PANEL) buildPanel();
+
+// Rebuilt whenever a subsystem comes up, so the panel is always exactly the
+// controls for what is on screen -- no more, and never one that does nothing.
+function buildPanel() {
+  const wasOpen = document.getElementById('sun-panel')?.style.display !== 'none';
+  document.getElementById('sun-panel')?.remove();
   const RANGE = {
     r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
     rimBand:[0,1,0.01], drift:[0,4,0.01], glow:[0,2,0.01], glowSize:[0.02,1.2,0.005],
@@ -355,6 +363,24 @@ if (!HAS_PANEL) {
   ];
   const COLKEYS = ['pigment','bg','clothInk'];
 
+  // Which groups are on the panel, and which colours with them.
+  //
+  // A control for something that is not on screen is worse than a missing one:
+  // dragging it does nothing, which reads as broken, and finding that out costs
+  // the time the control was meant to save. Ask for the sun and the panel is
+  // the sun -- body, light, ground, and the two colours that make it. Nothing
+  // about cloth, nothing about a figure that is not there.
+  const SHOWN = {
+    sun:     { groups: ['body', 'light', 'ground', 'grain'], colours: ['pigment', 'bg'] },
+    cloth:   { groups: ['cloth', 'surface'],                 colours: ['clothInk'] },
+    figures: { groups: ['figure'],                           colours: [] },
+    type:    { groups: ['type'],                             colours: [] },
+  };
+  const liveGroups = () => new Set(Object.entries(SHOWN)
+    .filter(([k]) => shown.has(k)).flatMap(([, v]) => v.groups));
+  const liveColours = () => Object.entries(SHOWN)
+    .filter(([k]) => shown.has(k)).flatMap(([, v]) => v.colours);
+
   const el = document.createElement('aside');
   el.style.cssText = `position:fixed;top:0;right:0;bottom:0;z-index:40;width:236px;
     padding:14px;overflow:auto;background:#0a0708ee;backdrop-filter:blur(10px);
@@ -375,9 +401,10 @@ if (!HAS_PANEL) {
   el.innerHTML =
     `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">` +
     '' + `</div>` +
-    GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
+    GROUPS.filter(([t]) => liveGroups().has(t))
+          .map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
     head('colour') +
-    COLKEYS.map((k) => `<div style="display:grid;
+    liveColours().map((k) => `<div style="display:grid;
       grid-template-columns:48px 26px 1fr;gap:6px;align-items:center;margin-bottom:6px">
       <span style="opacity:.5;text-transform:uppercase">${k}</span>
       <input id="s-${k}" type="color" style="width:100%;height:20px;padding:0;
@@ -393,9 +420,11 @@ if (!HAS_PANEL) {
   // hidden by default -- the panel is a tool, and the piece has to be seen
   // without it. H toggles.
   el.style.display = 'none';
+  el.id = 'sun-panel';
+  el.style.display = wasOpen ? 'block' : 'none';
   document.body.appendChild(el);
 
-  const ALLNUM = GROUPS.flatMap(([, k]) => k);
+  const ALLNUM = GROUPS.filter(([t]) => liveGroups().has(t)).flatMap(([, k]) => k);
   const sync = () => {
     for (const k of ALLNUM) {
       const i = document.getElementById('p-' + k); if (!i) continue;
@@ -408,6 +437,7 @@ if (!HAS_PANEL) {
     }
   };
   window.__syncPanel = sync;
+  window.__rebuildPanel = () => { if (!HAS_PANEL) buildPanel(); };
 
   // Edits persist into the ACTIVE look, not just into the live state. Otherwise
   // placing one figure and switching away throws the work out, which is exactly
@@ -870,6 +900,9 @@ window.up = (what) => {
   if (what === 'loader') { loaderArmed = true; revealT = -1; load = 0; bootAt = performance.now(); return 'loader armed — reload to watch it'; }
   if (what === 'all') { Object.assign(state, tuned); }
 
+  if (what === 'all') ['sun','cloth','figures','type'].forEach((k) => shown.add(k));
+  else if (SHOWN_KEYS.includes(what)) shown.add(what);
+  window.__rebuildPanel?.();
   send(state);
   window.__syncPanel?.();
   return what;

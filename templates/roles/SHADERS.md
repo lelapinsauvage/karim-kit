@@ -57,9 +57,32 @@ the nav or a counter arrives with it, that is a bug — one line, and stop.
 when they are allowed on screen. Everything it brings up is on the panel
 afterwards.
 
-## The panel is how I decide
+## A reference changes the colour. Nothing else.
 
-`H` toggles it. Groups appear as subsystems come up.
+When I send you an image and say make the sun like this: **read the colour off
+it and set the colour.** `pigment`, and `bg` if I say the ground too.
+
+Not the radius. Not the glow, the rim, the spread, the warmth, the position.
+Not "matching the overall feel". The reference is a colour reference unless I
+say otherwise, and every other value in that frame is one I already set by hand
+or am about to.
+
+If the reference makes you want to change something else, say which in one line
+and leave it alone.
+
+## The panel is only what is on screen
+
+`H` toggles it. **It rebuilds every time something comes up, and it only ever
+shows controls for what is actually on screen.**
+
+Ask for the sun and the panel is the sun: body, light, ground, grain, and the
+two colours that make it. No cloth controls, no figure controls, no ink for a
+pattern that is not there. `up('cloth')` adds the cloth and its surface;
+`up('figures')` adds placement.
+
+A control for something that is not on screen is worse than a missing one —
+dragging it does nothing, which reads as broken, and finding that out costs the
+time the control was meant to save.
 
 I drag, I hit copy, I paste you a `s.set({...})`. **You write those values into
 the file** so they survive a reload. That loop is the job.
