@@ -86,10 +86,10 @@ const BASE = {
 // `fig` is a filename in src/figures without the extension. `id` is what the
 // slider steps through. Nothing else belongs in here until I put it there.
 const LOOKS = [
-  { id: 'l1', name: '', fig: 'a01' },
-  { id: 'l2', name: '', fig: 'a02' },
-  { id: 'l3', name: '', fig: 'a03' },
-  { id: 'l4', name: '', fig: 'a04' },
+  { id: 'l1', name: '', fig: 'a01', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
+  { id: 'l2', name: '', fig: 'a02', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
+  { id: 'l3', name: '', fig: 'a03', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
+  { id: 'l4', name: '', fig: 'a04', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
 ];
 
 const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id,
@@ -984,7 +984,12 @@ window.check = () => new Promise((done) => requestAnimationFrame(() => requestAn
 
 window.up = (what) => {
   const tuned = { ...BASE, ...LOOKS[lookIx] };
-  const take = (keys) => { for (const k of keys) state[k] = tuned[k]; };
+  // undefined is not a value. Taking a key the look does not carry used to put
+  // undefined into state and hexToRgb crashed on it inside send() -- one
+  // stripped field in a table, and the whole page dies on the next step.
+  const take = (keys) => {
+    for (const k of keys) if (tuned[k] !== undefined) state[k] = tuned[k];
+  };
 
   if (what === 'sun' || what === 'all') take(UP.sun);
   if (what === 'cloth' || what === 'all') {
