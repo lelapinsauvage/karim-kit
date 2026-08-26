@@ -75,37 +75,28 @@ const BASE = {
 //
 // The pigment is taken from what each one is actually wearing: barkcloth and
 // cowrie, white clay and cotton, indigo resist, undyed raffia.
+// FOUR SLOTS, NO DESIGN.
+//
+// This used to arrive carrying a finished look each -- pigment, ground, ink,
+// placement and a provenance line -- so asking for the sun handed back somebody
+// else's decisions already made. Everything here is now decided live: the
+// colour comes off the figure or off a reference I give you, the placement I
+// drag, the words come from ux.
+//
+// `fig` is a filename in src/figures without the extension. `id` is what the
+// slider steps through. Nothing else belongs in here until I put it there.
 const LOOKS = [
-  { id:'l1', name:'Barkcloth', fig:'a01',
-    pigment:'#AE7C1A', bg:'#E3DDD2', clothInk:'#8F7950',
-    figH:0.850, figX:0.000, figBleed:0.050,
-    pig:'Brass, unlacquered', origin:'Lagos · Foundry 4',
-    material:'Barkcloth, beaten thin' },
-
-  { id:'l2', name:'Indigo', fig:'a02',
-    pigment:'#A43C1E', bg:'#DED1CD', clothInk:'#8F6052',
-    figH:0.790, figX:0.025, figBleed:0.000,
-    pig:'Indigo, third dip', origin:'Abeokuta · Adire pits',
-    material:'Resist cotton, cracked' },
-
-  { id:'l3', name:'Cowrie', fig:'a05',
-    pigment:'#15568D', bg:'#D2DBE3', clothInk:'#50728F',
-    figH:0.885, figX:0.000, figBleed:0.015,
-    pig:'Cowrie, bleached', origin:'Ouidah · Coast trade',
-    material:'Raffia, wound wet' },
-
-  { id:'l4', name:'Raffia', fig:'a10',
-    pigment:'#939717', bg:'#DDDECD', clothInk:'#8D8F50',
-    figH:0.885, figX:0.000, figBleed:0.095,
-    pig:'Brass, hammer-marked', origin:'Lagos · Foundry 4',
-    material:'Barkcloth on wire' },
+  { id: 'l1', name: '', fig: 'a01' },
+  { id: 'l2', name: '', fig: 'a02' },
+  { id: 'l3', name: '', fig: 'a03' },
+  { id: 'l4', name: '', fig: 'a04' },
 ];
 
 const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id,
   COLD ? { ...BASE, ...l, ...COLD_LOOK } : { ...BASE, ...l }]));
 
 // what each step restores, taken from the tuned values so nothing is invented
-const SHOWN_KEYS = ['sun', 'cloth', 'figures', 'type'];
+const SHOWN_KEYS = ['sun', 'cloth', 'figures', 'type', 'chrome', 'slider'];
 const UP = {
   // Colours are in here on purpose. COLD_LOOK forces red on white at load, and
   // if the step that brings the sun up does not take the colour with it, then
@@ -1006,6 +997,27 @@ window.up = (what) => {
     view.set('uClothFront', 99);
   }
   if (what === 'figures' || what === 'all') { figuresUp = true; view.set('uFigFade', 1); }
+
+  // COLOUR OFF THE FIGURE. Reads the palette from whoever is in frame and sets
+  // the light, the ground and the ink together, so changing character changes
+  // the whole picture rather than leaving a light from the last one.
+  if (what === 'colour' || what === 'color') {
+    const fig = LOOKS[lookIx]?.fig;
+    if (!fig) { console.warn('no figure in frame'); return what; }
+    import('./palette.js').then(({ paletteFrom }) =>
+      paletteFrom(`/src/figures/${fig}.png`)
+    ).then(({ roles }) => {
+      Object.assign(state, roles);
+      const look = PRESETS[ORDER[lookIx]];
+      for (const [k, v] of Object.entries(roles)) {
+        if (look) look[k] = v;
+        (EDITS[ORDER[lookIx]] ??= {})[k] = v;   // it is a decision, so it travels
+      }
+      send(state);
+      window.__syncPanel?.();
+      console.log('colour from', fig, roles);
+    }).catch((e) => console.error('colour failed:', e));
+  }
   if (what === 'type' || what === 'all') {
     typeUp = true; state.typeInk = tuned.typeInk;
     setRise(1); setLockup(LOOKS[lookIx].name.toUpperCase(), '°01');

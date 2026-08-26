@@ -10,6 +10,7 @@ cp node_modules/@karimsaab/kit/templates/piece/index.html .
 cp node_modules/@karimsaab/kit/templates/piece/sun.js     src/
 cp node_modules/@karimsaab/kit/templates/piece/text.js    src/
 cp node_modules/@karimsaab/kit/templates/piece/steps.js   src/
+cp node_modules/@karimsaab/kit/templates/piece/palette.js src/
 cp node_modules/@karimsaab/kit/src/gl.js                  src/
 cp node_modules/@karimsaab/kit/src/shaders/sun.frag       src/shaders/
 npm run dev
@@ -65,6 +66,9 @@ write from scratch, and no situation where a new file is the answer.
 
 Whatever I call it, it maps to one of these:
 
+**Never tell me to run something.** I am not typing commands; that is the whole
+point of you being there. You edit `src/steps.js` and the page does it.
+
 **You bring a thing up by editing `src/steps.js`.** Add the name to the array,
 save, done — the page reloads and applies it. You have no console and you do not
 need one.
@@ -81,6 +85,7 @@ export const STEPS = ['sun'];            // then ['sun', 'cloth'] and so on
 | slider · carousel · the switch · transition · arrows | `'slider'` |
 | word · title · wordmark · type · the big text · lockup | `'type'` |
 | nav · chrome · the page · furniture · rail · header | `'chrome'` |
+| take the colours off her · match it to her · colour from the image | `'colour'` |
 | loader · intro · opening · the eclipse | see below |
 
 Removing a name takes that thing away. **Never clear the array** to fix
@@ -225,6 +230,22 @@ the ring answers. The wave at rest is `BASE.charge` and is not in there.
 You are expected to know this without looking. When I ask for a change, go
 straight to the value — do not explore, do not read the file first, do not
 explain what you are about to do.
+
+### colours
+
+**Nothing arrives coloured.** The four looks are empty slots — a figure and an
+id, no pigment, no ground, no ink. Every colour in the frame is decided live.
+
+Two ways, both mine to ask for:
+
+- **`'colour'` in STEPS** — reads the palette off whoever is in frame and sets
+  the light, the ground and the ink together. It picks the garment over the
+  skin, and derives the ground and ink from the pigment's own hue so the frame
+  stays in one family.
+- **I hand you a reference** — read the colour off it, set `pigment`, and `bg`
+  only if I say the ground too. Nothing else. See below.
+
+Colour set either way is a decision and travels in the copy block.
 
 ### the sun
 
