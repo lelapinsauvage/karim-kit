@@ -44,6 +44,21 @@ const BLANK = true;
 // an eclipse that resolves into an empty page is just a delay.
 const LOADER = false;
 
+// THE HERO INTRO, separately.
+//
+// The loader's payoff and the page arriving are two different events and they
+// were one flag. Switching the loader on handed over the whole finished hero --
+// nav, rail, CTA, slider and the lockup all at once -- which is the entire
+// build delivered in one keystroke.
+//
+// LOADER is the eclipse: the count, the two bodies closing, the ignition, the
+// sun opening and the ground flooding. Shader only.
+// INTRO is the page arriving on top of it: the chrome on its staggered curves
+// and the word rising out of the baseline.
+// Needs a `name` on the look to do anything. Eight elements arriving around an
+// empty frame is not a reveal.
+const INTRO = false;
+
 // Handed over once, at init, instead of by a loader that is not running.
 // Anything set per-frame here fights every value I write into LOOKS.
 function blankFrame() {
@@ -934,6 +949,7 @@ for (const f of ASSETS) {
 const LOAD_MIN = 1500;      // the count is brisk; the reveal is not              // the opening is a shot, not a wait
 const bootAt = performance.now();
 let load = 0, loadDone = false, revealed = false;
+let revealed2 = false;
 
 const easeIO = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
 
@@ -1076,6 +1092,15 @@ function stepLoader(now) {
 
   if (!revealed) {
     revealed = true;
+    if (!INTRO) { if (el) el.style.transition = ''; }
+  }
+  // The hero arrives only if there is a hero to arrive. The intro is eight
+  // elements landing on eight curves around a word -- with no word and no copy
+  // it is empty boxes animating in, which reads as a bug rather than as a
+  // reveal. `name` on the look is the test: no name, no intro, and the loader
+  // still opens into the sun exactly as it should.
+  if (!revealed2 && INTRO && (PRESETS[ORDER[lookIx]].name || '').trim()) {
+    revealed2 = true;
     document.body.classList.add('reveal');
     // NOT scrambleTo here. The opening is the word arriving for the first
     // time, and a shuffle says it is being replaced.

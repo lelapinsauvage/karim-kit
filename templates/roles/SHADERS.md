@@ -67,7 +67,8 @@ const LOOKS = [
 | slider · arrows · buttons · switch between them | `figShow: true` on two or more |
 | word · title · wordmark · type · the big text | `typeInk: 0.07` |
 | the colours · take them off her · match it to her | `palette: true` |
-| loader · intro · opening · the count · the eclipse | `const LOADER = true` |
+| loader · the count · the eclipse · the circles colliding | `const LOADER = true` |
+| the hero intro · the page arriving · the reveal | `const INTRO = true` + a `name` |
 
 Nav, rail and the counter belong to `layout`. **The lockup and the loader are
 not yours to bring up either** — the big word arrives with the opening, and the
@@ -97,6 +98,24 @@ It writes the result into the look, so it survives, shows on the panel, and
 travels in the copy block like anything I set by hand. Once I start tuning a
 colour by hand, take `palette` back out of that look or it will be re-read on
 the next reload and overwrite me.
+
+### the loader and the intro are two things
+
+They were one flag, and switching the loader on delivered the entire finished
+hero in a single keystroke — nav, rail, CTA, slider and the word, all at once.
+
+**`LOADER`** is the eclipse, and nothing else: the count 0 to 100 bottom left,
+two black bodies closing from the sides, ignition at the moment they touch, the
+sun opening and the ground flooding. Shader only. Nothing in the DOM moves.
+
+**`INTRO`** is the page arriving on top of it: the chrome on its staggered
+curves and the word rising out of the baseline.
+
+**INTRO does nothing without a `name` on the look**, on purpose. The intro is
+eight elements landing on eight different curves around a word — with no word
+and no copy it is empty boxes animating in, which reads as a bug rather than as
+a reveal. Ask me for the hero intro before the text exists and the honest answer
+is *"needs the word first"*.
 
 ### the loader
 
