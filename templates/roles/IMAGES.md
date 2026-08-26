@@ -192,6 +192,34 @@ REFS="..." nohup node node_modules/@karimsaab/kit/scripts/batch.mjs j02 j06 j08 
 **Never regenerate the whole set to fix three.** The good ones are good, they
 cost money, and a rerun rolls a different face.
 
+## The prompt gets WORSE as it gets longer
+
+The figures that got kept came from a 2100-character prompt. By the time they
+stopped being good it was 2900 — 23 clauses added, and quality fell the whole
+way. Longer is not more specific; longer is more diluted.
+
+Two things had happened, and both are easy to do without noticing:
+
+**Contradiction.** It said *"Full-length standing figure"* AND *"head, shoulders
+and upper chest only"* AND *"cropped just below the chest"* AND *"not full
+length"*. Four instructions about the crop, two of them opposite. The model
+splits the difference and you get neither.
+
+**Pile-up.** Seven separate clauses about framing. Each was added to fix one bad
+image, each was reasonable, and together they cancel — a prompt with four
+clauses about framing is one where none of them is doing the work.
+
+So: **before adding a clause, find the one already there that was supposed to
+do that job.** Fix it or replace it. Never both.
+
+And **never describe what is outside the frame.** A shot cropped at the chest
+listed the trousers in every entry. Those pixels do not exist; the words spend
+the model's attention on a part of the picture nobody will see.
+
+If the set is drifting and you cannot say which clause did it, say so — the
+answer is usually to go back to the version that worked rather than to add a
+sentence to the one that does not.
+
 ## Never widen a rule you have not tested
 
 If a fix does not work twice, the clause is aimed at the wrong thing — say so
