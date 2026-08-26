@@ -9,6 +9,7 @@ mkdir -p src/shaders
 cp node_modules/@karimsaab/kit/templates/piece/index.html .
 cp node_modules/@karimsaab/kit/templates/piece/sun.js     src/
 cp node_modules/@karimsaab/kit/templates/piece/text.js    src/
+cp node_modules/@karimsaab/kit/templates/piece/steps.js   src/
 cp node_modules/@karimsaab/kit/src/gl.js                  src/
 cp node_modules/@karimsaab/kit/src/shaders/sun.frag       src/shaders/
 npm run dev
@@ -64,15 +65,29 @@ write from scratch, and no situation where a new file is the answer.
 
 Whatever I call it, it maps to one of these:
 
-| what I might say | you run |
+**You bring a thing up by editing `src/steps.js`.** Add the name to the array,
+save, done — the page reloads and applies it. You have no console and you do not
+need one.
+
+```js
+export const STEPS = ['sun'];            // then ['sun', 'cloth'] and so on
+```
+
+| what I might say | you add |
 |---|---|
-| sun · halo · light · the disc · the circle · the body · the glow | `up('sun')` |
-| patterns · afro patterns · african patterns · kuba · cloth · the weave · texture · the tiling | `up('cloth')` |
-| models · characters · figures · the girls · the people · her | `up('figures')` |
-| slider · carousel · the switch · transition · arrows | `up('slider')` |
-| loader · intro · opening · the eclipse · preloader | `up('loader')` |
-| word · title · wordmark · type · the big text · lockup | `up('type')` |
-| nav · chrome · the page · furniture · rail · header | `up('chrome')` |
+| sun · halo · light · the disc · the circle · the body · the glow | `'sun'` |
+| patterns · afro patterns · african patterns · kuba · cloth · the weave · texture · the tiling | `'cloth'` |
+| models · characters · figures · the girls · the people · her | `'figures'` |
+| slider · carousel · the switch · transition · arrows | `'slider'` |
+| word · title · wordmark · type · the big text · lockup | `'type'` |
+| nav · chrome · the page · furniture · rail · header | `'chrome'` |
+| loader · intro · opening · the eclipse | see below |
+
+Removing a name takes that thing away. **Never clear the array** to fix
+something — that undoes everything I have built so far.
+
+The loader is not in `STEPS`, because it would replay on every save. When I ask
+for it, tell me to run `up('loader')` and reload — that one is mine.
 
 Say it in any tense, any language, half a sentence, with a swear in it — if it
 points at one of those seven things, run that call.

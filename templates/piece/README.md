@@ -6,6 +6,7 @@ project, change `LOOKS`, done.
     cp templates/piece/index.html   <project>/index.html
     cp templates/piece/sun.js       <project>/src/sun.js
     cp templates/piece/text.js      <project>/src/text.js
+    cp templates/piece/steps.js     <project>/src/steps.js
     cp src/gl.js                    <project>/src/gl.js
     cp src/shaders/sun.frag         <project>/src/shaders/
 

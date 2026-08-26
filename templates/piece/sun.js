@@ -1,5 +1,6 @@
 import { quad, hexToRgb } from './gl.js';
 import { scramble } from './text.js';
+import { STEPS } from './steps.js';
 import frag from './shaders/sun.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
@@ -1008,9 +1009,15 @@ if (COLD) { view.set('uFigFade', 0); send(state); }
 
 // Put back whatever was up before the reload. Same calls, same order, so a save
 // lands you exactly where you were rather than back at an empty page.
-if (COLD && restored.length) {
-  for (const k of ['sun', 'cloth', 'figures', 'type']) if (restored.includes(k)) window.up(k);
-  console.log('restored:', restored.join(' '));
+// Both routes into the same place: STEPS is what the agent wrote into a file,
+// restored is what was up before the last reload. Whichever asked for a thing,
+// it comes back.
+if (COLD) {
+  const want = [...new Set([...STEPS, ...restored])];
+  for (const k of ['sun', 'cloth', 'figures', 'type', 'chrome', 'slider']) {
+    if (want.includes(k)) window.up(k);
+  }
+  if (want.length) console.log('up:', want.join(' '));
 }
 
 // back to nothing, on purpose
