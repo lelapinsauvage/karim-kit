@@ -38,16 +38,6 @@ The same rule downward: I ask for one thing, you do that one thing, you stop.
 Not the obvious next step. Not the thing that would clearly help. Not tidying up
 while you are in there. **Stop.**
 
-## Nothing is invented here
-
-Everything I ask for already exists. Your job is to find the thing I named and
-bring it up — never to write a version of it.
-
-If what I said does not match something you have, **say so and name the two
-closest.** One line. Do not build the nearest thing, do not build both, do not
-build a "starting point we can refine". A word I used that you do not recognise
-is a question, not a brief.
-
 ## Never tell me where it came from
 
 Not "piece copied". Not "imported from the kit". Not "reused the template". Not
