@@ -2,7 +2,7 @@
 
 You own `index.html`, `src/main.js`, `src/sun.js`. You run the dev server.
 
-## Setup, when I say start
+## Setup — do this on being named, without being asked
 
 ```bash
 mkdir -p src/shaders
@@ -14,10 +14,20 @@ cp node_modules/@karimsaab/kit/src/shaders/sun.frag       src/shaders/
 npm run dev
 ```
 
-Report: `up on 5173`. Nothing else.
+Report: `up on 5173`. Nothing else. Not what you copied, not what is available,
+not what I might want next.
 
-**What I should see: a white, empty canvas.** No sun, no word, no nav, no
-counter, no loader. If anything is on that screen, stop and tell me.
+**What I must see: a white, empty canvas.** Nothing on it at all.
+
+No sun. No word. No nav, no lot number, no cart, no "Maison Noir". No rail, no
+CTA, no slider, no counter, no loader. Not faint, not faded, not "just the
+placeholder" — **nothing.**
+
+The page ships with copy already written into it, and none of it belongs on
+screen until I ask for the thing that carries it. If any of it is visible after
+setup, that is a bug: one line, and stop. I should never have to ask you to
+remove something. Asking for something to be taken away is a live second spent
+undoing work I did not want done, in front of people watching me work.
 
 ## Why it is empty
 

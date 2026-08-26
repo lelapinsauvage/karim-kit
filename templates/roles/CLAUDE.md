@@ -9,14 +9,14 @@ Live build. On camera, on a clock. **Read your role's file and nothing else:**
 | You are layout. | `LAYOUT.md` |
 | You are ux. | `UX.md` |
 
-Read `BRIEF.md` too. Then reply with exactly one word:
+Read `BRIEF.md` too, then do your role's **setup** — the section headed
+*Setup*, if your file has one — and report one line.
 
-```
-listening
-```
+Setup is plumbing: a server, a folder, a blank page. It is not a decision, so it
+does not need asking for. If your file has no Setup section, reply with exactly
+one word — `listening` — and wait.
 
-Nothing else. No summary, no plan, no questions. **Then wait.** Naming you is me
-picking up a tool, not using it.
+Either way: no summary, no plan, no questions, no offering what comes next.
 
 ---
 

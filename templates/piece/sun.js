@@ -437,8 +437,6 @@ if (!HAS_PANEL) {
       if (/^#[0-9a-fA-F]{6}$/.test(v)) { commit(k, v); sw.value = v; send(state); }
     });
   }
-  for (const b of el.querySelectorAll('[data-look]'))
-    b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.look); apply(b.dataset.look); };
 
   // Dump ALL looks, formatted as the LOOKS array. Copying the live state alone
   // only ever captures one look, which is why placing four figures meant four
@@ -930,6 +928,7 @@ function stepLoader(now) {
   // Cold, there is nothing to open onto. Hand over on the first frame and let
   // the sun be asked for instead.
   if (COLD && !loaderArmed) {
+    document.body.classList.remove('loading');
     // Cold there is nothing to open onto, so the loader stands down -- but it
     // must not run its reveal either. The reveal adds body.reveal, which brings
     // the entire page chrome in on its own, and paints the lockup: two things
@@ -951,6 +950,7 @@ function stepLoader(now) {
   // in, the clock is already smooth and load tracks it exactly, so the count
   // runs at constant speed and every bit of shaping lives in one place: the
   // approach curve, which accelerates.
+  document.body.classList.add('loading');
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
   const clock = Math.min((now - bootAt) / LOAD_MIN, 1);
   if (real >= clock) load = clock;                 // assets ready: no lag at all
