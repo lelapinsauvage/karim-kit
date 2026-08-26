@@ -47,14 +47,10 @@
      Here the row drops in behind a clip, the record wipes left to right a line
      at a time, the button springs up from under the frame edge, and the slider
      slides in from the side it points to. Same instant, eight different arrivals. */
-  /* Nothing is on screen until the thing that carries it is asked for. The
-     counter belongs to the loader: on a page that is not loading it is a number
-     with nothing to say, and on an empty page it is the only thing on it. */
-  .top,.rail div,.cta,.slider,.count{
+  .top,.rail div,.cta,.slider{
     opacity:0;
     transition:opacity .01s;
   }
-  body.loading .count{opacity:1}
 
   body.reveal .top{
     animation:dropIn 1.25s cubic-bezier(.19,1,.22,1) .52s both;

@@ -1,6 +1,5 @@
 import { quad, hexToRgb } from './gl.js';
 import { scramble } from './text.js';
-import { STEPS } from './steps.js';
 import frag from './shaders/sun.frag?raw';
 
 const view = quad(document.getElementById('c'), frag);
@@ -20,35 +19,28 @@ const HAS_PANEL = !!document.getElementById('r');
 // The treatment is shared: light ground, glow TINTING rather than adding (you
 // cannot brighten paper), the rim doing the emitting, and the figure left almost
 // undarkened so she stays a photograph rather than a silhouette.
-// COLD START.
+// START BLANK.
 //
-// The piece copied whole puts a finished frame on screen the moment the page
-// loads, and then there is nothing to watch anyone do. The MECHANISMS have to
-// be copied -- the loader's curves, the transition envelope, the scramble's
-// stagger are not derivable at speed -- but the LOOK must not be. Colour,
-// radius, pattern scale and placement are the decisions, and a decision that
-// arrives already made is not a decision.
+// One flag, one object, no machinery. Everything below BASE runs exactly as it
+// did in the version that shipped -- the loader, the switch, the reveal, the
+// panel. This only decides what the frame is worth looking at before I have
+// decided anything.
 //
-// So: everything correct, nothing resolved. White ground, no light, no cloth,
-// no figure, no loader. Each subsystem comes up when it is asked for, at
-// obviously-placeholder values, and gets dialled on the panel.
+// Set false and the piece opens finished, which is what an archive wants.
 //
-//   up('sun')      the light body, red on grey
-//   up('cloth')    the pattern field, black ink
-//   up('figures')  the four cutouts
-//   up('slider')   arrows and the switch
-//   up('loader')   the opening, replayed
-//   up('all')      the finished look, for checking against
-//
-// Set COLD = false to open on the finished piece instead.
-const COLD = true;
+// To bring something up, WRITE ITS VALUE INTO LOOKS. There is no second system:
+// the panel, the copy block, the slider and this all read the same array.
+//   sun      -> r, glow
+//   pattern  -> cloth
+//   figure   -> figShow
+//   the word -> typeInk
+const BLANK = true;
 
-const COLD_LOOK = {
-  r: 0, glow: 0, rimStr: 0, spread: 0, bgFall: 0, bgFloor: 1,
-  cloth: 0, charge: 0, light: 0, rake: 0, sheen: 0, grain: 0,
-  wobble: 0, drift: 0, typeInk: 0,
+const BLANK_LOOK = BLANK ? {
+  r: 0, glow: 0, rimStr: 0, cloth: 0, charge: 0, typeInk: 0,
   pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000',
-};
+  figShow: false,
+} : {};
 
 const BASE = {
   r:0.350, edge:0.146, coreSize:0.99, rimBand:0.75, drift:1.18,
@@ -75,41 +67,21 @@ const BASE = {
 //
 // The pigment is taken from what each one is actually wearing: barkcloth and
 // cowrie, white clay and cotton, indigo resist, undyed raffia.
-// FOUR SLOTS, NO DESIGN.
+// Four slots. A figure and an id, and whatever I have decided so far.
 //
-// This used to arrive carrying a finished look each -- pigment, ground, ink,
-// placement and a provenance line -- so asking for the sun handed back somebody
-// else's decisions already made. Everything here is now decided live: the
-// colour comes off the figure or off a reference I give you, the placement I
-// drag, the words come from ux.
-//
-// `fig` is a filename in src/figures without the extension. `id` is what the
-// slider steps through. Nothing else belongs in here until I put it there.
+// Everything the shaders agent writes goes in here, and everything the panel
+// copies comes out of here. One array, one source of truth.
 const LOOKS = [
-  { id: 'l1', name: '', fig: 'a01', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
-  { id: 'l2', name: '', fig: 'a02', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
-  { id: 'l3', name: '', fig: 'a03', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
-  { id: 'l4', name: '', fig: 'a04', pigment: '#FF0000', bg: '#FFFFFF', clothInk: '#000000' },
+  { id:'l1', name:'', fig:'a01' },
+  { id:'l2', name:'', fig:'a02' },
+  { id:'l3', name:'', fig:'a03' },
+  { id:'l4', name:'', fig:'a04' },
 ];
 
-const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id,
-  COLD ? { ...BASE, ...l, ...COLD_LOOK } : { ...BASE, ...l }]));
-
-// what each step restores, taken from the tuned values so nothing is invented
-const SHOWN_KEYS = ['sun', 'cloth', 'figures', 'type', 'chrome', 'slider'];
-const UP = {
-  // Colours are in here on purpose. COLD_LOOK forces red on white at load, and
-  // if the step that brings the sun up does not take the colour with it, then
-  // every value I paste back is overwritten on the next reload and the work
-  // disappears. The look is the truth; cold is only what is on screen before I
-  // have asked for anything.
-  sun:     ['r', 'glow', 'rimStr', 'spread', 'bgFall', 'bgFloor', 'wobble', 'drift',
-            'grain', 'pigment', 'bg'],
-  cloth:   ['cloth', 'charge', 'light', 'rake', 'sheen', 'clothInk'],
-  figures: [],
-  slider:  [],
-  loader:  [],
-};
+// BLANK_LOOK goes on FIRST, so anything written into LOOKS overrides it. That
+// order is the whole design: writing a value into the array is how a thing
+// arrives, and nothing can put it back.
+const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id, { ...BASE, ...BLANK_LOOK, ...l }]));
 
 const NUM = { r:'uR', edge:'uEdge', coreSize:'uCoreSize', rimBand:'uRimBand', drift:'uDrift',
   glow:'uGlow', glowSize:'uGlowSize', glowMode:'uGlowMode',
@@ -320,50 +292,12 @@ addEventListener('resize', () => { if (wm.to) setLockup(wm.to, wm.num ?? '°01')
 // plain keypress never reaches them.
 const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0, lookIxPrev = 0;
-let loaderArmed = !COLD;
-let coldSet = false;
-const EDITS = {};   // what I changed, per look, and nothing else
-let figuresUp = !COLD, sliderUp = !COLD, typeUp = !COLD, chromeUp = !COLD;
-// WHAT IS UP SURVIVES A RELOAD.
-//
-// Saving values into this file makes vite reload the page, and the page came
-// back cold every time: red sun, no pattern, nothing on. So handing back a
-// tuned look and having it written down LOOKED exactly like the values being
-// thrown away -- the sun went red at the moment of saving, which is the worst
-// possible moment for it to happen.
-//
-// The values were never lost. The steps were. Both are kept now.
-const SHOWN_KEY = 'sun.shown';
-const restored = (() => {
-  try { return JSON.parse(sessionStorage.getItem(SHOWN_KEY) || '[]'); }
-  catch { return []; }
-})();
-const shown = new Set(COLD ? restored : ['sun', 'cloth', 'figures', 'type']);
+const EDITS = {};   // what I changed, per look
 
 // Full control panel, generated from the uniform tables rather than written in
 // HTML. Any control added to NUM or COL appears here automatically and stays in
 // sync -- a hand-written panel drifts the moment a uniform is renamed.
-// The panel is a TOOL. It must never be able to take the page with it.
-//
-// buildPanel runs six hundred lines before up() is defined, so anything it
-// throws kills the module and every command with it -- and the symptom is a
-// white page and `up is not defined`, which reads as the shader being broken
-// and sends you hunting through GL state. It is never the shader.
 if (!HAS_PANEL) {
-  try { buildPanel(); }
-  catch (e) { console.error('panel failed to build — everything else still works:', e); }
-}
-
-// Rebuilt whenever a subsystem comes up, so the panel is always exactly the
-// controls for what is on screen -- no more, and never one that does nothing.
-function buildPanel() {
-  // Hidden unless it was already open. On the first build there is no panel to
-  // ask, and `undefined !== 'none'` is true -- which is why it came up showing
-  // an empty box before anything had been asked for. The panel is a tool; the
-  // frame has to be judged without it in shot.
-  const existing = document.getElementById('sun-panel');
-  const wasOpen = existing ? existing.style.display !== 'none' : false;
-  existing?.remove();
   const RANGE = {
     r:[0.05,0.9,0.005], edge:[0.001,0.8,0.001], coreSize:[0.2,3,0.01],
     rimBand:[0,1,0.01], drift:[0,4,0.01], glow:[0,2,0.01], glowSize:[0.02,1.2,0.005],
@@ -391,24 +325,6 @@ function buildPanel() {
   ];
   const COLKEYS = ['pigment','bg','clothInk'];
 
-  // Which groups are on the panel, and which colours with them.
-  //
-  // A control for something that is not on screen is worse than a missing one:
-  // dragging it does nothing, which reads as broken, and finding that out costs
-  // the time the control was meant to save. Ask for the sun and the panel is
-  // the sun -- body, light, ground, and the two colours that make it. Nothing
-  // about cloth, nothing about a figure that is not there.
-  const SHOWN = {
-    sun:     { groups: ['body', 'light', 'ground', 'grain'], colours: ['pigment', 'bg'] },
-    cloth:   { groups: ['cloth', 'surface'],                 colours: ['clothInk'] },
-    figures: { groups: ['figure'],                           colours: [] },
-    type:    { groups: ['type'],                             colours: [] },
-  };
-  const liveGroups = () => new Set(Object.entries(SHOWN)
-    .filter(([k]) => shown.has(k)).flatMap(([, v]) => v.groups));
-  const liveColours = () => Object.entries(SHOWN)
-    .filter(([k]) => shown.has(k)).flatMap(([, v]) => v.colours);
-
   const el = document.createElement('aside');
   el.style.cssText = `position:fixed;top:0;right:0;bottom:0;z-index:40;width:236px;
     padding:14px;overflow:auto;background:#0a0708ee;backdrop-filter:blur(10px);
@@ -428,11 +344,13 @@ function buildPanel() {
 
   el.innerHTML =
     `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">` +
-    '' + `</div>` +
-    GROUPS.filter(([t]) => liveGroups().has(t))
-          .map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
+    ORDER.map((n) => `<button data-look="${n}" style="background:#ffffff10;
+      border:1px solid #ffffff1f;color:#eee;font:9px ui-monospace,monospace;
+      letter-spacing:.12em;text-transform:uppercase;padding:6px 2px;cursor:pointer">
+      ${n}</button>`).join('') + `</div>` +
+    GROUPS.map(([t, keys]) => head(t) + keys.map(row).join('')).join('') +
     head('colour') +
-    liveColours().map((k) => `<div style="display:grid;
+    COLKEYS.map((k) => `<div style="display:grid;
       grid-template-columns:48px 26px 1fr;gap:6px;align-items:center;margin-bottom:6px">
       <span style="opacity:.5;text-transform:uppercase">${k}</span>
       <input id="s-${k}" type="color" style="width:100%;height:20px;padding:0;
@@ -448,47 +366,29 @@ function buildPanel() {
   // hidden by default -- the panel is a tool, and the piece has to be seen
   // without it. H toggles.
   el.style.display = 'none';
-  el.id = 'sun-panel';
-  el.style.display = wasOpen ? 'block' : 'none';
   document.body.appendChild(el);
 
-  const ALLNUM = GROUPS.filter(([t]) => liveGroups().has(t)).flatMap(([, k]) => k);
+  const ALLNUM = GROUPS.flatMap(([, k]) => k);
   const sync = () => {
     for (const k of ALLNUM) {
       const i = document.getElementById('p-' + k); if (!i) continue;
       i.value = state[k] ?? 0;
       document.getElementById('v-' + k).textContent = (+(state[k] ?? 0)).toFixed(3);
     }
-    // the live list, not every colour there has ever been -- the panel only
-    // renders the ones belonging to what is on screen
-    for (const k of liveColours()) {
-      const hex = document.getElementById('c-' + k);
-      const sw  = document.getElementById('s-' + k);
-      if (!hex || !sw) continue;
-      hex.value = state[k] ?? '';
-      sw.value  = state[k] ?? '#000000';
+    for (const k of COLKEYS) {
+      document.getElementById('c-' + k).value = state[k] ?? '';
+      document.getElementById('s-' + k).value = state[k] ?? '#000000';
     }
   };
   window.__syncPanel = sync;
-  // Rebuilt on every step, and guarded: a panel that cannot draw must not stop
-  // the step that asked for it.
-  window.__rebuildPanel = () => {
-    if (HAS_PANEL) return;
-    try { buildPanel(); }
-    catch (e) { console.error('panel rebuild failed — the step still applied:', e); }
-  };
 
   // Edits persist into the ACTIVE look, not just into the live state. Otherwise
   // placing one figure and switching away throws the work out, which is exactly
   // the thing that forces you to copy values by hand.
-  // Every edit is recorded against the look it was made on, separately from
-  // PRESETS. PRESETS carries the cold placeholders as well, and those must
-  // never reach the clipboard.
   const commit = (k, v) => {
     state[k] = v;
     const id = ORDER[lookIx];
-    const look = PRESETS[id];
-    if (look) look[k] = v;
+    if (PRESETS[id]) PRESETS[id][k] = v;
     (EDITS[id] ??= {})[k] = v;
   };
   for (const k of ALLNUM) {
@@ -501,10 +401,9 @@ function buildPanel() {
   }
   // swatch and hex field drive each other. the picker is for finding a colour,
   // the field is for pasting one -- both are needed and neither replaces the other
-  for (const k of liveColours()) {
+  for (const k of COLKEYS) {
     const hex = document.getElementById('c-' + k);
     const sw  = document.getElementById('s-' + k);
-    if (!hex || !sw) continue;
     const set = (v) => { commit(k, v); hex.value = v; sw.value = v; send(state); };
     sw.addEventListener('input', () => set(sw.value));
     hex.addEventListener('input', () => {
@@ -512,32 +411,29 @@ function buildPanel() {
       if (/^#[0-9a-fA-F]{6}$/.test(v)) { commit(k, v); sw.value = v; send(state); }
     });
   }
+  for (const b of el.querySelectorAll('[data-look]'))
+    b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.look); apply(b.dataset.look); };
 
   // Dump ALL looks, formatted as the LOOKS array. Copying the live state alone
   // only ever captures one look, which is why placing four figures meant four
   // round trips.
-  const btn_p_copy = document.getElementById('p-copy');
-  if (btn_p_copy) btn_p_copy.onclick = () => {
-    // EVERY key the panel can move, not a chosen seventeen. The old list left
-    // out r, edge, the core offsets, the whole cloth group -- so tuning the sun
-    // and hitting copy produced a block that silently did not contain the sun.
-    const KEEP = ['id', 'name', 'fig', 'pig', 'origin', 'material',
-                  ...COLKEYS, ...GROUPS.flatMap(([, k]) => k)];
-    // The ORIGINAL look plus what I actually changed. Never PRESETS.
-    //
-    // PRESETS is BASE + LOOKS + COLD_LOOK, and cold zeroes r, glow, drift and
-    // the rest. Every one of those differs from BASE, so dumping PRESETS
-    // exported the cold state as though it were the design -- three looks came
-    // out with r:0 and glow:0, and pasting that back would have killed them
-    // permanently. The clipboard must only ever carry decisions.
+  document.getElementById('p-copy').onclick = () => {
+    // Everything the panel can move. A chosen subset means tuning the sun and
+    // hitting copy produces a block that does not contain the sun.
+    const KEEP = ['id','name','fig','pig','origin','material',
+                  ...COLKEYS, ...GROUPS.flatMap(([, k]) => k),
+                  'figH','figX','figBleed','figShow','figMode','tear','thread',
+                  'glow','rimStr','rimW','warmth','purity','pig','origin','material'];
+    // The slot plus what I actually changed. Never PRESETS -- that carries the
+    // blank placeholders too, and exporting those writes r:0 into looks I never
+    // touched.
     const out = ORDER.map((id) => {
       const src = LOOKS.find((l) => l.id === id) ?? {};
       const merged = { ...src, ...(EDITS[id] ?? {}) };
       const o = {};
       for (const k of KEEP) {
         if (merged[k] === undefined) continue;
-        // identity always travels; values only if they say something
-        const identity = ['id', 'name', 'fig', 'pig', 'origin', 'material'].includes(k);
+        const identity = ['id','name','fig','pig','origin','material'].includes(k);
         if (identity || merged[k] !== BASE[k]) o[k] = merged[k];
       }
       return o;
@@ -549,22 +445,12 @@ function buildPanel() {
     setTimeout(() => document.getElementById('p-copy').textContent = 'copy settings', 1200);
   };
 
+  addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'h')
+      el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+  });
   queueMicrotask(sync);
 }
-
-// Bound ONCE, outside buildPanel, and it finds the panel by id each time.
-//
-// Inside, every rebuild added another listener pointing at the element that
-// build had created -- so after three steps H was toggling four panels, three
-// of them detached from the document and invisible. The visible one ended up
-// out of phase with the key.
-if (!HAS_PANEL) addEventListener('keydown', (e) => {
-  // typing a hex into a colour field must not toggle the panel out from under it
-  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-  if (e.key.toLowerCase() !== 'h') return;
-  const el = document.getElementById('sun-panel');
-  if (el) el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-});
 
 // Live placement without a panel. In the console:
 //   fig({ h: 1.05, x: 0.14, bleed: 0.06 })
@@ -904,10 +790,12 @@ function paintCopy(name) {
     el.value = v;
     const hx = $(k + '-hex'); if (hx) hx.value = v;
   }
-
+  for (const b of document.querySelectorAll('.preset'))
+    b.setAttribute('aria-current', String(b.dataset.k === name));
   push();
 }
-
+for (const b of document.querySelectorAll('.preset'))
+  b.onclick = () => { lookIx = ORDER.indexOf(b.dataset.k); apply(b.dataset.k); };
 // ONE navigation entry point. The logic used to live inline inside the keydown
 // listener, so the slider buttons had nothing to call -- every new control would
 // have had to reimplement the guard and the wrap.
@@ -923,7 +811,6 @@ function tear() {
 }
 
 export function go(dir) {
-  if (!sliderUp) return;                // the slider is asked for, like everything else
   if (tween || !dir) return;            // ignore input mid-move
   tear();
   lookIxPrev = lookIx;
@@ -954,114 +841,7 @@ if (HAS_PANEL) $('copy').onclick = () => {
   setTimeout(() => $('copy').textContent = 'copy settings', 900);
 };
 
-// Each step restores its own group of values from the tuned set. Nothing is
-// invented here -- 'up' is a reveal of what was always there, and everything it
-// restores is still on the panel to be argued with afterwards.
-// What is actually reaching the shader, one frame after the fact.
-//
-// Every step so far has failed the same way: the call was right, the value was
-// set, and something else put it back before the next draw. Nothing throws and
-// nothing looks wrong in the code. This reads the state back after a frame has
-// gone by, which is the only place that lie shows up.
-//
-//   check()   ->  { cloth: 0.205, front: 99, figFade: 1, type: 1, pigment: '#C97A24' }
-//
-// front -1 means the pattern is hidden however high cloth is.
-window.check = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => {
-  const g = view.gl, prog = view.program;
-  const read = (n) => { const l = g.getUniformLocation(prog, n); return l ? g.getUniform(prog, l) : null; };
-  done({
-    cloth:   +(state.cloth ?? 0).toFixed(3),
-    front:   read('uClothFront'),
-    figFade: read('uFigFade'),
-    type:    read('uTypeShow'),
-    r:       +(state.r ?? 0).toFixed(3),
-    pigment: state.pigment,
-    bg:      state.bg,
-    shown:   [...shown],
-  });
-})));
-
-window.up = (what) => {
-  const tuned = { ...BASE, ...LOOKS[lookIx] };
-  // undefined is not a value. Taking a key the look does not carry used to put
-  // undefined into state and hexToRgb crashed on it inside send() -- one
-  // stripped field in a table, and the whole page dies on the next step.
-  const take = (keys) => {
-    for (const k of keys) if (tuned[k] !== undefined) state[k] = tuned[k];
-  };
-
-  if (what === 'sun' || what === 'all') take(UP.sun);
-  if (what === 'cloth' || what === 'all') {
-    take(UP.cloth);
-    // The field is UNCOVERED by a front travelling out from the body, not faded
-    // up, and its hidden value is -1. Restore the density without moving the
-    // front and the pattern is fully formed behind a radius still at the
-    // origin: nothing on screen, nothing in the console, and every reason to
-    // believe the tiling is broken.
-    view.set('uClothFront', 99);
-  }
-  if (what === 'figures' || what === 'all') { figuresUp = true; view.set('uFigFade', 1); }
-
-  // COLOUR OFF THE FIGURE. Reads the palette from whoever is in frame and sets
-  // the light, the ground and the ink together, so changing character changes
-  // the whole picture rather than leaving a light from the last one.
-  if (what === 'colour' || what === 'color') {
-    const fig = LOOKS[lookIx]?.fig;
-    if (!fig) { console.warn('no figure in frame'); return what; }
-    import('./palette.js').then(({ paletteFrom }) =>
-      paletteFrom(`/src/figures/${fig}.png`)
-    ).then(({ roles }) => {
-      Object.assign(state, roles);
-      const look = PRESETS[ORDER[lookIx]];
-      for (const [k, v] of Object.entries(roles)) {
-        if (look) look[k] = v;
-        (EDITS[ORDER[lookIx]] ??= {})[k] = v;   // it is a decision, so it travels
-      }
-      send(state);
-      window.__syncPanel?.();
-      console.log('colour from', fig, roles);
-    }).catch((e) => console.error('colour failed:', e));
-  }
-  if (what === 'type' || what === 'all') {
-    typeUp = true; state.typeInk = tuned.typeInk;
-    setRise(1); setLockup(LOOKS[lookIx].name.toUpperCase(), '°01');
-  }
-  if (what === 'chrome' || what === 'all') { chromeUp = true; document.body.classList.add('reveal'); }
-  if (what === 'slider' || what === 'all') { sliderUp = true; }
-  if (what === 'loader') { loaderArmed = true; coldSet = false; revealT = -1; load = 0; bootAt = performance.now(); return 'loader armed — reload to watch it'; }
-  if (what === 'all') { Object.assign(state, tuned); }
-
-  if (what === 'all') ['sun','cloth','figures','type'].forEach((k) => shown.add(k));
-  else if (SHOWN_KEYS.includes(what)) shown.add(what);
-  try { sessionStorage.setItem(SHOWN_KEY, JSON.stringify([...shown])); } catch {}
-  window.__rebuildPanel?.();
-  send(state);
-  window.__syncPanel?.();
-  return what;
-};
-
 apply(LOOKS[0].id);
-if (COLD) { view.set('uFigFade', 0); send(state); }
-
-// Put back whatever was up before the reload. Same calls, same order, so a save
-// lands you exactly where you were rather than back at an empty page.
-// Both routes into the same place: STEPS is what the agent wrote into a file,
-// restored is what was up before the last reload. Whichever asked for a thing,
-// it comes back.
-if (COLD) {
-  const want = [...new Set([...STEPS, ...restored])];
-  for (const k of ['sun', 'cloth', 'figures', 'type', 'chrome', 'slider']) {
-    if (want.includes(k)) window.up(k);
-  }
-  if (want.length) console.log('up:', want.join(' '));
-}
-
-// back to nothing, on purpose
-window.reset = () => {
-  try { sessionStorage.removeItem(SHOWN_KEY); } catch {}
-  location.reload();
-};
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A
@@ -1077,7 +857,7 @@ for (const f of ASSETS) {
 }
 
 const LOAD_MIN = 1500;      // the count is brisk; the reveal is not              // the opening is a shot, not a wait
-let bootAt = performance.now();   // reset by up('loader') to replay the opening
+const bootAt = performance.now();
 let load = 0, loadDone = false, revealed = false;
 
 const easeIO = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
@@ -1107,30 +887,6 @@ let revealT = -1;
 const REVEAL_MS = 3200;
 
 function stepLoader(now) {
-  // Cold, there is nothing to open onto. Hand over on the first frame and let
-  // the sun be asked for instead.
-  if (COLD && !loaderArmed) {
-    // ONCE, not every frame.
-    //
-    // stepLoader is called from frame(), so anything set in here is re-set
-    // sixty times a second. Written as a per-frame block it fought every step:
-    // up('cloth') moved the front and this put it back one frame later,
-    // up('figures') raised the fade and this dropped it, up('type') showed the
-    // lockup and this hid it. Every call was correct, nothing ever appeared,
-    // and there was no error anywhere to find.
-    //
-    // Cold is a state to enter, not a state to enforce.
-    if (!coldSet) {
-      coldSet = true;
-      document.body.classList.remove('loading');
-      view.set('uLoadCover', 0);
-      view.set('uFigFade', 0);
-      view.set('uTypeShow', 0);
-      view.set('uClothFront', -1);
-      load = 1;
-    }
-    return;
-  }
   // NOTHING here may decelerate. Three separate mechanisms used to, and they
   // compounded into the pause before contact:
   //
@@ -1142,7 +898,6 @@ function stepLoader(now) {
   // in, the clock is already smooth and load tracks it exactly, so the count
   // runs at constant speed and every bit of shaping lives in one place: the
   // approach curve, which accelerates.
-  document.body.classList.add('loading');
   const real = ASSETS.length ? decoded / ASSETS.length : 1;
   const clock = Math.min((now - bootAt) / LOAD_MIN, 1);
   if (real >= clock) load = clock;                 // assets ready: no lag at all
@@ -1245,8 +1000,7 @@ function stepLoader(now) {
 
   if (!revealed) {
     revealed = true;
-    if (chromeUp || !COLD) document.body.classList.add('reveal');
-    typeUp = true;
+    document.body.classList.add('reveal');
     // NOT scrambleTo here. The opening is the word arriving for the first
     // time, and a shuffle says it is being replaced.
     setRise(0);
@@ -1353,7 +1107,7 @@ function frame(t) {
   view.set('uFigMode', Math.round(state.figMode ?? 0));
   if (!tween) { view.set('uWave', 0); view.set('uWaveAmt', 0); }
 
-  if (typeTex && typeUp) {
+  if (typeTex) {
     gl0.activeTexture(gl0.TEXTURE0 + 3);
     gl0.bindTexture(gl0.TEXTURE_2D, typeTex.tex);
     view.set('uType', 3);
