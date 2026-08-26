@@ -62,6 +62,20 @@ and not.
 Report the filenames. Stop. **Do not open them. Do not describe them.** I will
 tell you which are wrong.
 
+## The names are fixed: a01, a02, a03 …
+
+**Never invent a naming scheme.** Not `f01` for the women and `m01` for the men,
+not by garment, not by anything. Sequential, `a01` upward, in table order.
+
+The shaders agent points its four slots at `a01`–`a04` and cannot see what you
+called things. Name them anything else and it loads files that will never exist
+— which shows on screen as a figure that is simply not there, with no error
+anywhere and nothing to search for. That has already happened.
+
+**And make the number I asked for.** `BRIEF.md` says how many. Ten means ten
+entries in the table and ten files on disk. If you think fewer is better, say so
+in one line — do not quietly deliver eight.
+
 ## Never reuse an old figure
 
 `src/figures/` already has images from an earlier brief. **They are not yours.**

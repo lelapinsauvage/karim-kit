@@ -186,7 +186,7 @@ const WHO = {
 };
 
 export const MODELS = [
-  ['f01', POSE.left, 'deep cobalt blue', WHO.f01,
+  ['a01', POSE.left, 'deep cobalt blue', WHO.f01,
     'Wearing a boxy short-sleeved camp-collar shirt in heavy cotton, a '
     + 'wax-print concentric-disc repeat dyed into the cloth in vermilion, ochre '
     + 'yellow and cream, blunt squared shoulders, open at the throat over a '
@@ -194,28 +194,28 @@ export const MODELS = [
     + 'cotton trousers. Large hammered brass hoop earrings. Coiled twists '
     + 'gathered high off the crown into a tall standing pineapple.'],
 
-  ['f02', POSE.left, 'burnt terracotta', WHO.f02,
+  ['a02', POSE.left, 'burnt terracotta', WHO.f02,
     'Wearing a short-sleeved knitted jacquard polo shirt, a mosaic quatrefoil '
     + 'repeat knitted into the yarn in cobalt blue and acid yellow, contrast '
     + 'cream ribbed collar, open at the throat, with wide cream cotton '
     + 'trousers. A flat cast brass collar at the neck. A big round afro picked '
     + 'out full and even.'],
 
-  ['f03', POSE.left, 'hot pink', WHO.f03,
+  ['a03', POSE.left, 'hot pink', WHO.f03,
     'Wearing a sleeveless tank top, kente strip-weave banding woven through '
     + 'the cloth in emerald green, ochre yellow and black, blunt squared '
     + 'armholes, high straight neckline, with wide emerald green cotton shorts '
     + 'cut to the knee. A tight cowrie shell choker at the throat. Natural '
     + 'hair cropped close and tapered to the skin at the sides.'],
 
-  ['f04', POSE.left, 'acid green', WHO.f04,
+  ['a04', POSE.left, 'acid green', WHO.f04,
     'Wearing a blunt boxy short-sleeved shirt in indigo-dyed cotton, cracked '
     + 'adire resist medallions dyed into the cloth in deep indigo and chalk '
     + 'white, worn open over a vermilion ribbed sleeveless tank top, with '
     + 'straight indigo cotton trousers. A single heavy brass cuff earring '
     + 'wrapping the upper ear. A big round afro picked out wide and even.'],
 
-  ['m01', POSE.left, 'deep oxblood red', WHO.m01,
+  ['a05', POSE.left, 'deep oxblood red', WHO.m01,
     'Wearing a short-sleeved shirt in open-weave cotton gauze, the weave '
     + 'visible in the cloth, wide bands of acid green and natural straw with '
     + 'domino-dot geometry woven in, blunt squared shoulders, worn open over a '
@@ -224,14 +224,14 @@ export const MODELS = [
     + 'braided flat in tight arcs across the scalp, falling into short locs at '
     + 'the nape.'],
 
-  ['m02', POSE.left, 'marigold yellow', WHO.m02,
+  ['a06', POSE.left, 'marigold yellow', WHO.m02,
     'Wearing a sleeveless kente tank top, strip-weave bands woven through the '
     + 'cloth in cobalt blue, emerald green and black, blunt squared armholes, '
     + 'high straight neckline, with wide straight-leg emerald green cotton '
     + 'trousers. A heavy hammered brass cuff on one wrist. A short flat-topped '
     + 'afro, faded to the skin at the sides.'],
 
-  ['m03', POSE.left, 'violet purple', WHO.m03,
+  ['a07', POSE.left, 'violet purple', WHO.m03,
     'Wearing a boxy short-sleeved knitted polo shirt, a bogolan mud-cloth '
     + 'lattice knitted into the yarn in tangerine orange, chalk white and '
     + 'black, contrast black ribbed collar, open at the throat, with wide '
@@ -239,7 +239,7 @@ export const MODELS = [
     + 'pendant on a short chain. A high flat-top fade with sharp squared '
     + 'edges.'],
 
-  ['m04', POSE.left, 'mint green', WHO.m04,
+  ['a08', POSE.left, 'mint green', WHO.m04,
     'Wearing a short-sleeved camp-collar shirt in heavy cotton, a wax-print '
     + 'broken-record spiral repeat dyed into the cloth in vermilion, cream and '
     + 'black, blunt squared shoulders, open at the throat over a cream ribbed '
