@@ -78,13 +78,21 @@ async function start(model, input) {
 
 // the image models rate-limit under load. retry rather than fail the batch --
 // live, this is the difference between a hiccup and a dead minute on stream.
-async function run(model, input, tries = 10) {
+// Exponential with JITTER, not a fixed ladder.
+//
+// The whole batch fails at once when the model is busy, so a fixed delay means
+// every job retries on the same tick and walks into the same wall together. The
+// jitter is what spreads them out; without it a batch of ten behaves like one
+// request that has been asked ten times.
+async function run(model, input, tries = 8) {
   for (let i = 1; ; i++) {
     try { return await attempt(model, input); }
     catch (err) {
-      if (i >= tries || !/throttled|RateLimit|unavailable|high demand|502|503/i.test(String(err))) throw err;
-      const wait = i * 8000;
-      console.log(`\n  rate limited, retry ${i}/${tries - 1} in ${wait / 1000}s`);
+      const transient = /throttled|RateLimit|unavailable|high demand|overloaded|502|503|504/i
+        .test(String(err));
+      if (i >= tries || !transient) throw err;
+      const wait = Math.min(5000 * 2 ** (i - 1), 60000) * (0.7 + Math.random() * 0.6);
+      console.log(`\n  busy, retry ${i}/${tries - 1} in ${Math.round(wait / 1000)}s`);
       await new Promise((r) => setTimeout(r, wait));
     }
   }
@@ -113,6 +121,16 @@ for (let i = 0; i < pairs.length; i += 2) {
   process.stdout.write(`${name}: generating… `);
   const raw = await run('google/nano-banana-pro', {
     prompt, aspect_ratio: '3:4', resolution: '2K', output_format: 'png',
+    // Google's model rate-limits under load and returns ModelRateLimitError:
+    // "Service is currently unavailable due to high demand". It is intermittent
+    // -- the same account succeeds and fails minutes apart -- so waiting is not
+    // a plan when the clock is running.
+    //
+    // With this on, Replicate reruns the prompt on Seedream 5 lite instead of
+    // failing. The output says resolution 'fallback' rather than 2K, which is
+    // how you tell. A different model is worse than the right one and enormously
+    // better than an empty folder at minute twenty.
+    allow_fallback_model: true,
     ...(REFS.length ? { image_input: REFS } : {}),
   });
   process.stdout.write('cutting out… ');

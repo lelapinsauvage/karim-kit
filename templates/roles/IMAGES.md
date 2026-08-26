@@ -18,10 +18,42 @@ different problems and I fix them differently.
 
 ## When I say generate
 
+**Run it detached, and never in the foreground.**
+
 ```bash
 REFS="$HOME/Desktop/karim-kit/refs/models,$HOME/Desktop/karim-kit/refs/clothes" \
-  node node_modules/@karimsaab/kit/scripts/batch.mjs
+  nohup node node_modules/@karimsaab/kit/scripts/batch.mjs > /tmp/gen.log 2>&1 &
 ```
+
+Then report `generating` and stop. Check on it only when I ask:
+
+```bash
+tail -3 /tmp/gen.log; ls src/figures/*.png | wc -l
+```
+
+A batch takes about five minutes. Held in the foreground it blocks you for all
+five, and anything that interrupts the terminal in that window kills it —
+which has already cost two runs. Detached, it survives whatever happens to the
+session, and I can still talk to you while it works.
+
+## When it fails, it is almost always the same thing
+
+`ModelRateLimitError: Service is currently unavailable due to high demand`.
+
+Google's model, under load. Not the token, not the account, not the prompt.
+Intermittent — the same account succeeds and fails minutes apart.
+
+It is already handled three ways and you do not need to do anything about it:
+requests are staggered a second apart, transient failures back off
+exponentially with jitter across eight attempts, and `allow_fallback_model` lets
+Replicate rerun the prompt on Seedream when Google will not take it. A fallback
+image reports `resolution: fallback` instead of `2K`.
+
+**So do not "fix" it.** Do not lower the count, do not switch models, do not
+retry by hand, do not rewrite the script. Report what the log says and carry on.
+
+If figures are still missing when the batch ends, the log names them and prints
+the command to rerun exactly those. Run that.
 
 **The whole set at once.** Ten in parallel is four and a half minutes; one at a
 time is fifteen, and on this clock that is the difference between having models
