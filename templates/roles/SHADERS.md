@@ -177,6 +177,38 @@ does not match — **say so and paste nothing.** A half-applied block is worse
 than none, because the frame then disagrees with the panel and neither of us
 knows which is right.
 
+### Read the block before you write it
+
+A block can arrive carrying the placeholder state instead of my work. It has
+happened, and writing it would have destroyed three characters:
+
+```js
+{ "id": "l2", "pigment": "#FF0000", "r": 0, "glow": 0, "drift": 0, ... }
+```
+
+**That is not a decision. That is the cold start, exported by mistake.** `r: 0`
+is a sun with no radius; `#FF0000` on every look is the placeholder nobody
+chooses; `glow: 0`, `spread: 0`, `bgFall: 0` together mean a look that cannot
+draw. Written into the file they become permanent, and the loss only shows up
+later as a character that comes up blank.
+
+So before replacing the array, look at it:
+
+| in the block | what to do |
+|---|---|
+| `r: 0` or `glow: 0` on any look | **stop.** Say which look and paste nothing. |
+| `#FF0000` on more than one look | **stop.** Red is the placeholder. |
+| every look identical | **stop.** Four characters are not one. |
+| one look changed, the rest as they were | write it |
+
+Say it in one line — *"l2 and l3 came through with r:0, not writing it"* — and
+wait. A bad paste is quiet: nothing errors, the file looks fine, and the damage
+turns up three steps later when a look is asked for and there is nothing there.
+
+**Never repair the block yourself.** Do not fill in what looks missing, do not
+substitute values from elsewhere in the file, do not keep the good half. Tell me
+what arrived and let me copy it again.
+
 **Never propose values.** If I ask for a starting point, give one and say plainly
 that it is a guess.
 
