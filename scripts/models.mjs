@@ -76,24 +76,15 @@ const SKIN =
 // exists reads as damage rather than as a crop -- and a puffer or a wide
 // shoulder eats far more width than a head-and-shoulders crop expects.
 const FRAME =
+  // Name the OUTERMOST point or the frame gets set to the second-outermost one.
+  // With the arms down that is the shoulders; the moment a hand comes up it is
+  // the elbow, and a clause that only mentions shoulders cuts the arms off at
+  // both sides while satisfying every word of itself.
   'Framed wide, with a clear margin of empty backdrop on the left and the right '
-  + 'and above the head. '
-  // THE HANDS ARE THE WIDEST THING IN THE PICTURE.
-  //
-  // The rule used to protect sleeves and shoulders, which is correct for a
-  // figure standing with its arms down and useless the moment they come up.
-  // Raise both forearms to show a watch and a ring and the outermost points are
-  // the elbows -- so the frame was set to the shoulders and the arms ran
-  // straight off both sides.
-  //
-  // Named explicitly, outermost first, because the model frames to what it is
-  // told to keep.
-  + 'BOTH HANDS, both wrists, both forearms and both elbows are completely '
-  + 'inside the frame with empty backdrop visible beyond them on each side. '
-  + 'Nothing about the arms or hands touches, overlaps or is cut by the left or '
-  + 'right edge. If the arms are raised, the frame is widened to hold them. '
-  + 'Both sleeves and the full width of the shoulders also sit well inside the '
-  + 'frame. '
+  + 'and above the head. Whatever is widest in this picture -- the shoulders, or '
+  + 'the elbows if an arm is raised -- has empty backdrop beyond it on each side '
+  + 'and does not touch, overlap or get cut by either edge. Nothing about the '
+  + 'arms or hands leaves the frame. Pull the camera back until this is true. '
   // Sides and top clear, bottom RUNNING OFF. A body that stops inside the frame
   // has been amputated; a body that continues past the bottom edge has simply
   // been cropped, and once the figure is knocked out and stood in a scene only
