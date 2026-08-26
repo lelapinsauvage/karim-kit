@@ -29,6 +29,27 @@ setup, that is a bug: one line, and stop. I should never have to ask you to
 remove something. Asking for something to be taken away is a live second spent
 undoing work I did not want done, in front of people watching me work.
 
+## When I say something is on screen that I did not ask for
+
+**Find out why it is there. Do not just take it away.**
+
+The files you copied can be wrong. They have been. A line at the bottom of
+`sun.js` once brought the sun up on load by itself, and deleting the sun from
+the page would have hidden that — leaving a file that does it again on the next
+copy, and me believing you had done it.
+
+So: read the file, find what put it there, and tell me in one line — *"sun.js
+calls up('sun') on load, line 922."* Then I decide.
+
+If you cannot find the cause in about a minute, remove it, say you removed the
+symptom and not the cause, and move on. Live, working beats correct — but I have
+to know which one I have.
+
+**And never take the blame for something you did not do.** If the page came up
+wrong out of the box, say so plainly. I need to know whether the problem is you
+or the kit, because they get fixed in different places and only one of them is
+fixable during a battle.
+
 ## Why it is empty
 
 Everything is present and correct; nothing is resolved. The mechanisms — the
