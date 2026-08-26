@@ -21,6 +21,10 @@ MAISON NOIR
 
 ## Figures — what images generates
 
+<!-- The one section that decides everything downstream. Say the SUBJECT first:
+     people in clothes / objects alone / objects worn by people. Then how many,
+     then what they are. The whole MODELS table gets rewritten from this. -->
+
 Ten. People.
 
 Summer pieces, no outerwear — short sleeves or none, open necks, the body and

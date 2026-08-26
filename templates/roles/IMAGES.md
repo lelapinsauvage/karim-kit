@@ -74,11 +74,27 @@ If a batch fails: one line, and wait. Do not substitute.
 **The exception is mine:** if I say *use the old ones*, use them. That is me
 deciding we are out of time. Never your decision.
 
-## The prompts
+## The subject changes. The craft does not.
 
-`scripts/models.mjs`, the `MODELS` table only. `WHO`, `LIGHT`, `CAMERA`, `SKIN`,
-`FRAME` and `POSE` are settled — do not touch them because one image came back
-wrong. Change the garment.
+`BRIEF.md` says what to make. It might be people in clothes. It might be objects
+on their own — a ring, a cuff, a mask. It might be objects worn by people, which
+frames differently again. **Read it before you write a single prompt**, and
+rewrite the whole `MODELS` table to match. Yesterday's table is about yesterday's
+subject.
+
+| brief says | what changes |
+|---|---|
+| a clothing line | garments, worn, body and face readable |
+| jewellery, objects | the object is the subject, framed tight, scale from what it rests on |
+| jewellery on people | crop to hands, throat, ear — a whole face in frame and the object stops being the subject |
+
+Read `PROMPTING.md` once and use the section that matches. Every rule below
+holds whichever it is: the lighting, the backdrop, the framing, the pattern
+living in the cloth.
+
+**What never changes:** `WHO`, `LIGHT`, `CAMERA`, `SKIN`, `POSE` and the framing
+clause. Those are the craft and they are settled. Do not touch them because one
+image came back wrong — change the subject line.
 
 Read `node_modules/@karimsaab/kit/PROMPTING.md` once. That file only.
 
