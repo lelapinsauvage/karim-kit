@@ -106,8 +106,14 @@ const PRESETS = Object.fromEntries(LOOKS.map((l) => [l.id,
 // what each step restores, taken from the tuned values so nothing is invented
 const SHOWN_KEYS = ['sun', 'cloth', 'figures', 'type'];
 const UP = {
-  sun:     ['r', 'glow', 'rimStr', 'spread', 'bgFall', 'bgFloor', 'wobble', 'drift'],
-  cloth:   ['cloth', 'charge', 'light', 'rake', 'sheen'],
+  // Colours are in here on purpose. COLD_LOOK forces red on white at load, and
+  // if the step that brings the sun up does not take the colour with it, then
+  // every value I paste back is overwritten on the next reload and the work
+  // disappears. The look is the truth; cold is only what is on screen before I
+  // have asked for anything.
+  sun:     ['r', 'glow', 'rimStr', 'spread', 'bgFall', 'bgFloor', 'wobble', 'drift',
+            'grain', 'pigment', 'bg'],
+  cloth:   ['cloth', 'charge', 'light', 'rake', 'sheen', 'clothInk'],
   figures: [],
   slider:  [],
   loader:  [],
@@ -914,7 +920,15 @@ window.up = (what) => {
   const take = (keys) => { for (const k of keys) state[k] = tuned[k]; };
 
   if (what === 'sun' || what === 'all') take(UP.sun);
-  if (what === 'cloth' || what === 'all') take(UP.cloth);
+  if (what === 'cloth' || what === 'all') {
+    take(UP.cloth);
+    // The field is UNCOVERED by a front travelling out from the body, not faded
+    // up, and its hidden value is -1. Restore the density without moving the
+    // front and the pattern is fully formed behind a radius still at the
+    // origin: nothing on screen, nothing in the console, and every reason to
+    // believe the tiling is broken.
+    view.set('uClothFront', 99);
+  }
   if (what === 'figures' || what === 'all') { figuresUp = true; view.set('uFigFade', 1); }
   if (what === 'type' || what === 'all') {
     typeUp = true; state.typeInk = tuned.typeInk;
@@ -991,7 +1005,8 @@ function stepLoader(now) {
     view.set('uLoadCover', 0);
     view.set('uFigFade', 0);
     view.set('uTypeShow', 0);
-    load = 1;
+    view.set('uClothFront', -1);   // hidden, and SAID so -- an unset uniform is 0,
+    load = 1;                      // which is a front that never left the origin
     return;
   }
   // NOTHING here may decelerate. Three separate mechanisms used to, and they

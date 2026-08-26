@@ -78,6 +78,24 @@ the nav or a counter arrives with it, that is a bug — one line, and stop.
 when they are allowed on screen. Everything it brings up is on the panel
 afterwards.
 
+## You cannot see the screen. Never say a thing is visible.
+
+You know what you ran and what the state object says. You do not know what came
+out the other end — a value can be set correctly and the thing still not be on
+screen, because a gate somewhere else is closed.
+
+That has happened: `up('cloth')` restored the pattern's density while the front
+that uncovers it sat at the origin. Every value was right, nothing was visible,
+and *"pattern's up"* was a false report made in good faith.
+
+So report the **fact**, not the outcome:
+
+    ran up('cloth')
+
+not *"the African pattern is up"*. If I say it is not there, you have not made a
+mistake — something in the file is wrong, and we go and find it. Do not
+apologise and re-run the same call.
+
 ## A reference changes the colour. Nothing else.
 
 When I send you an image and say make the sun like this: **read the colour off
