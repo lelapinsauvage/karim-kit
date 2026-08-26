@@ -329,6 +329,7 @@ addEventListener('resize', () => { if (wm.to) setLockup(wm.to, wm.num ?? '°01')
 const ORDER = LOOKS.map((l) => l.id);
 let lookIx = 0, lookIxPrev = 0;
 let loaderArmed = !COLD;
+let coldSet = false;
 let figuresUp = !COLD, sliderUp = !COLD, typeUp = !COLD, chromeUp = !COLD;
 const shown = new Set(COLD ? [] : ['sun', 'cloth', 'figures', 'type']);
 
@@ -915,6 +916,31 @@ if (HAS_PANEL) $('copy').onclick = () => {
 // Each step restores its own group of values from the tuned set. Nothing is
 // invented here -- 'up' is a reveal of what was always there, and everything it
 // restores is still on the panel to be argued with afterwards.
+// What is actually reaching the shader, one frame after the fact.
+//
+// Every step so far has failed the same way: the call was right, the value was
+// set, and something else put it back before the next draw. Nothing throws and
+// nothing looks wrong in the code. This reads the state back after a frame has
+// gone by, which is the only place that lie shows up.
+//
+//   check()   ->  { cloth: 0.205, front: 99, figFade: 1, type: 1, pigment: '#C97A24' }
+//
+// front -1 means the pattern is hidden however high cloth is.
+window.check = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => {
+  const g = view.gl, prog = view.program;
+  const read = (n) => { const l = g.getUniformLocation(prog, n); return l ? g.getUniform(prog, l) : null; };
+  done({
+    cloth:   +(state.cloth ?? 0).toFixed(3),
+    front:   read('uClothFront'),
+    figFade: read('uFigFade'),
+    type:    read('uTypeShow'),
+    r:       +(state.r ?? 0).toFixed(3),
+    pigment: state.pigment,
+    bg:      state.bg,
+    shown:   [...shown],
+  });
+})));
+
 window.up = (what) => {
   const tuned = { ...BASE, ...LOOKS[lookIx] };
   const take = (keys) => { for (const k of keys) state[k] = tuned[k]; };
@@ -936,7 +962,7 @@ window.up = (what) => {
   }
   if (what === 'chrome' || what === 'all') { chromeUp = true; document.body.classList.add('reveal'); }
   if (what === 'slider' || what === 'all') { sliderUp = true; }
-  if (what === 'loader') { loaderArmed = true; revealT = -1; load = 0; bootAt = performance.now(); return 'loader armed — reload to watch it'; }
+  if (what === 'loader') { loaderArmed = true; coldSet = false; revealT = -1; load = 0; bootAt = performance.now(); return 'loader armed — reload to watch it'; }
   if (what === 'all') { Object.assign(state, tuned); }
 
   if (what === 'all') ['sun','cloth','figures','type'].forEach((k) => shown.add(k));
@@ -997,16 +1023,25 @@ function stepLoader(now) {
   // Cold, there is nothing to open onto. Hand over on the first frame and let
   // the sun be asked for instead.
   if (COLD && !loaderArmed) {
-    document.body.classList.remove('loading');
-    // Cold there is nothing to open onto, so the loader stands down -- but it
-    // must not run its reveal either. The reveal adds body.reveal, which brings
-    // the entire page chrome in on its own, and paints the lockup: two things
-    // arriving that nobody asked for.
-    view.set('uLoadCover', 0);
-    view.set('uFigFade', 0);
-    view.set('uTypeShow', 0);
-    view.set('uClothFront', -1);   // hidden, and SAID so -- an unset uniform is 0,
-    load = 1;                      // which is a front that never left the origin
+    // ONCE, not every frame.
+    //
+    // stepLoader is called from frame(), so anything set in here is re-set
+    // sixty times a second. Written as a per-frame block it fought every step:
+    // up('cloth') moved the front and this put it back one frame later,
+    // up('figures') raised the fade and this dropped it, up('type') showed the
+    // lockup and this hid it. Every call was correct, nothing ever appeared,
+    // and there was no error anywhere to find.
+    //
+    // Cold is a state to enter, not a state to enforce.
+    if (!coldSet) {
+      coldSet = true;
+      document.body.classList.remove('loading');
+      view.set('uLoadCover', 0);
+      view.set('uFigFade', 0);
+      view.set('uTypeShow', 0);
+      view.set('uClothFront', -1);
+      load = 1;
+    }
     return;
   }
   // NOTHING here may decelerate. Three separate mechanisms used to, and they

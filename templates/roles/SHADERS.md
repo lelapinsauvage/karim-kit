@@ -78,6 +78,34 @@ the nav or a counter arrives with it, that is a bug — one line, and stop.
 when they are allowed on screen. Everything it brings up is on the panel
 afterwards.
 
+## After every step, read the value back
+
+You cannot see the screen, but you can see what reached the shader. Run this
+after every `up()` and after applying any values I paste:
+
+```js
+await check()
+// { cloth: 0.205, front: 99, figFade: 1, type: 1, pigment: '#C97A24', shown: [...] }
+```
+
+It waits a frame and then reads the uniforms out of the GPU program, which is
+the only place that tells the truth. Setting a value and having something else
+put it back before the next draw is the failure this build keeps producing, and
+it is invisible everywhere else: no error, no warning, correct code.
+
+**What the numbers mean when a step "did nothing":**
+
+| you see | it means |
+|---|---|
+| `front: -1` | the pattern is hidden however high `cloth` is |
+| `figFade: 0` | she is loaded and fully transparent |
+| `type: 0` | the lockup is drawn and not composited |
+| the value is not what you set | something is re-setting it every frame — say so |
+
+That last row is the important one. If `check()` disagrees with what you just
+set, **do not set it again.** Say which value, what you set, and what came back.
+Something in the file is fighting you, and running the same call twice cannot win.
+
 ## You cannot see the screen. Never say a thing is visible.
 
 You know what you ran and what the state object says. You do not know what came

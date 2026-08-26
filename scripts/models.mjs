@@ -219,113 +219,72 @@ const POSE_J = {
 // so it reads as a line. Half the set wears the sculpted visor; the rest keep
 // the face clear.
 export const MODELS = [
-  ['j01', POSE_J.turned, 'deep oxblood red', WHO.w1,
-    'Wearing a slab-cut short-sleeved camp-collar shirt in indigo adire, the '
-    + 'pale cracked geometry resist-dyed into the cloth, deep indigo and chalk '
-    + 'white, squared blunt shoulders, worn open over an acid yellow ribbed '
-    + 'sleeveless tank top. Bare face, no eyewear, both ears clear. Large '
-    + 'hammered yellow gold hoop earrings, wide and faceted, each hung with a '
-    + 'square-cut emerald drop. On the raised wrist a massive hammered yellow '
-    + 'gold wristwatch, a heavy angular slab case with a faceted stepped bezel '
-    + 'and a deep emerald green dial, on a woven indigo strap. Three thick cast '
-    + 'gold signet rings, one set with a raw square-cut emerald. Long fine box '
-    + 'braids gathered high off the ears.'],
-
-  ['j02', POSE_J.centre, 'flat olive green', WHO.w2,
-    'Wearing an oversized boxy chore jacket in heavy wax-print cotton, vermilion '
-    + 'and cream geometry printed through the weave, hard squared slab '
-    + 'shoulders, worn open over a cobalt blue ribbed sleeveless tank top. Bare '
-    + 'face, no eyewear, both ears clear. Long sculptural gold ear pendants, '
-    + 'flat hammered plates stepped like blocks, one set with a cabochon '
-    + 'emerald. On the raised wrist an oversized polished gold and brushed '
-    + 'steel wristwatch, a broad squared case with a stepped concrete-block '
-    + 'bezel and a vermilion dial, on a heavy gold link bracelet. Four wide gold '
-    + 'rings across both hands, two set with cabochon emeralds, and a flat gold '
-    + 'cuff high on the forearm. Tight coiled locs in a high sculptural knot.'],
-
-  ['j03', POSE_J.turned, 'pale mint', WHO.m2,
-    'Wearing a blunt boxy short-sleeved zip shirt in beaten barkcloth, the grain '
-    + 'and fibre running through the material, rust brown streaked with black, '
-    + 'worn open over a cream ribbed tank top. Bare face, no eyewear, both ears '
-    + 'clear. A thick hammered gold hoop in one ear and a small emerald stud in '
-    + 'the other. A stack of five hammered gold and blackened bronze cuff '
-    + 'bracelets up one forearm, wide, ridged, faceted like machined metal, and '
-    + 'two heavy gold rings with rough emerald inlay. A flat gold chain collar '
-    + 'at the throat. Close-shaved head.'],
-
-  ['j04', POSE_J.centre, 'hot pink', WHO.m1,
-    'Wearing an oversized short-sleeved rugby shirt in wide woven bands of ochre '
-    + 'yellow and cream with a blunt white collar, worn under a cropped '
-    + 'sleeveless vest in indigo adire with squared slab shoulders. Bare face, '
-    + 'no eyewear, both ears clear. Heavy square gold ear studs, carved and '
-    + 'stepped, each centred with an emerald. On the raised wrist an oversized '
-    + 'yellow gold wristwatch, a broad sculptural slab case with an exposed '
-    + 'skeleton movement and a bright emerald dial, on a heavy gold link '
-    + 'bracelet. Three chunky gold rings, one a wide carved band set with a '
-    + 'square emerald. Shoulder-length locs pushed back off the ears.'],
-
-  ['j05', POSE_J.turned, 'deep cobalt blue', WHO.w1,
-    'Wearing a short-sleeved knitted jacquard polo shirt, the pattern knitted '
-    + 'into the yarn in ochre yellow and black, contrast cream ribbed collar, '
-    + 'worn over a vermilion ribbed tank top. Bare face, no eyewear, both ears '
-    + 'clear. Wide flat gold disc earrings, hammered and edge-worn bright, each '
-    + 'inlaid with a slab of emerald. On the raised wrist a heavy cast gold '
-    + 'wristwatch, a round case with a deeply carved geometric bezel and a cream '
-    + 'enamel dial, on a black woven strap. A gold ring on every finger of one '
-    + 'hand, flat, hammered, one set with an emerald slab. Long fine box braids '
+  ['a01', POSE.left, 'deep cobalt blue', WHO.w1,
+    'Wearing a boxy short-sleeved camp-collar shirt in heavy Dutch wax cotton, '
+    + 'the geometry printed through the weave in vermilion, ochre yellow and '
+    + 'cream, blunt squared shoulders, worn open over a black ribbed sleeveless '
+    + 'tank top. Large hammered brass hoop earrings. Long fine box braids '
     + 'gathered high off the ears.'],
 
-  ['j06', POSE_J.centre, 'burnt terracotta', WHO.w2,
+  ['a02', POSE.left, 'burnt terracotta', WHO.m1,
+    'Wearing a short-sleeved knitted jacquard polo shirt, the diamond geometry '
+    + 'knitted into the yarn in cobalt blue and acid yellow, contrast cream '
+    + 'ribbed collar, open at the throat. A flat cast brass collar at the neck. '
+    + 'Short coiled hair, faded at the sides.'],
+
+  ['a03', POSE.left, 'hot pink', WHO.w2,
+    'Wearing a sleeveless kente tank top, the bands woven through the cloth in '
+    + 'ochre yellow, emerald green and black, blunt squared armholes, high '
+    + 'straight neckline. A tight cowrie shell choker at the throat. Tight '
+    + 'coiled locs in a high sculptural knot.'],
+
+  ['a04', POSE.left, 'acid green', WHO.m2,
+    'Wearing a blunt boxy short-sleeved work shirt in indigo adire, the pale '
+    + 'cracked resist geometry dyed into the cloth in deep indigo and chalk '
+    + 'white, worn open over a vermilion ribbed sleeveless tank top. A single '
+    + 'heavy brass cuff earring wrapping the upper ear. Close-shaved head.'],
+
+  ['a05', POSE.left, 'deep oxblood red', WHO.w1,
     'Wearing a short-sleeved shirt woven from fine raffia yarn, the open weave '
     + 'visible in the cloth, wide bands of acid green and natural straw, blunt '
-    + 'squared shoulders, worn open over a black ribbed sleeveless tank top. '
-    + 'Bare face, no eyewear, both ears clear. Long hammered gold ear drops, '
-    + 'tapered blades hung from a small emerald bead. A wide hinged gold cuff '
-    + 'bracelet on each wrist, hammered, ridged, with a raised carved ridge down '
-    + 'the centre, and a slim beaded cowrie band beside one. Five gold rings '
-    + 'across both hands, two with deep emerald stones set flush. Tight coiled '
-    + 'locs in a high sculptural knot.'],
+    + 'squared shoulders, worn open over a cobalt blue ribbed sleeveless tank '
+    + 'top. Long hammered brass ear drops, tapered blades. Long fine box braids '
+    + 'gathered high off the ears.'],
 
-  ['j07', POSE_J.turned, 'flat olive green', WHO.m1,
-    'Wearing a blunt boxy short-sleeved work shirt in indigo adire, the pale '
-    + 'resist geometry dyed into the cloth, worn open over a cream ribbed tank '
-    + 'top. Bare face, no eyewear, both ears clear. A single heavy gold cuff '
-    + 'earring wrapping the upper ear and a thick gold hoop below it. A yellow '
-    + 'gold wristwatch with a deep octagonal slab case, a carved bezel and a '
-    + 'pale bone-white dial, on a woven raffia strap. Two heavy gold rings and '
-    + 'one broad emerald-set band. A short blackened bronze and gold chain at '
-    + 'the throat. Short coiled hair, faded at the sides.'],
+  ['a06', POSE.left, 'pale mint', WHO.m1,
+    'Wearing an oversized short-sleeved camp-collar shirt in heavy wax-print '
+    + 'cotton, the geometry through the weave in cobalt blue, ochre yellow and '
+    + 'black, hard squared slab shoulders, worn open over a cream ribbed '
+    + 'sleeveless tank top. A wide hammered brass cuff high on one forearm. '
+    + 'Shoulder-length locs pushed back off the ears.'],
 
-  ['j08', POSE_J.centre, 'deep oxblood red', WHO.m1,
+  ['a07', POSE.left, 'flat olive green', WHO.w2,
+    'Wearing a short-sleeved knitted jacquard polo shirt, the stepped geometry '
+    + 'knitted into the yarn in vermilion and chalk cream, contrast black '
+    + 'ribbed collar, worn over an acid yellow ribbed tank top. Wide flat brass '
+    + 'disc earrings, edge-worn bright. Tight coiled locs in a high sculptural '
+    + 'knot.'],
+
+  ['a08', POSE.left, 'bright tangerine', WHO.m2,
+    'Wearing a sleeveless kente tank top, the bands woven through the cloth in '
+    + 'hot pink, emerald green and cream, blunt squared armholes, worn under a '
+    + 'cropped sleeveless vest in black waxed cotton with squared slab '
+    + 'shoulders. A short blackened bronze chain at the throat. Close-shaved '
+    + 'head.'],
+
+  ['a09', POSE.left, 'warm mustard yellow', WHO.w1,
+    'Wearing a slab-cut short-sleeved shirt in indigo adire, the pale cracked '
+    + 'geometry resist-dyed into the cloth in deep indigo, rust brown and chalk '
+    + 'white, squared blunt shoulders, worn open over a cream ribbed sleeveless '
+    + 'tank top. A row of cowrie shells strung tight at the throat. Long fine '
+    + 'box braids gathered high off the ears.'],
+
+  ['a10', POSE.left, 'deep teal', WHO.m1,
     'Wearing an oversized boxy short-sleeved shirt in woven kilim, the pattern '
-    + 'woven through the cloth in cobalt and ochre, squared slab shoulders, worn '
-    + 'open over a cream ribbed sleeveless tank top. Bare face, no eyewear, both '
-    + 'ears clear. Thick gold hoop earrings, hammered flat and faceted, one hung '
-    + 'with an emerald bead. On the raised wrist a wide polished gold '
-    + 'wristwatch, a cushion slab case with a fluted bezel and a deep emerald '
-    + 'dial, on a stiff cobalt woven strap. Four thick gold rings, knuckle-wide, '
-    + 'one carved and set with a raw emerald. Short coiled hair, faded at the '
-    + 'sides.'],
-
-  ['j09', POSE_J.turned, 'pale mint', WHO.m2,
-    'Wearing a short-sleeved knitted jacquard polo shirt, the geometry knitted '
-    + 'into the yarn in black and chalk white, worn under a cropped sleeveless '
-    + 'tan leather utility vest with blunt squared shoulders. Bare face, no '
-    + 'eyewear, both ears clear. Square hammered gold ear plates with a green '
-    + 'stone set at the centre of each. A stack of hammered gold bangles and one '
-    + 'heavy blackened bronze chain bracelet on the raised wrist, links faceted '
-    + 'and machined, and three gold rings with green stones. Close-shaved head.'],
-
-  ['j10', POSE_J.centre, 'deep cobalt blue', WHO.w1,
-    'Wearing a short-sleeved camp-collar shirt in heavy wax-print cotton, acid '
-    + 'green and vermilion geometry through the weave, blunt squared shoulders, '
-    + 'worn open over a black ribbed sleeveless tank top. Bare face, no eyewear, '
-    + 'both ears clear. Very large hammered gold hoop earrings, wide, ridged and '
-    + 'edge-worn bright. On the raised wrist a large hammered gold wristwatch, '
-    + 'an oversized angular slab case with a faceted sculptural bezel and a pale '
-    + 'bone dial, on a black woven strap. Wide gold rings on four fingers, one a '
-    + 'heavy carved band set with an emerald cabochon, and a flat gold forearm '
-    + 'cuff. Long fine box braids gathered high off the ears.'],
+    + 'woven through the cloth in vermilion, chalk white and black, squared slab '
+    + 'shoulders, worn open over an emerald green ribbed sleeveless tank top. '
+    + 'Heavy square brass ear studs, carved and stepped. Short coiled hair, '
+    + 'faded at the sides.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.
