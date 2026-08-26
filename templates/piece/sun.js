@@ -431,9 +431,14 @@ function buildPanel() {
       i.value = state[k] ?? 0;
       document.getElementById('v-' + k).textContent = (+(state[k] ?? 0)).toFixed(3);
     }
-    for (const k of COLKEYS) {
-      document.getElementById('c-' + k).value = state[k] ?? '';
-      document.getElementById('s-' + k).value = state[k] ?? '#000000';
+    // the live list, not every colour there has ever been -- the panel only
+    // renders the ones belonging to what is on screen
+    for (const k of liveColours()) {
+      const hex = document.getElementById('c-' + k);
+      const sw  = document.getElementById('s-' + k);
+      if (!hex || !sw) continue;
+      hex.value = state[k] ?? '';
+      sw.value  = state[k] ?? '#000000';
     }
   };
   window.__syncPanel = sync;
@@ -457,9 +462,10 @@ function buildPanel() {
   }
   // swatch and hex field drive each other. the picker is for finding a colour,
   // the field is for pasting one -- both are needed and neither replaces the other
-  for (const k of COLKEYS) {
+  for (const k of liveColours()) {
     const hex = document.getElementById('c-' + k);
     const sw  = document.getElementById('s-' + k);
+    if (!hex || !sw) continue;
     const set = (v) => { commit(k, v); hex.value = v; sw.value = v; send(state); };
     sw.addEventListener('input', () => set(sw.value));
     hex.addEventListener('input', () => {
@@ -471,7 +477,8 @@ function buildPanel() {
   // Dump ALL looks, formatted as the LOOKS array. Copying the live state alone
   // only ever captures one look, which is why placing four figures meant four
   // round trips.
-  document.getElementById('p-copy').onclick = () => {
+  const btn_p_copy = document.getElementById('p-copy');
+  if (btn_p_copy) btn_p_copy.onclick = () => {
     const KEEP = ['id','name','fig','pigment','bg','clothInk','figH','figX','figBleed',
                   'glow','rimStr','rimW','warmth','purity','pig','origin','material'];
     const out = ORDER.map((id) => {
@@ -910,9 +917,6 @@ window.up = (what) => {
 
 apply(LOOKS[0].id);
 if (COLD) { view.set('uFigFade', 0); send(state); }
-
-// asked for on camera: the light body only. everything else stays cold.
-if (COLD) window.up('sun');
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A
