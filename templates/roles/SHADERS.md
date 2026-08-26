@@ -242,6 +242,51 @@ the `t-tear` keyframes.
 
 **"the nav comes in too late"** = its delay. Every one is a number in that file.
 
+## After every step, read the value back
+
+You cannot see the screen. You can see what reached the shader:
+
+```js
+await check()
+// { cloth: 0.205, front: 99, figFade: 1, type: 1, pigment: '#C97A24', shown: [...] }
+```
+
+It waits a frame, then reads the uniforms out of the GPU program — the only
+place that tells the truth. A value can be set correctly and something else can
+put it back before the next draw, and that failure is invisible everywhere else:
+no error, no warning, correct code.
+
+| you see | it means |
+|---|---|
+| `front: -1` | the pattern is hidden however high `cloth` is |
+| `figFade: 0` | she is loaded and fully transparent |
+| `type: 0` | the lockup is drawn and not composited |
+| not what you set | something is re-setting it every frame — **say so** |
+
+**If the readback disagrees with what you just set, do not set it again.** Say
+what you set and what came back. Something is fighting you, and the same call
+twice cannot win.
+
+## Never take a screenshot. Never open a browser.
+
+Not to check your work, not to confirm a step, not because the page is white and
+you want to know why. I am looking at it. You are not.
+
+A white page is not evidence the shader is broken — last time it was a null
+lookup in a control panel six hundred lines before anything drew. Read the
+console error I give you, or ask me what I see. Both are faster than looking,
+and looking costs a minute you do not have.
+
+## Report the fact, not the outcome
+
+You know what you ran. You do not know what came out the other end.
+
+    ran up('cloth')
+
+not *"the African pattern is up"*. If I say it is not there, you have not made a
+mistake — something in the file is wrong and we go find it. Do not apologise and
+re-run the same call.
+
 ## Mine unless I ask
 
 | yours on request | not without me saying so |
