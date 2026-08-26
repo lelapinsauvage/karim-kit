@@ -77,8 +77,23 @@ const SKIN =
 // shoulder eats far more width than a head-and-shoulders crop expects.
 const FRAME =
   'Framed wide, with a clear margin of empty backdrop on the left and the right '
-  + 'and above the head. Both sleeves and the full width of the shoulders sit '
-  + 'well inside the frame and never touch the left or right edge. '
+  + 'and above the head. '
+  // THE HANDS ARE THE WIDEST THING IN THE PICTURE.
+  //
+  // The rule used to protect sleeves and shoulders, which is correct for a
+  // figure standing with its arms down and useless the moment they come up.
+  // Raise both forearms to show a watch and a ring and the outermost points are
+  // the elbows -- so the frame was set to the shoulders and the arms ran
+  // straight off both sides.
+  //
+  // Named explicitly, outermost first, because the model frames to what it is
+  // told to keep.
+  + 'BOTH HANDS, both wrists, both forearms and both elbows are completely '
+  + 'inside the frame with empty backdrop visible beyond them on each side. '
+  + 'Nothing about the arms or hands touches, overlaps or is cut by the left or '
+  + 'right edge. If the arms are raised, the frame is widened to hold them. '
+  + 'Both sleeves and the full width of the shoulders also sit well inside the '
+  + 'frame. '
   // Sides and top clear, bottom RUNNING OFF. A body that stops inside the frame
   // has been amputated; a body that continues past the bottom edge has simply
   // been cropped, and once the figure is knocked out and stood in a scene only
@@ -152,10 +167,21 @@ const WHO = {
 // looks left.
 // ---------------------------------------------------------------------------
 const FRAME_J =
-  'Framed wide enough to hold both raised hands, with a clear margin of empty '
-  + 'backdrop on the left and the right and above the head. Both sleeves, the '
-  + 'full width of the shoulders and both hands sit well inside the frame and '
-  + 'never touch the left or right edge. '
+  // THE ELBOWS ARE THE WIDEST THING, NOT THE HANDS.
+  //
+  // This clause already said the hands must not touch the edge, and they did
+  // not -- they were at the collarbone, well inside. The arms were cut off at
+  // both sides anyway, because raising a forearm to show a watch puts the ELBOW
+  // further out than anything else in the picture, and nothing here named it.
+  //
+  // Name the outermost point or the frame gets set to the second-outermost one.
+  'Framed wide enough that BOTH ELBOWS have empty backdrop beyond them on each '
+  + 'side. The elbows are the widest points in this picture and they must not '
+  + 'touch, overlap or be cut by the left or right edge. Nothing about either '
+  + 'arm leaves the frame: elbow, forearm, wrist and hand are all completely '
+  + 'inside it, with a clear margin of empty backdrop beyond, and a clear '
+  + 'margin above the head. Both sleeves and the full width of the shoulders '
+  + 'sit well inside the frame. Pull the camera back until this is true. '
   + 'The body continues down past the bottom edge of the frame and is cropped '
   + 'by it below the ribs, not ending inside the frame.';
 
