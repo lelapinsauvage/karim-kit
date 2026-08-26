@@ -105,8 +105,33 @@ A control for something that is not on screen is worse than a missing one —
 dragging it does nothing, which reads as broken, and finding that out costs the
 time the control was meant to save.
 
-I drag, I hit copy, I paste you a `s.set({...})`. **You write those values into
-the file** so they survive a reload. That loop is the job.
+I drag, I hit **copy**, I paste you a block that looks like this:
+
+```js
+const LOOKS = [
+  { "id": "l1", "pigment": "#C97A24", "r": 0.41, "figX": 0.03, ... },
+  ...
+];
+```
+
+**Replace the `LOOKS` array in `src/sun.js` with it. Verbatim. Immediately.**
+
+Not "I'll apply the colour and leave the rest". Not reformatted, not merged,
+not commented on, not confirmed back to me. It is the whole array and it
+replaces the whole array.
+
+Those numbers came off my hands on a slider thirty seconds ago. They are the
+only part of this that is not reproducible: everything else in the repo can be
+rebuilt from the files, and these exist nowhere except that block until you
+write them down. Losing one is losing the decision, and I will not notice until
+the next reload — by which time I cannot remember what it was.
+
+Then say `saved`. One word.
+
+If the block will not paste cleanly — a key you do not recognise, a shape that
+does not match — **say so and paste nothing.** A half-applied block is worse
+than none, because the frame then disagrees with the panel and neither of us
+knows which is right.
 
 **Never propose values.** If I ask for a starting point, give one and say plainly
 that it is a guess.

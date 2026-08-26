@@ -479,8 +479,11 @@ function buildPanel() {
   // round trips.
   const btn_p_copy = document.getElementById('p-copy');
   if (btn_p_copy) btn_p_copy.onclick = () => {
-    const KEEP = ['id','name','fig','pigment','bg','clothInk','figH','figX','figBleed',
-                  'glow','rimStr','rimW','warmth','purity','pig','origin','material'];
+    // EVERY key the panel can move, not a chosen seventeen. The old list left
+    // out r, edge, the core offsets, the whole cloth group -- so tuning the sun
+    // and hitting copy produced a block that silently did not contain the sun.
+    const KEEP = ['id', 'name', 'fig', 'pig', 'origin', 'material',
+                  ...COLKEYS, ...GROUPS.flatMap(([, k]) => k)];
     const out = ORDER.map((id) => {
       const l = PRESETS[id], o = {};
       for (const k of KEEP) if (l[k] !== undefined && l[k] !== BASE[k]) o[k] = l[k];
