@@ -36,6 +36,14 @@ const HAS_PANEL = !!document.getElementById('r');
 //   the word -> typeInk
 const BLANK = true;
 
+// THE OPENING. Set true and the loader plays: the count runs 0 to 100 bottom
+// left while two small black bodies drift in from the sides, accelerate, merge,
+// ignite at the moment they touch and open out into the sun.
+//
+// It is off while the frame is blank because there is nothing to open onto --
+// an eclipse that resolves into an empty page is just a delay.
+const LOADER = false;
+
 // Handed over once, at init, instead of by a loader that is not running.
 // Anything set per-frame here fights every value I write into LOOKS.
 function blankFrame() {
@@ -877,7 +885,7 @@ if (HAS_PANEL) $('copy').onclick = () => {
 };
 
 apply(LOOKS[0].id);
-if (BLANK) blankFrame();
+if (BLANK && !LOADER) blankFrame();
 
 // THE SLIDER'S BUTTONS. They live in index.html and wait for body.reveal, which
 // blank never fires -- so the arrows existed, worked on the keyboard, and had
@@ -1143,7 +1151,7 @@ function frame(t) {
   // BLANK skips the opening entirely. The loader is what adds body.reveal and
   // paints the lockup, so leaving it running was why a page with nothing
   // decided still arrived with the chrome and the word on it.
-  if (!BLANK) stepLoader(performance.now());
+  if (!BLANK || LOADER) stepLoader(performance.now());
 
   stepTween(t);
   stepWordmark(t);

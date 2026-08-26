@@ -161,28 +161,44 @@ const GROUND = (colour) =>
 const WHO = {
   f01: 'A Black American woman in her early twenties, deep blue-black skin, '
     + 'round full face, wide-set eyes, a dense scatter of freckles across the '
-    + 'nose and cheeks, a small gap between her front teeth.',
+    + 'nose and cheeks, a small gap between her front teeth. Openly amused, '
+    + 'caught on the edge of a laugh, mouth just parted and the gap showing.',
   f02: 'A Black American woman in her thirties, warm russet-brown skin, long '
     + 'neck, high angular cheekbones, a broad nose and full mouth, a raised '
-    + 'beauty mark beside the right eye.',
+    + 'beauty mark beside the right eye. Composed and level, mouth closed, '
+    + 'the expression withheld and unreadable.',
   f03: 'A Black American woman in her forties, light golden-amber skin, soft '
     + 'square face, deep laughter lines at the eyes, a small mole above the '
-    + 'lip, grey coming through at the temples.',
+    + 'lip, grey coming through at the temples. Dry and wry, one eyebrow '
+    + 'lifted, the corner of the mouth barely up.',
   f04: 'A Black American woman in her late twenties, dark umber skin, narrow '
     + 'face, sharp pointed chin, heavy straight brows, pale vitiligo patches '
-    + 'across one cheek and down the side of the throat.',
+    + 'across one cheek and down the side of the throat. Cool and defiant, '
+    + 'jaw set hard, mouth closed, entirely unsmiling.',
+  f05: 'A Black American woman in her fifties, deep espresso skin, strong '
+    + 'square jaw, broad forehead, a deep vertical furrow between the brows, '
+    + 'a silver-white streak at the front hairline. Bright and startled open, '
+    + 'brows lifted, eyes wide, the breath caught.',
   m01: 'A Black American man in his late twenties, deep chocolate-brown skin, '
     + 'square heavy jaw, thick low brow, a fine scar cutting through one '
-    + 'eyebrow, a wide mouth.',
+    + 'eyebrow, a wide mouth. Guarded and wary, brows drawn slightly '
+    + 'together, mouth flat and closed.',
   m02: 'A Black American man in his forties, dark bronze skin with a reddish '
     + 'undertone, lined forehead, a wide flat nose, a chipped front tooth, a '
-    + 'short beard with grey coming through it.',
+    + 'short beard with grey coming through it. Warm and easy, a broad open '
+    + 'smile, the chipped tooth showing.',
   m03: 'A Black American man in his early twenties, very dark skin, lean '
     + 'angular face, high forehead, deep-set eyes, a raised keloid mark along '
-    + 'the jawline, no facial hair.',
+    + 'the jawline, no facial hair. Bored and heavy-lidded, eyes half closed, '
+    + 'entirely unimpressed.',
   m04: 'A Black American man in his thirties, medium tan-brown skin, broad '
     + 'round face, thick moustache, a gold-capped upper tooth, freckles across '
-    + 'both cheeks.',
+    + 'both cheeks. Solemn and grave, mouth closed and still, weight behind '
+    + 'the eyes.',
+  m05: 'A Black American man in his fifties, dark walnut skin, hooded eyes, a '
+    + 'heavy drooping moustache going grey, deep lines running from nose to '
+    + 'mouth, a smooth burn scar across the left temple. Intent and '
+    + 'concentrating, brows low, jaw carried slightly forward.',
 };
 
 export const MODELS = [
@@ -246,8 +262,22 @@ export const MODELS = [
     + 'sleeveless tank top, with wide straight-leg black cotton trousers. A '
     + 'row of cowrie shells strung tight at the throat. Shoulder-length '
     + 'free-form locs, thick and uneven, tied back off the face.'],
-];
+  ['a09', POSE.left, 'deep teal', WHO.f05,
+    'Wearing a sleeveless boxy tank top in aso-oke strip-weave cotton, narrow '
+    + 'warp stripes and lozenge float-weave figures woven into the cloth in '
+    + 'vermilion, cream and black, blunt squared armholes, high straight '
+    + 'neckline, with wide cream cotton shorts cut to the knee. A heavy cast '
+    + 'brass torque at the throat. Bantu knots set in even rows across the '
+    + 'scalp.'],
 
+  ['a10', POSE.left, 'saffron orange', WHO.m05,
+    'Wearing a short-sleeved camp-collar shirt in heavy cotton, a wax-print '
+    + 'cowrie-and-spiral repeat dyed into the cloth in cobalt blue, chalk '
+    + 'white and black, blunt squared shoulders, open at the throat over a '
+    + 'cobalt blue ribbed sleeveless tank top, with wide straight-leg chalk '
+    + 'white cotton trousers. One large flat hammered brass disc earring. '
+    + 'Natural hair shaved close and tapered to the skin all over.'],
+];
 // The lead phrase decides what is being made before any other word lands.
 // 'Studio fashion portrait' gets a shoot; 'photograph of a person' gets a
 // snapshot; 'film still' gets a scene. This is a shoot.

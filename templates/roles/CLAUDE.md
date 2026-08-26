@@ -57,10 +57,15 @@ That is the whole report. One line, present tense, what I can see.
 Everything I ask for already exists. Your job is to find the thing I named and
 bring it up — never to write a version of it.
 
-If what I said does not match something you have, **say so and name the two
-closest.** One line. Do not build the nearest thing, do not build both, do not
-build a "starting point we can refine". A word I used that you do not recognise
-is a question, not a brief.
+If what I said does not obviously match something you have, **look harder before
+you decide it is not there.** Almost everything I ask for already exists.
+
+If it genuinely does not, **build the smallest thing that does what I
+described** and say in one line that you built it rather than found it.
+
+**Never ask me which of two things I meant.** I am describing something I want
+on screen; working out which it is is your job, and a question thrown back at me
+costs more than a wrong guess I can correct in three words.
 
 ## Never
 

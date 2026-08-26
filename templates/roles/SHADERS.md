@@ -66,7 +66,8 @@ const LOOKS = [
 | her colours · take them off her · one colour each | `palette: true` |
 | slider · arrows · buttons · switch between them | `figShow: true` on two or more |
 | word · title · wordmark · type · the big text | `typeInk: 0.07` |
-| the colours · take them off her · match it to her | run the palette, write the three hex values |
+| the colours · take them off her · match it to her | `palette: true` |
+| loader · intro · opening · the count · the eclipse | `const LOADER = true` |
 
 Nav, rail and the counter belong to `layout`. **The lockup and the loader are
 not yours to bring up either** — the big word arrives with the opening, and the
@@ -97,6 +98,18 @@ travels in the copy block like anything I set by hand. Once I start tuning a
 colour by hand, take `palette` back out of that look or it will be re-read on
 the next reload and overwrite me.
 
+### the loader
+
+`const LOADER = true` near the top of `sun.js`. It already does this: the count
+runs 0 to 100 bottom left while two small black bodies drift in from the sides,
+accelerate all the way, merge, ignite at the moment they touch and open out into
+the sun. There is nothing to build.
+
+It stays off while the frame is empty — an eclipse resolving onto a blank page
+is just a delay — so switch it on once there is something to open onto.
+
+`LOAD_MIN` is how long the count takes, `REVEAL_MS` the opening after contact.
+
 ### the slider
 
 Two or more figures and the arrows appear bottom-right on their own. Left and
@@ -104,10 +117,17 @@ right on the keyboard work too. The move itself is `MOVES` in `sun.js`, `mid` is
 live, and `figMode` picks the transition — **4 is the tear along the pattern
 grid**.
 
-**If what I said is not one of those, do not build anything.** Say so in one
-line and name the two closest:
+**Never say "not on the list".** Never ask me which I meant. I am describing
+something I want on screen; work out which it is.
 
-    not on the list — sun or cloth?
+The list is where to look first, not a gate. If what I described is in the
+piece — and it almost always is, because the piece contains a loader, a switch,
+a wave, a scramble, a reveal and a full panel — **use it.**
+
+If it genuinely is not there, **build the smallest thing that does what I
+described**, and say in one line that you built it rather than found it. That
+distinction is all I need. What I cannot use is a question thrown back at me
+while the clock runs.
 
 ## Never
 
