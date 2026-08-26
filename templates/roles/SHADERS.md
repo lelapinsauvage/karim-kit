@@ -62,13 +62,47 @@ const LOOKS = [
 |---|---|
 | sun · halo · light · the disc · the glow | `r: 0.33, glow: 0.5` |
 | patterns · afro patterns · kuba · cloth · the weave | `cloth: 0.2, charge: 0.8` |
-| models · characters · figures · her | `figShow: true` |
+| models · characters · figures · her | `figShow: true, fig: 'a02'` |
+| her colours · take them off her · one colour each | `palette: true` |
+| slider · arrows · buttons · switch between them | `figShow: true` on two or more |
 | word · title · wordmark · type · the big text | `typeInk: 0.07` |
 | the colours · take them off her · match it to her | run the palette, write the three hex values |
 
-Nav, rail, the ticker and the counter belong to `layout`. **The lockup and the
-loader are not yours to bring up either** — the big word arrives with the
-opening, and the opening is asked for by name, last.
+Nav, rail and the counter belong to `layout`. **The lockup and the loader are
+not yours to bring up either** — the big word arrives with the opening, and the
+opening is asked for by name, last.
+
+### figures
+
+`fig` is a filename in `src/figures` without the extension. **Check it exists
+before writing it** — a missing file loads transparent and looks exactly like a
+bug in the figure code. If I ask for four and there are three, say which slot
+has nothing.
+
+Placement is per figure and lives on the panel once she is up: `figH` size,
+`figX` left/right, `figBleed` how far she sinks below the edge. Drag on one
+figure, step to the next with the arrows, drag again — each keeps its own,
+because each is a different look in the same array.
+
+### colour per figure
+
+`palette: true` reads the light, the ground and the ink off that figure's own
+photograph. It takes the pigment from the garment rather than the skin, and
+derives the ground and the ink from the pigment's hue so the whole frame stays
+in one family — so every character arrives with its own personality instead of
+wearing the last one's colour.
+
+It writes the result into the look, so it survives, shows on the panel, and
+travels in the copy block like anything I set by hand. Once I start tuning a
+colour by hand, take `palette` back out of that look or it will be re-read on
+the next reload and overwrite me.
+
+### the slider
+
+Two or more figures and the arrows appear bottom-right on their own. Left and
+right on the keyboard work too. The move itself is `MOVES` in `sun.js`, `mid` is
+live, and `figMode` picks the transition — **4 is the tear along the pattern
+grid**.
 
 **If what I said is not one of those, do not build anything.** Say so in one
 line and name the two closest:

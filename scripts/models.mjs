@@ -147,127 +147,93 @@ const GROUND = (colour) =>
 // in the teeth, a heavy brow, freckles, a shaved head are what make a face a
 // person rather than a composite.
 const WHO = {
-  p01: 'A Black woman in her early twenties, deep blue-black skin, round face, '
-    + 'wide-set eyes, a scatter of freckles across the nose and cheeks, a small '
-    + 'gap between her front teeth.',
-  p02: 'A Black woman in her thirties, warm russet-brown skin, long neck, high '
-    + 'angular cheekbones, a broad nose and full mouth, fine raised '
-    + 'scarification lines across both cheekbones.',
-  p03: 'A Black man in his late twenties, deep chocolate-brown skin, square '
-    + 'jaw, heavy brow, a fine scar through one eyebrow, a wide mouth.',
-  p04: 'A Black woman in her forties, light golden-amber skin, softer face, '
-    + 'laughter lines at the eyes, a small mole above the lip, greying at the '
-    + 'temples.',
-  p05: 'A Black man in his forties, dark bronze skin with a reddish undertone, '
-    + 'lined forehead, a wide flat nose, a chipped front tooth, a short beard '
-    + 'with grey coming through it.',
+  f01: 'A Black American woman in her early twenties, deep blue-black skin, '
+    + 'round full face, wide-set eyes, a dense scatter of freckles across the '
+    + 'nose and cheeks, a small gap between her front teeth.',
+  f02: 'A Black American woman in her thirties, warm russet-brown skin, long '
+    + 'neck, high angular cheekbones, a broad nose and full mouth, a raised '
+    + 'beauty mark beside the right eye.',
+  f03: 'A Black American woman in her forties, light golden-amber skin, soft '
+    + 'square face, deep laughter lines at the eyes, a small mole above the '
+    + 'lip, grey coming through at the temples.',
+  f04: 'A Black American woman in her late twenties, dark umber skin, narrow '
+    + 'face, sharp pointed chin, heavy straight brows, pale vitiligo patches '
+    + 'across one cheek and down the side of the throat.',
+  m01: 'A Black American man in his late twenties, deep chocolate-brown skin, '
+    + 'square heavy jaw, thick low brow, a fine scar cutting through one '
+    + 'eyebrow, a wide mouth.',
+  m02: 'A Black American man in his forties, dark bronze skin with a reddish '
+    + 'undertone, lined forehead, a wide flat nose, a chipped front tooth, a '
+    + 'short beard with grey coming through it.',
+  m03: 'A Black American man in his early twenties, very dark skin, lean '
+    + 'angular face, high forehead, deep-set eyes, a raised keloid mark along '
+    + 'the jawline, no facial hair.',
+  m04: 'A Black American man in his thirties, medium tan-brown skin, broad '
+    + 'round face, thick moustache, a gold-capped upper tooth, freckles across '
+    + 'both cheeks.',
 };
 
-// STREETWEAR SILHOUETTES CUT FROM HERITAGE TEXTILE -- a plate carrier made of
-// antique kilim, a puffer in bandana paisley, a camp collar in Dutch wax. That
-// is the register in the references, and it is the difference between a
-// clothing line and a costume department. Nothing ceremonial, nothing tribal,
-// nothing "inspired by".
-// ---------------------------------------------------------------------------
-// JEWELLERY. The product is on the hands and wrists, so the hands have to be
-// in the frame and the crop has to fall below them -- the settled FRAME cuts
-// at the chest, which severs the wrist that the watch is on. Neither pose
-// looks left.
-// ---------------------------------------------------------------------------
-const FRAME_J =
-  // THE ELBOWS ARE THE WIDEST THING, NOT THE HANDS.
-  //
-  // This clause already said the hands must not touch the edge, and they did
-  // not -- they were at the collarbone, well inside. The arms were cut off at
-  // both sides anyway, because raising a forearm to show a watch puts the ELBOW
-  // further out than anything else in the picture, and nothing here named it.
-  //
-  // Name the outermost point or the frame gets set to the second-outermost one.
-  'Framed wide enough that BOTH ELBOWS have empty backdrop beyond them on each '
-  + 'side. The elbows are the widest points in this picture and they must not '
-  + 'touch, overlap or be cut by the left or right edge. Nothing about either '
-  + 'arm leaves the frame: elbow, forearm, wrist and hand are all completely '
-  + 'inside it, with a clear margin of empty backdrop beyond, and a clear '
-  + 'margin above the head. Both sleeves and the full width of the shoulders '
-  + 'sit well inside the frame. Pull the camera back until this is true. '
-  + 'The body continues down past the bottom edge of the frame and is cropped '
-  + 'by it below the ribs, not ending inside the frame.';
-
-const HANDS =
-  'Both forearms raised into frame, one hand resting at the collarbone and the '
-  + 'other at the jaw, fingers long and relaxed, wrists and knuckles turned '
-  + 'toward the camera and sharply in focus so the jewellery reads clearly. '
-  + 'Sleeves pushed back off the wrist. Hands anatomically correct, five '
-  + 'fingers on each hand.';
-
-const POSE_J = {
-  centre:
-    'Head, shoulders and both hands in frame, square to camera, chin a fraction '
-    + 'lifted, jaw set, shoulders dropped and square, eyes looking off to the '
-    + 'LEFT of frame past the camera, never down the lens. '
-    + HANDS
-    + ' A held, deliberate stance directed by a photographer -- not a snapshot, '
-    + 'not a casual standing pose. '
-    + FRAME_J,
-
-  turned:
-    'Head, shoulders and both hands in frame, body turned a quarter away so the '
-    + 'shoulders sit on a diagonal, head carried back over the near shoulder and '
-    + 'eyes looking off to the LEFT of frame past the camera, never down the '
-    + 'lens, chin a fraction lifted, neck long, shoulders dropped and held. '
-    + HANDS
-    + ' A deliberate stance directed by a photographer -- not a snapshot, not a '
-    + 'casual standing pose. '
-    + FRAME_J,
-};
-
-// The garment is the ground the jewellery sits on: blunt slab-cut streetwear,
-// pattern woven or dyed into the cloth, sleeves short or pushed back so the
-// wrists and hands are bare. Gold, emerald and hammered brass worn in quantity
-// so it reads as a line. Half the set wears the sculpted visor; the rest keep
-// the face clear.
 export const MODELS = [
-  ['a01', POSE.left, 'deep cobalt blue', WHO.p01,
-    'Wearing a boxy short-sleeved Cuban-collar guayabera in heavy cotton, twin '
-    + 'rows of vertical pintuck alforzas down the front, Havana hydraulic '
-    + 'floor-tile geometry woven through the cloth in vermilion, ochre yellow '
-    + 'and cream, blunt squared shoulders, worn open over a black ribbed '
-    + 'sleeveless tank top, with wide straight-leg black cotton trousers. Large '
-    + 'hammered brass hoop earrings. Long fine box braids threaded with brass '
-    + 'wire and gathered into two tall sculptural coils standing high off the '
-    + 'crown.'],
+  ['f01', POSE.left, 'deep cobalt blue', WHO.f01,
+    'Wearing a boxy short-sleeved camp-collar shirt in heavy cotton, a '
+    + 'wax-print concentric-disc repeat dyed into the cloth in vermilion, ochre '
+    + 'yellow and cream, blunt squared shoulders, open at the throat over a '
+    + 'black ribbed sleeveless tank top, with wide straight-leg vermilion '
+    + 'cotton trousers. Large hammered brass hoop earrings. Coiled twists '
+    + 'gathered high off the crown into a tall standing pineapple.'],
 
-  ['a02', POSE.left, 'burnt terracotta', WHO.p02,
-    'Wearing a short-sleeved knitted jacquard polo shirt, a Cuban mosaic-tile '
-    + 'quatrefoil repeat knitted into the yarn in cobalt blue and acid yellow, '
-    + 'contrast cream ribbed collar, open at the throat, with wide cream cotton '
+  ['f02', POSE.left, 'burnt terracotta', WHO.f02,
+    'Wearing a short-sleeved knitted jacquard polo shirt, a mosaic quatrefoil '
+    + 'repeat knitted into the yarn in cobalt blue and acid yellow, contrast '
+    + 'cream ribbed collar, open at the throat, with wide cream cotton '
     + 'trousers. A flat cast brass collar at the neck. A big round afro picked '
-    + 'out full and even, a thin polished brass band set into it like a halo.'],
+    + 'out full and even.'],
 
-  ['a03', POSE.left, 'hot pink', WHO.p03,
-    'Wearing a sleeveless tank top, Afro-Cuban bead-stripe geometry woven '
-    + 'through the cloth in ochre yellow, emerald green and black, blunt '
-    + 'squared armholes, high straight neckline, with wide emerald green cotton '
-    + 'shorts cut to the knee. A tight cowrie shell choker at the throat. '
-    + 'Cornrows braided flat in tight concentric arcs across the scalp, falling '
-    + 'into short locs at the nape.'],
+  ['f03', POSE.left, 'hot pink', WHO.f03,
+    'Wearing a sleeveless tank top, kente strip-weave banding woven through '
+    + 'the cloth in emerald green, ochre yellow and black, blunt squared '
+    + 'armholes, high straight neckline, with wide emerald green cotton shorts '
+    + 'cut to the knee. A tight cowrie shell choker at the throat. Natural '
+    + 'hair cropped close and tapered to the skin at the sides.'],
 
-  ['a04', POSE.left, 'acid green', WHO.p04,
-    'Wearing a blunt boxy short-sleeved camp shirt in indigo-dyed cotton, '
-    + 'cracked resist Cuban tile medallions dyed into the cloth in deep indigo '
-    + 'and chalk white, worn open over a vermilion ribbed sleeveless tank top, '
-    + 'with straight indigo cotton trousers. A single heavy brass cuff earring '
-    + 'wrapping the upper ear. Waist-length braids parted in a hard geometric '
-    + 'grid at the scalp and gathered up into a standing arch above the head.'],
+  ['f04', POSE.left, 'acid green', WHO.f04,
+    'Wearing a blunt boxy short-sleeved shirt in indigo-dyed cotton, cracked '
+    + 'adire resist medallions dyed into the cloth in deep indigo and chalk '
+    + 'white, worn open over a vermilion ribbed sleeveless tank top, with '
+    + 'straight indigo cotton trousers. A single heavy brass cuff earring '
+    + 'wrapping the upper ear. A big round afro picked out wide and even.'],
 
-  ['a05', POSE.left, 'deep oxblood red', WHO.p05,
+  ['m01', POSE.left, 'deep oxblood red', WHO.m01,
     'Wearing a short-sleeved shirt in open-weave cotton gauze, the weave '
     + 'visible in the cloth, wide bands of acid green and natural straw with '
-    + 'Cuban domino-dot geometry woven in, blunt squared shoulders, worn open '
-    + 'over a cobalt blue ribbed sleeveless tank top, with wide cobalt blue '
-    + 'cotton trousers. Long hammered brass ear drops, tapered blades. A high '
-    + 'flat-topped afro with sharp squared edges, faded to the skin at the '
-    + 'sides.'],
+    + 'domino-dot geometry woven in, blunt squared shoulders, worn open over a '
+    + 'cobalt blue ribbed sleeveless tank top, with wide cobalt blue cotton '
+    + 'trousers. Long hammered brass ear drops, tapered blades. Cornrows '
+    + 'braided flat in tight arcs across the scalp, falling into short locs at '
+    + 'the nape.'],
+
+  ['m02', POSE.left, 'marigold yellow', WHO.m02,
+    'Wearing a sleeveless kente tank top, strip-weave bands woven through the '
+    + 'cloth in cobalt blue, emerald green and black, blunt squared armholes, '
+    + 'high straight neckline, with wide straight-leg emerald green cotton '
+    + 'trousers. A heavy hammered brass cuff on one wrist. A short flat-topped '
+    + 'afro, faded to the skin at the sides.'],
+
+  ['m03', POSE.left, 'violet purple', WHO.m03,
+    'Wearing a boxy short-sleeved knitted polo shirt, a bogolan mud-cloth '
+    + 'lattice knitted into the yarn in tangerine orange, chalk white and '
+    + 'black, contrast black ribbed collar, open at the throat, with wide '
+    + 'straight-leg tangerine orange cotton trousers. A single flat brass disc '
+    + 'pendant on a short chain. A high flat-top fade with sharp squared '
+    + 'edges.'],
+
+  ['m04', POSE.left, 'mint green', WHO.m04,
+    'Wearing a short-sleeved camp-collar shirt in heavy cotton, a wax-print '
+    + 'broken-record spiral repeat dyed into the cloth in vermilion, cream and '
+    + 'black, blunt squared shoulders, open at the throat over a cream ribbed '
+    + 'sleeveless tank top, with wide straight-leg black cotton trousers. A '
+    + 'row of cowrie shells strung tight at the throat. Shoulder-length '
+    + 'free-form locs, thick and uneven, tied back off the face.'],
 ];
 
 // The lead phrase decides what is being made before any other word lands.

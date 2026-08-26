@@ -42,6 +42,10 @@ function blankFrame() {
   view.set('uLoadCover', 0);
   view.set('uClothFront', 99);
   view.set('uTypeShow', 0);
+  // uFigFade belongs to the loader's reveal and is zero until it runs. Without
+  // this, figShow:true loads the texture, binds it, sets every placement value
+  // -- and multiplies her out to nothing. Everything correct, nothing visible.
+  view.set('uFigFade', 1);
 }
 
 const BLANK_LOOK = BLANK ? {
@@ -874,6 +878,37 @@ if (HAS_PANEL) $('copy').onclick = () => {
 
 apply(LOOKS[0].id);
 if (BLANK) blankFrame();
+
+// THE SLIDER'S BUTTONS. They live in index.html and wait for body.reveal, which
+// blank never fires -- so the arrows existed, worked on the keyboard, and had
+// nothing on screen to click. Shown as soon as there is more than one figure to
+// move between.
+if (BLANK && LOOKS.filter((l) => l.figShow && l.fig).length > 1) {
+  document.body.classList.add('slider-on');
+}
+
+// COLOUR FROM THE FIGURE.
+//
+// Put `palette:true` in a look and its light, ground and ink are read off that
+// figure's own photograph -- the pigment from the garment rather than the skin,
+// the ground and ink derived from the pigment's hue so the whole frame stays in
+// one family. Each character then arrives with its own personality instead of
+// wearing the last one's colour.
+//
+// It writes into the look, so it survives, shows on the panel, and travels in
+// the copy block like anything I set by hand.
+for (const l of LOOKS) {
+  if (!l.palette || !l.fig) continue;
+  import('./palette.js')
+    .then(({ paletteFrom }) => paletteFrom(`/src/figures/${l.fig}.png`))
+    .then(({ roles }) => {
+      Object.assign(PRESETS[l.id], roles);
+      Object.assign(l, roles);
+      if (ORDER[lookIx] === l.id) { Object.assign(state, roles); send(state); window.__syncPanel?.(); }
+      console.log('colour from', l.fig, roles);
+    })
+    .catch((e) => console.error('palette', l.fig, e));
+}
 
 // --- loader -----------------------------------------------------------------
 // Progress is REAL: every figure has to decode before the eclipse can break. A
