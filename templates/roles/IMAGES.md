@@ -85,8 +85,22 @@ we are building, and nobody watching can see why it looks slightly wrong.
 
 If a batch fails: one line, and wait. Do not substitute.
 
-**The exception is mine:** if I say *use the old ones*, use them. That is me
-deciding we are out of time. Never your decision.
+**The exception is mine, and it has a folder.**
+
+`~/Desktop/model` holds figures that already exist and are known good. When I
+say — in words — **"replicate isn't working, pull up the models we have"**, or
+anything that plainly means that:
+
+```bash
+cp ~/Desktop/model/*.png src/figures/
+```
+
+Then tell me the filenames. That is all.
+
+**Never offer it.** Not when a batch fails, not when the model is rate-limited,
+not when it is taking a long time. Report what happened and wait. Reaching for
+the folder is me deciding we are out of time, and it is a decision I make out
+loud — if you propose it, I have to argue with you about it on camera.
 
 ## The subject changes. The craft does not.
 

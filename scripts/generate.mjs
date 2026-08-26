@@ -119,8 +119,27 @@ const pairs = process.argv.slice(2);
 for (let i = 0; i < pairs.length; i += 2) {
   const [name, prompt] = [pairs[i], pairs[i + 1]];
   process.stdout.write(`${name}: generating… `);
-  const raw = await run('google/nano-banana-pro', {
-    prompt, aspect_ratio: '3:4', resolution: '2K', output_format: 'png',
+  // A LADDER WE CONTROL.
+  //
+  // Replicate's allow_fallback_model is set and does not always engage -- under
+  // load it hands back the original ModelRateLimitError anyway. Waiting is not a
+  // plan when the clock is running, so this walks down its own list: the best
+  // model, then the ones that are still answering.
+  //
+  // A different model is worse than the right one and enormously better than an
+  // empty folder at minute twenty. The console says which one drew it, so a set
+  // that came out mixed is visible rather than a mystery.
+  const LADDER = [
+    ['google/nano-banana-pro', (i) => ({ ...i, resolution: '2K', allow_fallback_model: true })],
+    ['google/nano-banana',     (i) => ({ prompt: i.prompt, aspect_ratio: i.aspect_ratio,
+                                         output_format: 'png',
+                                         ...(i.image_input ? { image_input: i.image_input } : {}) })],
+    ['bytedance/seedream-4',   (i) => ({ prompt: i.prompt, aspect_ratio: i.aspect_ratio,
+                                         ...(i.image_input ? { image_input: i.image_input } : {}) })],
+  ];
+
+  const base = {
+    prompt, aspect_ratio: '3:4', output_format: 'png',
     // Google's model rate-limits under load and returns ModelRateLimitError:
     // "Service is currently unavailable due to high demand". It is intermittent
     // -- the same account succeeds and fails minutes apart -- so waiting is not
@@ -130,9 +149,20 @@ for (let i = 0; i < pairs.length; i += 2) {
     // failing. The output says resolution 'fallback' rather than 2K, which is
     // how you tell. A different model is worse than the right one and enormously
     // better than an empty folder at minute twenty.
-    allow_fallback_model: true,
     ...(REFS.length ? { image_input: REFS } : {}),
-  });
+  };
+
+  let raw = null, drewBy = null;
+  for (const [model, shape] of LADDER) {
+    try { raw = await run(model, shape(base), model.includes('-pro') ? 4 : 2); drewBy = model; break; }
+    catch (e) {
+      const busy = /RateLimit|unavailable|high demand|overloaded|50\d/i.test(String(e));
+      if (!busy) throw e;
+      console.log(`  ${model.split('/')[1]} is busy — trying the next one`);
+    }
+  }
+  if (!raw) throw new Error('every model refused — all of them are busy');
+  if (drewBy !== 'google/nano-banana-pro') console.log(`  drawn by ${drewBy}`);
   process.stdout.write('cutting out… ');
   const cut = await run('851-labs/background-remover', { image: raw, format: 'png' });
   const buf = Buffer.from(await (await fetch(cut)).arrayBuffer());
